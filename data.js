@@ -205,15 +205,14 @@ E({id:'b-row-cavo', n:'Rematore al cavo basso seduto', g:'schiena', a:'Cavi', m:
  why:'Il rematore al cavo mantiene tensione costante sullo spessore della schiena (romboidi, trapezio medio) e migliora la postura.',
  err:['Dondolare con il busto avanti/indietro','Spalle sollevate','Schiena arrotondata']});
 
-E({id:'b-lat-ginocchio', n:'Lat pulldown in ginocchio a un braccio', g:'schiena', a:'Cavi', m:'Gran dorsale, romboidi, core',
- lin:true, st:'kneel', one:true, an:[210,12], eq:'cable', fr:[[172,176,{t:186}],[10,155,{t:176}]], cap:['Braccio disteso in alto','Gomito al fianco, maniglia al petto'],
- set:'Cavo ALTO con maniglia singola. Inginocchiati davanti alla torre (tappetino sotto le ginocchia), busto leggermente inclinato indietro.',
- pos:'Core contratto, bacino neutro, petto alto. La mano libera appoggiata al fianco o al rack.',
- ese:['Parti con il braccio disteso verso l’alto (stirando il dorsale).','Tira il gomito verso il fianco, leggermente davanti al corpo.','Contrai il dorsale 1 secondo.','Risali lentamente.'],
- cue:'Gomito in basso e verso la tasca, il busto resta fermo.',
- why:'Lavoro unilaterale che permette un range più ampio e una migliore connessione mente-muscolo con il dorsale; la posizione in ginocchio blocca le gambe e isola la schiena.',
- err:['Ruotare il busto','Usare lo slancio','Braccia che si piegano troppo presto']});
-
+E({id:'b-lat-ginocchio', n:'Lat pulldown in ginocchio (due braccia)', g:'schiena', a:'Cavi', m:'Gran dorsale, romboidi, core',
+ lin:true, st:'kneel', an:[210,12], eq:'cable', fr:[[172,176,{t:186}],[10,155,{t:176}]], cap:['Braccia distese in alto, una maniglia per mano','Gomiti ai fianchi, maniglie all’altezza del petto'],
+ set:'Due cavi ALTI con una maniglia per mano (oppure una barra/corda tenuta con due mani). Inginocchiati davanti alla torre tra i due cavi (tappetino sotto le ginocchia), busto leggermente inclinato indietro.',
+ pos:'Core contratto, bacino neutro, petto alto, glutei leggermente indietro rispetto alle ginocchia. Le due braccia si muovono insieme.',
+ ese:['Parti con le braccia distese verso l’alto (stirando i dorsali).','Tira entrambi i gomiti verso i fianchi, leggermente davanti al corpo.','Contrai i dorsali 1 secondo.','Risali lentamente a braccia distese.'],
+ cue:'Gomiti in basso e verso le tasche, entrambi insieme; il busto resta fermo.',
+ why:'Con le due braccia insieme lavori entrambi i dorsali con un range ampio e tensione costante; la posizione in ginocchio blocca le gambe e isola la schiena.',
+ err:['Ruotare il busto','Usare lo slancio','Braccia che si piegano troppo presto','Un braccio che tira più dell’altro']});
 E({id:'b-row-singolo', n:'Rematore a un braccio al cavo basso', g:'schiena', a:'Cavi', m:'Dorsali, romboidi, trapezio',
  lin:true, st:'hinge', one:true, an:[245,212], eq:'cable', fr:[[50,55],[-70,-5]], cap:['Braccio disteso verso il cavo','Gomito dietro il busto'],
  set:'Cavo BASSO con maniglia singola. Piedi a passo (piede opposto avanti), una mano appoggiata al rack o al ginocchio.',

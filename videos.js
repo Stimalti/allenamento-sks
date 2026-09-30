@@ -85,11 +85,6 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1JLMQ9Hkgq/",
 "n": "circa 0:00-0:02",
 "v": "32"
-},
-{
-"u": "https://www.facebook.com/share/r/1ByAoD4y79/",
-"n": "tecnica",
-"v": "08"
 }
 ],
 "p-croci-panca": [
@@ -104,11 +99,6 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1CYqELgiKD/",
 "n": "alzate laterali al cavo, circa 0:05-0:11",
 "v": "13"
-},
-{
-"u": "https://www.facebook.com/share/r/19GwTGrpTd/",
-"n": "circa 0:08-0:13",
-"v": "05"
 },
 {
 "u": "https://www.facebook.com/share/r/1atxq8gxQV/",
@@ -362,18 +352,7 @@ const VIDEOS = {
 "v": "15"
 }
 ],
-"c-curl-singolo": [
-{
-"u": "https://www.facebook.com/share/r/1Co99dY3CH/",
-"n": "circa 0:11-0:16",
-"v": "15"
-},
-{
-"u": "https://www.facebook.com/share/r/1AWzA8a1ko/",
-"n": "spiegazione della tecnica",
-"v": "19"
-}
-],
+"c-curl-singolo": [],
 "w-wrist-curl": [
 {
 "u": "https://www.facebook.com/share/r/1CM5Tfz4yH/",
@@ -425,14 +404,14 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1FL7Kw1VFa/",
 "n": "circa 0:22-0:26",
 "v": "10"
-}
-],
-"t-push-inverso": [
+},
 {
 "u": "https://www.facebook.com/share/r/1Bzmu63bUr/",
 "n": "tutto il video",
 "v": "25"
-},
+}
+],
+"t-push-inverso": [
 {
 "u": "https://www.facebook.com/share/r/1FL7Kw1VFa/",
 "n": "circa 0:14-0:22",
@@ -1223,6 +1202,16 @@ const VIDEOS = {
 ],
 "p-croci-singolo": [
 {
+"u": "https://www.facebook.com/share/r/1ByAoD4y79/",
+"n": "tecnica e errori (mostra anche il lavoro a un braccio)",
+"v": "08"
+},
+{
+"u": "https://www.facebook.com/share/r/1GhFyMsZCn/",
+"n": "tecnica completa del petto (mostra anche il lavoro a un braccio)",
+"v": "07"
+},
+{
 "u": "https://www.youtube.com/watch?v=KVCHZhzRTqo",
 "n": "Croci cavo basso braccio singolo / single arm low cable chest fly · YouTube",
 "s": 1
@@ -1231,6 +1220,13 @@ const VIDEOS = {
 "u": "https://www.youtube.com/watch?v=ZB4-aQH3JFY",
 "n": "Croci cavo alto braccio singolo / single arm high cable chest fly · YouTube",
 "s": 1
+}
+],
+"s-laterali-doppio": [
+{
+"u": "https://www.facebook.com/share/r/19GwTGrpTd/",
+"n": "circa 0:08-0:13",
+"v": "05"
 }
 ]
 };
