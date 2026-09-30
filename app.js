@@ -8,7 +8,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
-const CUST = ['g1', 'g2', 'g3', 'g4', 'mia'];
+const CUST = ['g1', 'g2', 'g3', 'g4', 'mia', 'gA', 'gB'];
 function fixDB(d) { if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia; return d; }
 fixDB(DB);
@@ -52,7 +52,7 @@ const TABS = [
 ];
 const rtList = id => DB.rt[id] || (DB.rt[id] = []);
 const customPlan = id => { const base = PLAN.find(p => p.id === id);
-  return {id, custom: true, profilo: id === 'mia' ? 'mia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : base ? base.nome : 'La mia routine', sotto: DB.names[id] ? (DB.names[id].m || '') : base ? base.sotto : 'Scegli tu gli esercizi',
+  return {id, custom: true, profilo: id === 'mia' ? 'mia' : id[0] === 'g' && id.length === 2 && id[1] > '9' ? 'giulia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : base ? base.nome : 'La mia routine', sotto: DB.names[id] ? (DB.names[id].m || '') : base ? base.sotto : 'Scegli tu gli esercizi',
     obiettivo: 'Esercizi scelti da te: aggiungili o toglili dalla Libreria con il tasto + e riordinali qui sotto.',
     ex: rtList(id).filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))}; };
 const planOf = id => CUST.includes(id) ? customPlan(id) : PLAN.find(p => p.id === id);
@@ -71,7 +71,7 @@ function renameRt(id) {
    <div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="renreset" data-id="${id}">Ripristina</button><button class="primary" style="width:auto;padding:10px 18px" data-act="rensave" data-id="${id}">Salva</button></div>`);
 }
 function pickRt(id) {
-  const rows = () => CUST.map(r => { const t = TABS.find(x => x.id === r); const cp = customPlan(r); return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(cp.nome + (cp.sotto ? ': ' + cp.sotto : ''))}</button>`; }).join('');
+  const rows = () => CUST.map(r => { const cp = customPlan(r), pre = r === 'gA' || r === 'gB' ? 'Giulia · ' : ''; return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(pre + cp.nome + (cp.sotto ? ': ' + cp.sotto : ''))}</button>`; }).join('');
   modal(`<h2 style="padding-right:44px">Aggiungi a…</h2><p style="color:var(--mut);margin:0 0 10px">${esc(byId[id].n)}</p><div id="rtrows">${rows()}</div>`);
   pickRt.rows = rows;
 }
@@ -200,6 +200,7 @@ function libView() {
   return `${filters(lib, 'lib', 'q')}<div class="count">${list.length} di ${EX.length} esercizi</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
 }
+const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">${cp.profilo === 'giulia' ? 'Giulia' : 'Creata da te'}</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
   return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button></div>` +
@@ -217,10 +218,9 @@ function render(keep) {
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
-    h = `<div class="pills">${['gA', 'gB'].map(id => `<button class="${giuliaSub === id ? 'on' : ''}" data-act="sub" data-id="${id}">${planOf(id).nome}<br><small>${planOf(id).sotto}</small></button>`).join('')}</div>` + planView(planOf(giuliaSub), 'giulia');
+    h = `<div class="pills">${['gA', 'gB'].map(id => `<button class="${giuliaSub === id ? 'on' : ''}" data-act="sub" data-id="${id}">${esc(planOf(id).nome)}<br><small>${esc(planOf(id).sotto)}</small></button>`).join('')}</div>` + custView(planOf(giuliaSub));
   } else if (CUST.includes(tab)) {
-    const cp = planOf(tab);
-    h = cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Creata da te</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
+    h = custView(planOf(tab));
   } else h = planView(planOf(tab), 'io');
   $('#main').innerHTML = h;
   if (keep) window.scrollTo(0, y);
