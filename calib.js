@@ -247,3 +247,18 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue:'Costole basse e busto fermo: spingi il soffitto senza inclinarti.',
     why:'Spinta verticale unilaterale: allena deltoidi e tricipiti e, in piedi, anche il core come anti-inclinazione.'}));
 })();
+
+/* ===== traiettorie a braccio quasi teso: la mano percorre un arco attorno alla spalla (gomito a flessione costante) ===== */
+(() => {
+  const HS = {
+    'p-croci-basse': {a: [19, 64, -6], b: [-22, -10, 66], r: 71},
+    'p-croci-alte': {a: [70, -17, -12], b: [-20, 47, 50], r: 71},
+    'p-croci-petto': {a: [70, 0, -14], b: [-22, 8, 66], r: 71},
+    'p-croci-singolo': {a: [70, 0, -14], b: [-22, 8, 66], r: 71},
+    's-laterali': {a: [-8, 70, 6], b: [68, -4, 22], r: 71},
+    's-laterali-doppio': {a: [-8, 70, 6], b: [68, -4, 22], r: 71},
+    's-posteriori': {a: [-37, 8, 60], b: [71, 0, -6], r: 71},
+    's-posteriori-singolo': {a: [-37, 8, 60], b: [71, 0, -6], r: 71}
+  };
+  EX.forEach(e => { if (HS[e.id]) e.hs = HS[e.id]; });
+})();

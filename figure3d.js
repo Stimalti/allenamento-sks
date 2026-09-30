@@ -17,7 +17,7 @@ const FIG3 = (() => {
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 39 : 38; TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
   const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab'];
   const resolve = (ex, fr) => Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]});
-  const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); return r; };
+  const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
     let dx = t[0]-h[0], dy = t[1]-h[1], d0 = Math.hypot(dx, dy), d = Math.min(d0, l1+l2-0.5);
     const a = (l1*l1 - l2*l2 + d*d)/(2*d), hh = Math.sqrt(Math.max(0, l1*l1 - a*a)), ux = dx/d0, uy = dy/d0;
@@ -275,14 +275,19 @@ const FIG3 = (() => {
     const Ls = [cx - SW, sy + 4], Rs = [cx + SW, sy + 4];
     const armF = (S, sg, ua, fa) => { const E = [S[0] + sg*UA*Math.sin(ua*R), S[1] + UA*Math.cos(ua*R)]; return {E, W: [E[0] + sg*FA*Math.sin(fa*R), E[1] + FA*Math.cos(fa*R)]}; };
     const rA = armF(Rs, 1, p.ua, p.fa), lA = ex.one ? armF(Ls, -1, 5, 5) : armF(Ls, -1, p.ua, p.fa);
+    // ex.hs = {a, b, r}: la mano si muove su un arco di sfera attorno alla spalla (direzione a -> b, vettori relativi alla spalla destra, x>0 = verso l'esterno), quindi il gomito resta sempre alla stessa flessione
+    const hsp = ex.hs && rig && p.k !== undefined ? (() => { const n = v => { const l = Math.hypot(...v); return v.map(c => c / l); }, a = n(ex.hs.a), b = n(ex.hs.b), k = p.k, dt = Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2])), om = Math.acos(dt), so = Math.sin(om) || 1;
+      const w0 = Math.sin((1 - k) * om) / so, w1 = Math.sin(k * om) / so, d = [0, 1, 2].map(i => w0 * a[i] + w1 * b[i]), r = ex.hs.r || 71;
+      const hp = (S, sg) => [S[0] + sg * r * d[0], S[1] + r * d[1], r * d[2]]; return {R: hp(Rs, 1), L: hp(Ls, -1)}; })() : null;
+    if (hsp) { rA.W = [hsp.R[0], hsp.R[1]]; if (!ex.one) lA.W = [hsp.L[0], hsp.L[1]]; }
     // mani con profondità reale (croci, alzate posteriori, upright row, lat): il gomito si piega con IK 3D e le mani passano DAVANTI al corpo
     const hz = ex.hz || [0, 0];
     const hand3 = (A, S, sg) => {
-      const xh = Math.abs(A.W[0] - cx), t = Math.max(0, Math.min(1, (SW + 12 - xh) / (SW + 12))), z = hz[0] + hz[1] * t;
+      const xh = Math.abs(A.W[0] - cx), t = Math.max(0, Math.min(1, (SW + 12 - xh) / (SW + 12))), z = hsp ? hsp.R[2] : hz[0] + hz[1] * t;
       const Wp = [A.W[0], A.W[1], z]; return {E: ik3([S[0], S[1], 0], Wp, UA, FA, [sg, .55, -.25]), W: Wp};
     };
-    const R3 = ex.hz && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
-    const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : (ex.hz && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
+    const R3 = (ex.hz || hsp) && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
+    const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : ((ex.hz || hsp) && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
     let rAnk = [cx + 14, hy + 104];
     const frontLeg = (hip, knee, ank, toe, col) => { leg(P, hip, knee, ank, toe, col, SHO, 0); };
     if (seatF) {
