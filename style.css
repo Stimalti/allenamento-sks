@@ -131,3 +131,6 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .mctl button{border:1px solid var(--line);background:var(--in);border-radius:10px;padding:6px 14px;font-size:15px;font-weight:700}
 .mctl button:disabled{opacity:.35}.mctl .rm{color:#d33}
 .addmore{width:100%;margin:4px 0 12px}
+.presc.edit{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.presc.edit b{white-space:nowrap}
+.ed{width:78px;border:1px solid var(--line);background:var(--in);border-radius:10px;padding:7px 9px;font:inherit;font-size:16px;font-weight:600;color:var(--tx);text-align:center}
+.presc.edit b{font-size:26px}.presc.edit b .n{font-size:inherit;color:inherit;font-weight:inherit}

@@ -141,7 +141,7 @@ function exCard(x, idx, prof) {
   return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
    ${cov(ex.id, 'cover')}${prof === 'mia' ? `<div class="mctl"><button data-act="mup" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-id="${ex.id}">Togli</button></div>` : ''}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
     <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div></div></div>
-   <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>
+   ${prof === 'mia' ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><input class="ed" data-mf="r" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>recupero</span><input class="ed" data-mf="rec" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
    <div class="role">${esc(x.ruolo)}</div>
    ${setsHtml(k, x.s, x.r)}${lastLine(k)}${hintLine(k, x.r)}
    <details class="tech"><summary>Tecnica 3D, cavi e spiegazione</summary><div class="tb">${techHtml(ex)}</div></details>
@@ -255,7 +255,7 @@ document.addEventListener('click', e => {
     const tgt = b.closest('.ex') ? (planFind(k)?.r || '') : '';
     const tmp = document.createElement('div'); tmp.innerHTML = setsHtml(k, n, tgt);
     holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
-    const pre = host.querySelector('.presc b'); if (pre) pre.textContent = n + ' × ' + (planFind(k)?.r || ''); refreshProgress();
+    const pre = host.querySelector('.presc b'); if (pre) { const sp = pre.querySelector('.n'); if (sp) sp.textContent = n; else pre.textContent = n + ' × ' + (planFind(k)?.r || ''); } refreshProgress();
   }
   else if (a === 'vdel') { VDB.del(b.dataset.id).then(() => { flash('Video rimosso'); loadMine(b.closest('.tb, #mbody') || document); }); }
   else if (a === 'hist') histView(k);
@@ -274,6 +274,7 @@ document.addEventListener('change', async e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'q') { lib.q = t.value; const pos = t.selectionStart; render(true); const q = $('#q'); q.focus(); q.setSelectionRange(pos, pos); return; }
+  if (t.dataset.mf) { const x = DB.mia.find(m => m.e === t.dataset.id); if (x) { x[t.dataset.mf] = t.value.slice(0, 12); save(); } return; }
   if (t.dataset.f) { const s = DB.cur[t.dataset.k].sets[+t.dataset.i]; s[t.dataset.f] = t.value.replace(/[^\d.,]/g, ''); if (t.value !== s[t.dataset.f]) t.value = s[t.dataset.f]; save(); }
 });
 document.addEventListener('toggle', e => {
