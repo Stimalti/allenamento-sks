@@ -231,7 +231,7 @@ const FIG3 = (() => {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
     const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
-    if (rig && tilt > 14 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
+    if (rig && !window.FIG3_ICON && tilt > 14 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
       const GZ2 = 48, ORG = '#ff6b35'; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, 180), GZ2), .8, ORG));
       P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
       let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
@@ -380,6 +380,7 @@ const FIG3 = (() => {
     const group = new THREE.Group(); scene.add(group); const pool = [];
     let pose = null, rigInst = null;
     const trail = new THREE.Group(); scene.add(trail);
+    if (window.FIG3_ICON) { floor.visible = false; ring.visible = false; trail.visible = false; }
     const tMat = new THREE.MeshBasicMaterial({color: 0x22c7ff, depthTest: false, transparent: true, opacity: .95}), sMat = new THREE.MeshBasicMaterial({color: 0x22c55e, depthTest: false}), eMat = new THREE.MeshBasicMaterial({color: 0xff6b35, depthTest: false});
     function buildTrail() {
       while (trail.children.length) trail.remove(trail.children[0]);
