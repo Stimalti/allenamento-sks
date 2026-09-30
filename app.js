@@ -39,9 +39,9 @@ const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#1
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const TABS = [
   {id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'},
-  {id:'g1', a:['Petto','Tricipiti'], b:'1', full:'Giorno 1: petto e tricipiti'},
+  {id:'g1', a:['Petto','Tricipiti','Avambracci'], b:'1', full:'Giorno 1: petto, tricipiti e avambracci'},
   {id:'g2', a:['Schiena','Bicipiti','Avambracci'], b:'2', full:'Giorno 2: schiena, bicipiti e avambracci'},
-  {id:'g3', a:['Spalle','Bicipiti','Tricipiti'], b:'3', full:'Giorno 3: spalle, bicipiti e tricipiti'},
+  {id:'g3', a:['Spalle','Bicipiti','Tricipiti','Avambracci'], b:'3', full:'Giorno 3: spalle, bicipiti, tricipiti e avambracci'},
   {id:'g4', a:['Gambe','Glutei','Addome'], b:'4', full:'Giorno 4: gambe, glutei e addominali'},
   {id:'giulia', a:['Giulia','Gambe','Glutei'], b:'G', full:'Giulia: gambe, glutei e addominali'}
 ];
@@ -194,6 +194,7 @@ function settings() {
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
    <div class="card"><h2>Attrezzatura prevista</h2><p>Powerrack Atletica SKS con safety, bilanciere e dischi, manubri, panca regolabile con attacco leg extension, jammer arms, doppia puleggia (cavi alto/basso) con corda, barra dritta/V, maniglie singole e cavigliera, sbarra per trazioni. Se manca qualcosa, nella Libreria filtra per attrezzo e sostituisci.</p></div>
+   <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Foto di copertina generate con Canva.</p></div>
    <div class="card"><button class="ghost danger" data-act="wipe">Cancella tutti i pesi</button></div>`);
 }
 

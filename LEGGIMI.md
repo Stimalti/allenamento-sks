@@ -9,3 +9,6 @@ App autonoma (nessun server, nessun account): apri `index.html` da un hosting st
 
 Hosting gratuito possibile: GitHub Pages o Netlify puntando alla cartella `allenamento/`.
 Prova locale: `cd allenamento && python3 -m http.server 8000`.
+
+## Crediti
+Modello 3D "Male base muscular anatomy" di Harshit Prajapati, licenza CC BY 4.0 (https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66). Foto di copertina generate con Canva.

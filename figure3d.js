@@ -1,7 +1,8 @@
 /* Figure 3D (three.js): stessa logica di posa di figure.js, ma il manichino è un vero modello 3D
    che si può ruotare col dito/mouse. Se three.js non è disponibile, si usa la figura 2D. */
 const FIG3 = (() => {
-  const R = Math.PI / 180, FLOOR = 222, UA = 36, FA = 38, TH = 52, SH = 52;
+  const R = Math.PI / 180, FLOOR = 222;
+  let UA = 36, FA = 38, TH = 52, SH = 52;
   const dir = a => [Math.sin(a * R), Math.cos(a * R)];
   const add = (p, l, a) => { const d = dir(a); return [p[0] + l * d[0], p[1] + l * d[1]]; };
   const C = {body:'#d7dfec', far:'#8190aa', acc:'#ff7a30', plate:'#5d6b85', cable:'#2fc4f5', tower:'#3a4764', bench:'#4a5876', skin:'#e9c9a8'};
@@ -11,6 +12,9 @@ const FIG3 = (() => {
     inc:{h:[190,170],t:225,th:95,sh:2,bench:'inc'}, kneel:{h:[150,162],t:180,th:0,sh:-90,bench:'kneel'},
     hang:{h:[150,150],t:180,th:10,sh:-70}
   };
+  const ST_PRIM = JSON.parse(JSON.stringify(ST));
+  const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
+  function rigMode(on) { UA = on ? 35 : 36; FA = on ? 39 : 38; TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
   const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab'];
   const resolve = (ex, fr) => Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]});
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); return r; };
@@ -22,7 +26,7 @@ const FIG3 = (() => {
   }
 
   /* ---- costruzione primitive (coordinate "px" 2D + profondità z) ---- */
-  const SK = '#d9a27e', SKF = '#b98560', TOP = '#1d2742', SHO = '#2c3658', SHOE = '#f4f6fa', HAIR = '#2b1f19', STEEL = '#c3ccdb', BLK = '#171b26', TW = '#2a3350';
+  const SK = '#d9a27e', SKF = '#b98560', TOP = '#1d2742', SHO = '#2c3658', SHOE = '#f4f6fa', HAIR = '#2b1f19', STEEL = '#8b96ac', BLK = '#1b2030', TW = '#8f9ab1';
   const cyl = (a, b, r, col, rx, rz) => ({k:'c', a, b, rx: rx ?? r, rz: rz ?? r, rr: 1, col});
   const seg = (a, b, r0, r1, col, zs) => ({k:'c', a, b, rx: r0, rz: r0 * (zs || 1), rr: r1 / r0, col});
   const sph = (p, r, col) => ({k:'s', p, r, col});
@@ -133,7 +137,7 @@ const FIG3 = (() => {
   }
 
   function benchPrims(P, ex) {
-    const st = ex.benchSt || ST[ex.st].bench, h = ST[ex.st].h, c = '#3b4668', pad = '#232b42', D = 40;
+    const st = ex.benchSt || ST[ex.st].bench, h = ST[ex.st].h, c = '#8792a9', pad = '#4f5973', D = 40;
     const padBox = (a, b) => { P.push(box(a, b, 9, D, pad)); };
     if (st === 'ht') { padBox(pt3([56,190],0), pt3([140,190],0)); P.push(cyl(pt3([68,195],-12), pt3([68,FLOOR],-12), 2.5, c), cyl(pt3([128,195],12), pt3([128,FLOOR],12), 2.5, c)); }
     else if (st === 'seat') { padBox(pt3([h[0]-26,h[1]+10],0), pt3([h[0]+46,h[1]+10],0)); padBox(pt3([h[0]-14,h[1]+8],0), pt3([h[0]-14,h[1]-74],0)); P.push(cyl(pt3([h[0]+8,h[1]+15],0), pt3([h[0]+8,FLOOR],0), 3, c)); }
@@ -147,21 +151,28 @@ const FIG3 = (() => {
   function cableTo(P, from, an, tz) {
     const t = pt3(an, tz);
     P.push(cyl(pt3([an[0], 4], tz), pt3([an[0], FLOOR], tz), 3.4, TW));
-    P.push(box(pt3([an[0] - 0, FLOOR - 56], tz), pt3([an[0], FLOOR - 56], tz), 100, 26, '#20283f'));
-    P.push(sph(t, 6.5, '#8d99b3'));
+    P.push(box(pt3([an[0] - 9, FLOOR - 62], tz - 14), pt3([an[0] + 9, FLOOR - 62], tz - 14), 110, 20, '#8a95ad'));
+    P.push(sph(t, 6.5, '#b5bfd2'));
     P.push(cyl(from, t, 1.2, STEEL));
     P.push(cyl([from[0], from[1], from[2] - 4], [from[0], from[1], from[2] + 4], 2.6, BLK));
   }
   const sideZ = (z, one) => z >= 0 ? 62 : -62;
 
+  const W3 = p => new THREE.Vector3((p[0] - 150) / 100, (FLOOR - p[1]) / 100, (p[2] || 0) / 100);
+  const Wv = (x, y, z) => new THREE.Vector3(x, y, z);
+  function bendFront(S, E, Wr, fb) {   // lato verso cui si piega l'avambraccio (= lato del bicipite)
+    const u = E.clone().sub(S).normalize(), w = Wr.clone().sub(S), perp = w.sub(u.clone().multiplyScalar(w.dot(u)));
+    return perp.length() < 0.05 ? fb : perp.normalize();
+  }
+  const fw2 = a => { const d = dir(a); return [d[0], -d[1], 0]; };
   const tzSide = (an, sg) => an[1] < 60 ? 0 : 62 * sg;
-  function geoSide(ex, p) {
-    const P = [], ZN = 17, ZF = -17, LN = 11, LF = -11;
+  function geoSide(ex, p, rig) {
+    const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
-    const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = add(A, 17, p.sh + 90 + p.ft);
+    const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(W, 14, p.fa + p.hd) : W;
-    const GZ = ex.gz ?? (ex.eq === 'bar' ? 27 : 21), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
+    const GZ = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : 30) : (ex.eq === 'bar' ? 27 : 21)), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
     const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
@@ -173,25 +184,26 @@ const FIG3 = (() => {
     benchPrims(P, ex);
     // gamba lontana
     let K2, A2, f2;
-    if (ex.rl) { K2 = ik(H, ex.rl, TH, SH); A2 = ex.rl; f2 = add(A2, 17, 90); }
-    else if (ex.sup) { K2 = add(H, TH, 0); A2 = add(K2, SH, 0); f2 = add(A2, 17, 90); }
+    const fl = rig ? (a => add(a, 25, 74)) : (a => add(a, 17, 90));
+    if (ex.rl) { K2 = ik(H, ex.rl, TH, SH); A2 = ex.rl; f2 = fl(A2); }
+    else if (ex.sup) { K2 = add(H, TH, 0); A2 = add(K2, SH, 0); f2 = fl(A2); }
     else { K2 = K; A2 = A; f2 = foot; }
-    leg(P, H, K2, A2, f2, SKF, '#1f2742', LF);
+    leg(B, H, K2, A2, f2, SKF, '#1f2742', LF);
     // braccio lontano
-    arm(P, pt3(S, ZF), E3f, W3f, SKF);
+    arm(B, pt3(S, ZF), E3f, W3f, SKF);
     // tronco: bacino (pantaloncini), addome e torace (canotta), collo, testa, capelli
     const mid = lerp3(pt3(H, 0), pt3(S, 0), .5);
-    P.push(seg(pt3(H, 0), mid, 10.5, 10.8, SHO, 1.75));
-    P.push(seg(mid, pt3(S, 0), 11, 12.4, TOP, 1.62));
-    P.push(ell(pt3(H, 0), pt3(S, 0), .78, 13, 11, TOP));
-    P.push(seg(pt3(S, ZF - 1), pt3(S, ZN + 1), 7.4, 7.4, TOP));
-    P.push(seg(pt3(S, 0), pt3(head, 0), 5.2, 4.6, SK));
-    P.push(sph(pt3([head[0] + 1.5, head[1] + 1.5], 0), 10.6, SK));
-    P.push(sph(pt3([head[0] - 2.6, head[1] - 2.8], 0), 11.6, HAIR));
+    B.push(seg(pt3(H, 0), mid, 10.5, 10.8, SHO, 1.75));
+    B.push(seg(mid, pt3(S, 0), 11, 12.4, TOP, 1.62));
+    B.push(ell(pt3(H, 0), pt3(S, 0), .78, 13, 11, TOP));
+    B.push(seg(pt3(S, ZF - 1), pt3(S, ZN + 1), 7.4, 7.4, TOP));
+    B.push(seg(pt3(S, 0), pt3(head, 0), 5.2, 4.6, SK));
+    B.push(sph(pt3([head[0] + 1.5, head[1] + 1.5], 0), 10.6, SK));
+    B.push(sph(pt3([head[0] - 2.6, head[1] - 2.8], 0), 11.6, HAIR));
     // gamba vicina e braccio vicino
-    leg(P, H, K, A, foot, SK, SHO, LN);
-    arm(P, pt3(S, ZN), E3n, W3n, SK);
-    if (ex.hand) P.push(seg(W3n, g3n, 3.6, 3.2, SK));
+    leg(B, H, K, A, foot, SK, SHO, LN);
+    arm(B, pt3(S, ZN), E3n, W3n, SK);
+    if (ex.hand) B.push(seg(W3n, g3n, 3.6, 3.2, SK));
     // attrezzi
     const g1 = g3n, g2 = ex.one ? g3n : g3f;
     if (ex.eq === 'cable' && ex.an) {
@@ -205,7 +217,7 @@ const FIG3 = (() => {
       P.push(cyl(pt3(ex.an, -40), pt3(ex.an, 40), 2.6, TW));
       P.push(cyl(pt3(grip, ZN - 6), pt3(grip, ZN + 6), 8.5, BLK), cyl(pt3(grip, ZN - 7), pt3(grip, ZN - 5), 9.4, '#6b7693'));
     } else if (ex.eq === 'bar' || ex.eq === 'barh') {
-      const gw = Math.max(GZ, 27); P.push(cyl(pt3(grip, -gw - 26), pt3(grip, gw + 26), 2.4, STEEL));
+      const gw = Math.max(GZ, rig ? 40 : 27); P.push(cyl(pt3(grip, -gw - 26), pt3(grip, gw + 26), 2.4, STEEL));
       [[-gw - 24, -gw - 17], [gw + 17, gw + 24]].forEach(([z0, z1]) => { P.push(cyl(pt3(grip, z0), pt3(grip, z1), 12.5, BLK), cyl(pt3(grip, z0 - .3), pt3(grip, z1 + .3), 4.5, '#5b6580')); });
     } else if (ex.eq === 'db') {
       const zs = ex.one ? [ZN] : [ZN, ZF];
@@ -215,7 +227,21 @@ const FIG3 = (() => {
     } else if (ex.eq === 'pad') {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
-    if (p.showM) {
+    if (rig) {
+      const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, 0)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
+      const fS = (Sx, Ex, Wx, fb) => bendFront(W3(Sx), W3(Ex), W3(Wx), fb);
+      const aimF = (a, b) => { const d = W3(b).sub(W3(a)).normalize(); return Wv(-d.y, d.x, 0); };
+      const thF = Wv(...fw2(p.th + 90)), shF = Wv(...fw2(p.sh + 90)), up0 = Wv(0, 1, 0);
+      const sFar = ex.one ? 5 : p.ua, fFar = ex.one ? 5 : p.fa;
+      const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, 0)), up, front: fT,
+        sh: {R: W3(pt3(S, ZN)), L: W3(pt3(S, ZF))}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
+        armF: {R: fS(pt3(S, ZN), E3n, W3n, fwd(p.ua)), L: fS(pt3(S, ZF), E3f, W3f, fwd(sFar))},
+        hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN)), L: W3(pt3(K2, LF))}, an: {R: W3(pt3(A, LN)), L: W3(pt3(A2, LF))},
+        toe: {R: W3(pt3(foot, LN)), L: W3(pt3(f2, LF))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF},
+        footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
+      P.J = J;
+    }
+    if (p.showM && !rig) {
       const m = musOf(ex), fwT = [...dir(p.t - 90), 0], fwD = th => [...dir(th + 90), 0];
       torsoMus(P, m, {H: pt3(H, 0), S: pt3(S, 0), fwd: fwT, lat: [0, 0, 1], dz: ZN});
       limbsMus(P, m,
@@ -225,9 +251,9 @@ const FIG3 = (() => {
     return P;
   }
 
-  function geoFront(ex, p) {
-    const P = [], seatF = ex.st === 'seat', sy = seatF ? 114 : 62, hy = sy + 58, cx = 150;
-    const Ls = [cx - 27, sy + 4], Rs = [cx + 27, sy + 4];
+  function geoFront(ex, p, rig) {
+    const P = [], B = rig ? [] : P, seatF = ex.st === 'seat', sy = seatF ? (rig ? 107 : 114) : 62, hy = sy + 58, cx = 150, SW = rig ? 25 : 27, HW = rig ? 14 : 10;
+    const Ls = [cx - SW, sy + 4], Rs = [cx + SW, sy + 4];
     const armF = (S, sg, ua, fa) => { const E = [S[0] + sg*UA*Math.sin(ua*R), S[1] + UA*Math.cos(ua*R)]; return {E, W: [E[0] + sg*FA*Math.sin(fa*R), E[1] + FA*Math.cos(fa*R)]}; };
     const rA = armF(Rs, 1, p.ua, p.fa), lA = ex.one ? armF(Ls, -1, 5, 5) : armF(Ls, -1, p.ua, p.fa);
     let rAnk = [cx + 14, hy + 104];
@@ -235,25 +261,25 @@ const FIG3 = (() => {
     if (seatF) {
       P.push(box(pt3([cx - 46, hy + 7], 0), pt3([cx + 46, hy + 7], 0), 9, 44, '#232b42'));
       P.push(cyl(pt3([cx - 30, hy + 12], 0), pt3([cx - 30, FLOOR], 0), 3, '#3b4668'), cyl(pt3([cx + 30, hy + 12], 0), pt3([cx + 30, FLOOR], 0), 3, '#3b4668'));
-      leg(P, [cx - 14, hy, 0], [cx - 18, hy + 14, 26], [cx - 26, FLOOR - 2, 40], [cx - 26, FLOOR - 2, 56], SK, SHO, 0);
-      leg(P, [cx + 14, hy, 0], [cx + 18, hy + 14, 26], [cx + 26, FLOOR - 2, 40], [cx + 26, FLOOR - 2, 56], SK, SHO, 0);
+      leg(B, [cx - 14, hy, 0], [cx - 18, hy + 14, 26], [cx - 26, FLOOR - 2, 40], [cx - 26, FLOOR - 2, 56], SK, SHO, 0);
+      leg(B, [cx + 14, hy, 0], [cx + 18, hy + 14, 26], [cx + 26, FLOOR - 2, 40], [cx + 26, FLOOR - 2, 56], SK, SHO, 0);
       rAnk = [cx + 26, FLOOR - 2];
     } else if (ex.legs) {
-      const hip = [cx + 10, hy], a = add(hip, 104, p.ab), km = [(hip[0] + a[0]) / 2, (hip[1] + a[1]) / 2];
-      leg(P, [cx - 10, hy, 0], [cx - 12, hy + 52, 0], [cx - 14, FLOOR - 2, 0], [cx - 14, FLOOR - 2, 17], SK, SHO, 0);
-      leg(P, [hip[0], hip[1], 0], [km[0], km[1], 0], [a[0], a[1], 0], [a[0], a[1], 17], SK, SHO, 0); rAnk = a;
+      const hip = [cx + 10, hy], a = add(hip, rig ? 94 : 104, p.ab), km = [(hip[0] + a[0]) / 2, (hip[1] + a[1]) / 2];
+      leg(B, [cx - 10, hy, 0], [cx - 12, hy + 52, 0], [cx - 14, FLOOR - 2, 0], [cx - 14, FLOOR - 2, 17], SK, SHO, 0);
+      leg(B, [hip[0], hip[1], 0], [km[0], km[1], 0], [a[0], a[1], 0], [a[0], a[1], 17], SK, SHO, 0); rAnk = a;
     } else {
-      leg(P, [cx - 10, hy, 0], [cx - 18, hy + 52, 0], [cx - 26, FLOOR - 2, 0], [cx - 26, FLOOR - 2, 17], SK, SHO, 0);
-      leg(P, [cx + 10, hy, 0], [cx + 18, hy + 52, 0], [cx + 26, FLOOR - 2, 0], [cx + 26, FLOOR - 2, 17], SK, SHO, 0);
+      leg(B, [cx - 10, hy, 0], [cx - 18, hy + 52, 0], [cx - 26, FLOOR - 2, 0], [cx - 26, FLOOR - 2, 17], SK, SHO, 0);
+      leg(B, [cx + 10, hy, 0], [cx + 18, hy + 52, 0], [cx + 26, FLOOR - 2, 0], [cx + 26, FLOOR - 2, 17], SK, SHO, 0);
     }
     const hc = [cx, hy, 0], sc = [cx, sy + 2, 0], md = lerp3(hc, sc, .5);
-    P.push(seg(hc, md, 15, 14, SHO, .62));
-    P.push(seg(md, sc, 14.5, 22, TOP, .58));
-    P.push(seg([cx - 25, sy + 3, 0], [cx + 25, sy + 3, 0], 8.6, 8.6, TOP));
-    P.push(seg(sc, [cx, sy - 8, 0], 5.4, 4.8, SK));
-    P.push(sph([cx, sy - 21, 1], 10.8, SK), sph([cx, sy - 24, -2.5], 11.7, HAIR));
-    arm(P, [Ls[0], Ls[1], 0], [lA.E[0], lA.E[1], 0], [lA.W[0], lA.W[1], 0], ex.one ? SKF : SK);
-    arm(P, [Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0], SK);
+    B.push(seg(hc, md, 15, 14, SHO, .62));
+    B.push(seg(md, sc, 14.5, 22, TOP, .58));
+    B.push(seg([cx - 25, sy + 3, 0], [cx + 25, sy + 3, 0], 8.6, 8.6, TOP));
+    B.push(seg(sc, [cx, sy - 8, 0], 5.4, 4.8, SK));
+    B.push(sph([cx, sy - 21, 1], 10.8, SK), sph([cx, sy - 24, -2.5], 11.7, HAIR));
+    arm(B, [Ls[0], Ls[1], 0], [lA.E[0], lA.E[1], 0], [lA.W[0], lA.W[1], 0], ex.one ? SKF : SK);
+    arm(B, [Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0], SK);
     const an = ex.an || [], wr = pt3(rA.W, 0), wl = pt3(lA.W, 0);
     if (ex.bar) {
       P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, 0]; cableTo(P, m, an[0], 78);
@@ -264,7 +290,25 @@ const FIG3 = (() => {
       else if (ex.cross) { cableTo(P, wr, an[0], 0); cableTo(P, wl, an[1], 0); }
       else { cableTo(P, wl, an[0], 0); cableTo(P, wr, an[1], 0); }
     }
-    if (p.showM) {
+    if (rig) {
+      const Fz = Wv(0, 0, 1), up0 = Wv(0, 1, 0), p3 = (x, y, z) => W3([x, y, z || 0]);
+      const fa = (S, E, Wr) => bendFront(p3(...S), p3(...E), p3(...Wr), Fz);
+      const toe = (a, dz) => p3(a[0], a[1] + 7, (a[2] || 0) + dz);
+      let hipL, hipR, knL, knR, anL, anR, tL, tR;
+      hipL = [cx + HW, hy, 0]; hipR = [cx - HW, hy, 0];
+      if (seatF) { knL = [cx + 18, hy, 46]; knR = [cx - 18, hy, 46]; anL = [cx + 22, hy + SH, 46]; anR = [cx - 22, hy + SH, 46]; }
+      else if (ex.legs) { anL = add(hipL, TH + SH, p.ab).concat(0); knL = [(hipL[0] + anL[0]) / 2, (hipL[1] + anL[1]) / 2, 0]; knR = [cx - 19, hy + TH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
+      else { knL = [cx + 19, hy + TH, 0]; knR = [cx - 19, hy + TH, 0]; anL = [cx + 26, hy + TH + SH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
+      if (!anL[2] && anL[2] !== 0) anL[2] = 0;
+      const J = {H: p3(cx, hy, 0), S: p3(cx, sy + 4, 0), up: up0, front: Fz,
+        sh: {L: p3(Rs[0], Rs[1], 0), R: p3(Ls[0], Ls[1], 0)}, el: {L: p3(rA.E[0], rA.E[1], 0), R: p3(lA.E[0], lA.E[1], 0)}, wr: {L: p3(rA.W[0], rA.W[1], 0), R: p3(lA.W[0], lA.W[1], 0)},
+        armF: {L: fa([Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0]), R: fa([Ls[0], Ls[1], 0], [lA.E[0], lA.E[1], 0], [lA.W[0], lA.W[1], 0])},
+        hip: {L: p3(...hipL), R: p3(...hipR)}, kn: {L: p3(...knL), R: p3(...knR)}, an: {L: p3(...anL), R: p3(...anR)},
+        toe: {L: toe(anL, 25), R: toe(anR, 25)}, legF: {L: Fz, R: Fz}, footUp: {L: up0, R: up0}};
+      if (seatF) { J.legF = {L: Wv(0, 1, 0), R: Wv(0, 1, 0)}; }
+      P.J = J;
+    }
+    if (p.showM && !rig) {
       const m = musOf(ex), F = [0, 0, 1], Z = v => [v[0], v[1], 0];
       torsoMus(P, m, {H: [cx, hy, 0], S: [cx, sy + 2, 0], fwd: F, lat: [1, 0, 0], dz: 26});
       limbsMus(P, m,
@@ -273,14 +317,14 @@ const FIG3 = (() => {
     }
     return P;
   }
-  const geo = (ex, p) => ex.v === 'f' ? geoFront(ex, p) : geoSide(ex, p);
+  const geo = (ex, p, rig) => ex.v === 'f' ? geoFront(ex, p, rig) : geoSide(ex, p, rig);
 
   /* ---- rendering three.js ---- */
   let active = null;
   const S3 = 100;
   function destroy(o) {
     if (!o) return; o.dead = true; cancelAnimationFrame(o.raf);
-    try { o.renderer.dispose(); o.renderer.forceContextLoss(); } catch (e) {}
+    try { if (o.rig) o.rig.dispose(); o.renderer.dispose(); o.renderer.forceContextLoss(); } catch (e) {}
   }
   const mats = {};
   const matM = () => new THREE.MeshStandardMaterial({color: 0xd6121f, emissive: 0xff1030, emissiveIntensity: .55, roughness: .5, transparent: true, opacity: .6, depthWrite: false});
@@ -297,17 +341,19 @@ const FIG3 = (() => {
     el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button></div><div class="legend3d"></div>';
     const stage = el.querySelector('.stage'); stage.prepend(renderer.domElement);
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 50);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, .95));
-    const dl = new THREE.DirectionalLight(0xffffff, .9); dl.position.set(2.5, 4, 3); scene.add(dl);
-    const dl2 = new THREE.DirectionalLight(0x88aaff, .35); dl2.position.set(-3, 2, -2); scene.add(dl2);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(1.9, 64), new THREE.MeshStandardMaterial({color: 0x161c2e, roughness: .95}));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = -.005; scene.add(floor);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(1.86, 1.9, 64), new THREE.MeshBasicMaterial({color: 0xff7a30})); ring.rotation.x = -Math.PI / 2; scene.add(ring);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8f9ab3, .85));
+    const dl = new THREE.DirectionalLight(0xffffff, .95); dl.position.set(2.2, 4.5, 3.2); dl.castShadow = true; dl.shadow.mapSize.set(1024, 1024);
+    Object.assign(dl.shadow.camera, {left: -2.6, right: 2.6, top: 3, bottom: -2, near: .5, far: 14}); dl.shadow.bias = -.0008; scene.add(dl);
+    const dl2 = new THREE.DirectionalLight(0xbcd0ff, .4); dl2.position.set(-3, 2, -2); scene.add(dl2);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(2.0, 64), new THREE.MeshStandardMaterial({color: 0xe9edf5, roughness: .95}));
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -.005; floor.receiveShadow = true; scene.add(floor);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.97, 2.0, 64), new THREE.MeshBasicMaterial({color: 0xff6b35})); ring.rotation.x = -Math.PI / 2; scene.add(ring);
     const mM = matM(), mF = new THREE.MeshBasicMaterial({color: 0xff9aa2, transparent: true, opacity: .95});
     const cylG = {}; const gCylR = rr => { const k = Math.round(rr * 20); return cylG[k] || (cylG[k] = new THREE.CylinderGeometry(k / 20, 1, 1, 16)); };
     const gSph = new THREE.SphereGeometry(1, 16, 12), gBox = new THREE.BoxGeometry(1, 1, 1);
     const group = new THREE.Group(); scene.add(group); const pool = [];
-    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])];
+    let pose = null, rigInst = null;
     const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m])'), mb = el.querySelector('.mbtn'), leg = el.querySelector('.legend3d');
     leg.textContent = 'In rosso i muscoli che lavorano: ' + ex.m + '.';
     const o = {el, renderer, showM: true, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
@@ -320,7 +366,7 @@ const FIG3 = (() => {
       if (m && type === 'c') { const g = gCylR(pr.rr); if (m.geometry !== g) m.geometry = g; }
       if (!m || m.userData.k !== type) {
         if (m) group.remove(m);
-        m = new THREE.Mesh(type === 'c' ? gCylR(pr.rr) : (type === 's' || type === 'e') ? gSph : gBox, mat(pr.col)); m.userData.k = type; group.add(m); pool[i] = m;
+        m = new THREE.Mesh(type === 'c' ? gCylR(pr.rr) : (type === 's' || type === 'e') ? gSph : gBox, mat(pr.col)); m.userData.k = type; m.castShadow = true; group.add(m); pool[i] = m;
       }
       m.material = pr.m === 1 ? mM : pr.m === 2 ? mF : mat(pr.col);
       if (pr.k === 'c') {
@@ -356,18 +402,33 @@ const FIG3 = (() => {
       if (o.hold !== null) k = o.hold;
       else { const ph = ((t - o.t0) / 1000) % 4; k = ph < .6 ? 0 : ph < 2 ? (ph - .6) / 1.4 : ph < 2.6 ? 1 : 1 - (ph - 2.6) / 1.4; k = k*k*(3-2*k); }
       if (k !== lastK) {
-        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; const prims = geo(ex, pp); prims.forEach((pr, i) => place(i, pr));
+        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
+        if (rigInst && prims.J) {
+          rigInst.pose(prims.J);
+          const act = {}; if (o.showM) musOf(ex).forEach(g => { act[g] = .35 + .65 * k; }); rigInst.setMuscles(act);
+        }
         while (pool.length > prims.length) group.remove(pool.pop());
         cap.textContent = k < .5 ? ex.cap[0] : ex.cap[1];
       }
-      mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k;
-      if (!o.drag && t - o.idle > 2500) o.az = .75 * Math.sin(t / 2600) - (ex.v === 'f' ? 0 : .35);
+      if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
+      if (!o.drag && t - o.idle > 2500) o.az = .75 * Math.sin(t / 2600) + o.base;
       const r = o.ct[2], cx = o.ct[0], cy = o.ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
     }
-    const CT = {lie:[.42,.42,4.5], inc:[.3,.7,4.4], kneel:[.05,.75,4.2], hang:[0,1.1,4.6], seat:[.05,.85,4.2]}[ex.st] || [0,.95,4.15];
-    o.ct = CT;
-    o.az = ex.v === 'f' ? 0 : -.35; o.raf = requestAnimationFrame(frame);
+    const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0]}[ex.st] || [0,.98,4.05];
+    const over = ex.fr.some(f => f[0] > 125);
+    o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
+    const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
+    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : -.35;
+    o.az = o.base;
+    cap.textContent = 'Carico il modello 3D…';
+    (async () => {
+      if (typeof RIG !== 'undefined' && THREE.GLTFLoader) { try { rigInst = await RIG.create(); } catch (e) { rigInst = null; } }
+      if (o.dead) { if (rigInst) rigInst.dispose(); return; }
+      rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])];
+      if (rigInst) { scene.add(rigInst.root); rigInst.meshes.forEach(m => { m.castShadow = true; }); o.rig = rigInst; }
+      o.raf = requestAnimationFrame(frame);
+    })();
     return o;
   }
   return {mount};

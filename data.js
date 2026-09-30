@@ -563,7 +563,7 @@ E({id:'a-rollout', n:'Ab rollout con bilanciere', g:'addome', a:'Bilanciere', m:
 
 /* ---- extra gambe/glutei (usati soprattutto nella sezione Giulia) ---- */
 E({id:'g-sumo', n:'Sumo squat con manubrio (goblet)', g:'gambe', a:'Manubri', m:'Glutei, adduttori, quadricipiti',
- st:'stand', eq:'db', fr:[[50,-70,{t:178}],[50,-70,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, manubrio al petto, piedi larghi','Scesa profonda, busto eretto'],
+ st:'stand', eq:'db', fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, manubrio al petto, piedi larghi','Scesa profonda, busto eretto'],
  set:'Un manubrio (o kettlebell) tenuto verticalmente contro il petto con entrambe le mani.',
  pos:'Piedi molto più larghi delle spalle, punte aperte a 30-45°, ginocchia che seguono la direzione dei piedi, petto alto.',
  ese:['Inspira e scendi dritto in verticale spingendo le ginocchia in fuori.','Scendi finché le cosce sono parallele o sotto, mantenendo il busto eretto.','Spingi i piedi nel pavimento e contrai i glutei in alto.'],
@@ -599,7 +599,7 @@ E({id:'g-add-cavo', n:'Adduzione anca al cavo (cavigliera)', g:'gambe', a:'Cavi'
  err:['Slancio','Busto che si piega','Carico troppo alto']});
 
 E({id:'g-squat-cavo', n:'Squat al cavo (goblet con maniglia)', g:'gambe', a:'Cavi', m:'Quadricipiti, glutei, adduttori, core',
- st:'stand', eq:'cable', an:[255,120], fr:[[50,-70,{t:178}],[50,-70,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, maniglia al petto, cavo in avanti','Scesa profonda, il cavo ti bilancia in avanti'],
+ st:'stand', eq:'cable', an:[255,120], fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, maniglia al petto, cavo in avanti','Scesa profonda, il cavo ti bilancia in avanti'],
  set:'Cavo MEDIO-BASSO (circa all’altezza dell’anca) con maniglia singola o corda. Tienila al petto con due mani e allontanati dalla torre finché il cavo è in tensione.',
  pos:'Piedi alla larghezza delle spalle o più larghi (sumo), punte aperte, gomiti vicini al busto, petto alto. Il cavo ti tira in avanti: resisti con il core.',
  ese:['Inspira e scendi in verticale, ginocchia in fuori sopra le punte dei piedi.','Scendi fino a cosce parallele o sotto, con il cavo che ti fa da contrappeso.','Spingi i piedi nel pavimento e risali contraendo i glutei in alto.'],
@@ -666,7 +666,7 @@ const GRUPPI = {petto:'Petto', spalle:'Spalle', schiena:'Schiena', bicipiti:'Bic
 
 /* sets, reps (testo), rec = recupero, ruolo = a cosa serve in questa seduta, opt = opzionale */
 const PLAN = [
- {id:'g1', nome:'Giorno 1', sotto:'Petto + Tricipiti', obiettivo:'Forza nella spinta orizzontale. Panca pesante come primo esercizio (quando sei più fresco), poi tutto ai cavi: petto per volume e tricipiti, che sono il "limite" della panca.',
+ {id:'g1', nome:'Giorno 1', sotto:'Petto + Tricipiti + Avambracci', obiettivo:'Forza nella spinta orizzontale. Panca pesante come primo esercizio (quando sei più fresco), poi tutto ai cavi: petto per volume e tricipiti, che sono il "limite" della panca.',
   ex:[
    {e:'p-panca', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: carico alto, tecnica perfetta.'},
    {e:'p-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Spinta pesante con traiettoria indipendente.'},
@@ -676,6 +676,7 @@ const PLAN = [
    {e:'p-croci-basse', s:3, r:'12-15', rec:'75 s', ruolo:'Petto alto ai cavi bassi.'},
    {e:'t-push-corda', s:4, r:'10-12', rec:'75 s', ruolo:'Tricipiti: volume e forza di lockout.'},
    {e:'t-overhead-corda', s:3, r:'12', rec:'75 s', ruolo:'Capo lungo del tricipite (il più grosso).'},
+   {e:'w-wrist-ext', s:3, r:'15', rec:'60 s', ruolo:'Avambracci (estensori): bilanciano i tricipiti e proteggono il gomito.'},
    {e:'t-panca-stretta', s:3, r:'6', rec:'2 min', ruolo:'Forza di lockout con il bilanciere.', opt:true}
   ]},
  {id:'g2', nome:'Giorno 2', sotto:'Schiena + Bicipiti + Avambracci', obiettivo:'Forza nella trazione. Rack pull pesante, poi la schiena quasi tutta ai cavi, infine bicipiti e avambracci ai cavi.',
@@ -689,10 +690,9 @@ const PLAN = [
    {e:'c-curl-cavo', s:3, r:'10-12', rec:'75 s', ruolo:'Bicipiti: tensione costante.'},
    {e:'c-curl-alti', s:3, r:'12', rec:'75 s', ruolo:'Bicipiti in contrazione massima (posa double biceps).'},
    {e:'c-curl-panca-cavo', s:3, r:'10-12', rec:'75 s', ruolo:'Bicipiti in allungamento con tensione costante.', opt:true},
-   {e:'w-wrist-curl', s:3, r:'15', rec:'60 s', ruolo:'Presa più forte per stacchi e trazioni.'},
-   {e:'w-reverse-curl', s:3, r:'12', rec:'60 s', ruolo:'Estensori e gomito (prevenzione).', opt:true}
+   {e:'w-wrist-curl', s:3, r:'15', rec:'60 s', ruolo:'Presa più forte per stacchi e trazioni.'}
   ]},
- {id:'g3', nome:'Giorno 3', sotto:'Spalle + Bicipiti + Tricipiti', obiettivo:'Forza sopra la testa e salute della spalla, poi braccia insieme ai cavi in superserie (un esercizio di bicipiti e uno di tricipiti senza pausa, poi recuperi).',
+ {id:'g3', nome:'Giorno 3', sotto:'Spalle + Bicipiti + Tricipiti + Avambracci', obiettivo:'Forza sopra la testa e salute della spalla, poi braccia insieme ai cavi in superserie (un esercizio di bicipiti e uno di tricipiti senza pausa, poi recuperi).',
   ex:[
    {e:'s-military', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: spalle e tronco.'},
    {e:'s-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Forza monolaterale, anti-rotazione del core.'},
@@ -704,7 +704,8 @@ const PLAN = [
    {e:'t-french-cavo', s:3, r:'10-12', rec:'senza pausa', ruolo:'Superserie 1A: tricipiti (capo lungo e mediale).'},
    {e:'c-curl-singolo', s:3, r:'10-12', rec:'90 s dopo la coppia', ruolo:'Superserie 1B: bicipiti, un braccio alla volta.'},
    {e:'t-push-barra', s:3, r:'12', rec:'senza pausa', ruolo:'Superserie 2A: tricipiti, volume ai cavi.'},
-   {e:'c-hammer', s:3, r:'12', rec:'90 s dopo la coppia', ruolo:'Superserie 2B: brachiale e spessore del braccio.'}
+   {e:'c-hammer', s:3, r:'12', rec:'90 s dopo la coppia', ruolo:'Superserie 2B: brachiale e spessore del braccio.'},
+   {e:'w-reverse-curl', s:3, r:'12', rec:'60 s', ruolo:'Avambracci (brachioradiale ed estensori): completano il lavoro sulle braccia.'}
   ]},
  {id:'g4', nome:'Giorno 4', sotto:'Gambe + Glutei + Addominali', obiettivo:'Forza delle gambe e del core, che sostengono tutti gli altri sollevamenti. Squat pesante, poi catena posteriore ai cavi e addominali.',
   ex:[

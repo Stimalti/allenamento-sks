@@ -104,3 +104,10 @@ details.tech[open]>summary::after{transform:rotate(-135deg)}
 nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 
 .legend3d{font-size:13px;color:#ffb4ba;padding:0 14px 12px;text-align:center}.figbtns .mbtn{background:rgba(225,29,46,.18);border-color:rgba(255,120,130,.4)}.figbtns .mbtn.on{background:#e11d2e;border-color:#e11d2e}
+
+.fig{background:linear-gradient(180deg,#f3f6fb,#cdd5e4);color:#27324a}
+.figcap{color:#3d4a66}.hint3d{color:rgba(40,52,78,.55)}
+.figbtns button{border:1px solid rgba(40,52,78,.25);background:rgba(255,255,255,.65);color:#27324a}
+.figbtns button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.figbtns .mbtn{background:rgba(225,29,46,.12);border-color:rgba(225,29,46,.4);color:#9f1321}.figbtns .mbtn.on{background:#e11d2e;border-color:#e11d2e;color:#fff}
+.legend3d{color:#a3202c}
