@@ -426,7 +426,7 @@ E({id:'t-over-db', n:'Estensioni sopra la testa con manubrio', g:'tricipiti', a:
 
 /* ============================== GAMBE ============================== */
 E({id:'g-squat', n:'Squat con bilanciere (rack)', g:'gambe', a:'Bilanciere', m:'Quadricipiti, glutei, core, adduttori',
- trj:'Il bilanciere scende e sale in linea verticale sopra la metà del piede. Il busto si inclina ma la barra non va avanti né indietro.', st:'stand', eq:'bar', fr:[[-70,118,{t:176}],[-70,118,{t:140,h:[112,163],th:80,sh:-15}]], cap:['In piedi con il bilanciere sul trapezio','Cosce parallele (o sotto), busto inclinato'],
+ trj:'Il bilanciere scende e sale in linea verticale sopra la metà del piede. Il busto si inclina ma la barra non va avanti né indietro.', ko:9, st:'stand', eq:'bar', fr:[[-70,118,{t:176}],[-70,118,{t:140,h:[112,163],th:80,sh:-15}]], cap:['In piedi con il bilanciere sul trapezio','Cosce parallele (o sotto), busto inclinato'],
  set:'Rack con safety a altezza appena sotto il fondo dello squat. Barra sul trapezio (high bar) o sui deltoidi posteriori (low bar).',
  pos:'Piedi alla larghezza delle spalle o poco più, punte leggermente aperte. Gomiti bassi, petto alto, core contratto.',
  ese:['Stacca il bilanciere e fai 2 passi indietro.','Inspira, contrai il core e scendi spingendo le ginocchia in fuori e i fianchi indietro.','Scendi fino a cosce parallele o leggermente sotto.','Spingi i piedi nel pavimento e risali con busto fermo.'],
@@ -435,7 +435,7 @@ E({id:'g-squat', n:'Squat con bilanciere (rack)', g:'gambe', a:'Bilanciere', m:'
  err:['Ginocchia che cadono verso l’interno','Talloni che si alzano','Schiena che si arrotonda in basso','Scendere troppo poco']});
 
 E({id:'g-front-squat', n:'Squat frontale con bilanciere', g:'gambe', a:'Bilanciere', m:'Quadricipiti, glutei, core, schiena alta',
- st:'stand', eq:'bar', fr:[[85,-102,{t:176}],[85,-102,{t:158,h:[118,163],th:80,sh:-15}]], cap:['Barra sulle clavicole, gomiti alti','Cosce parallele, busto verticale'],
+ ko:9, st:'stand', eq:'bar', fr:[[85,-102,{t:176}],[85,-102,{t:158,h:[118,163],th:80,sh:-15}]], cap:['Barra sulle clavicole, gomiti alti','Cosce parallele, busto verticale'],
  set:'Rack con safety. Barra sulle clavicole e sui deltoidi anteriori, presa a clean (dita sotto la barra) o a braccia incrociate.',
  pos:'Gomiti alti e davanti, petto alto, core contratto, sguardo avanti.',
  ese:['Stacca la barra e fai 2 passi indietro.','Scendi verticalmente portando le ginocchia in fuori.','Raggiungi cosce parallele o più sotto.','Risali spingendo i piedi nel pavimento con gomiti alti.'],
@@ -563,7 +563,7 @@ E({id:'a-rollout', n:'Ab rollout con bilanciere', g:'addome', a:'Bilanciere', m:
 
 /* ---- extra gambe/glutei (usati soprattutto nella sezione Giulia) ---- */
 E({id:'g-sumo', n:'Sumo squat con manubrio (goblet)', g:'gambe', a:'Manubri', m:'Glutei, adduttori, quadricipiti',
- st:'stand', eq:'db', fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, manubrio al petto, piedi larghi','Scesa profonda, busto eretto'],
+ ko:15, st:'stand', eq:'db', fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, manubrio al petto, piedi larghi','Scesa profonda, busto eretto'],
  set:'Un manubrio (o kettlebell) tenuto verticalmente contro il petto con entrambe le mani.',
  pos:'Piedi molto più larghi delle spalle, punte aperte a 30-45°, ginocchia che seguono la direzione dei piedi, petto alto.',
  ese:['Inspira e scendi dritto in verticale spingendo le ginocchia in fuori.','Scendi finché le cosce sono parallele o sotto, mantenendo il busto eretto.','Spingi i piedi nel pavimento e contrai i glutei in alto.'],
@@ -599,7 +599,7 @@ E({id:'g-add-cavo', n:'Adduzione anca al cavo (cavigliera)', g:'gambe', a:'Cavi'
  err:['Slancio','Busto che si piega','Carico troppo alto']});
 
 E({id:'g-squat-cavo', n:'Squat al cavo (goblet con maniglia)', g:'gambe', a:'Cavi', m:'Quadricipiti, glutei, adduttori, core',
- st:'stand', eq:'cable', an:[255,120], fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, maniglia al petto, cavo in avanti','Scesa profonda, il cavo ti bilancia in avanti'],
+ ko:10, st:'stand', eq:'cable', an:[255,120], fr:[[25,145,{t:178}],[25,145,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, maniglia al petto, cavo in avanti','Scesa profonda, il cavo ti bilancia in avanti'],
  set:'Cavo MEDIO-BASSO (circa all’altezza dell’anca) con maniglia singola o corda. Tienila al petto con due mani e allontanati dalla torre finché il cavo è in tensione.',
  pos:'Piedi alla larghezza delle spalle o più larghi (sumo), punte aperte, gomiti vicini al busto, petto alto. Il cavo ti tira in avanti: resisti con il core.',
  ese:['Inspira e scendi in verticale, ginocchia in fuori sopra le punte dei piedi.','Scendi fino a cosce parallele o sotto, con il cavo che ti fa da contrappeso.','Spingi i piedi nel pavimento e risali contraendo i glutei in alto.'],

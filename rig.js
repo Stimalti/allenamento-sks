@@ -12,6 +12,7 @@ const RIG = (() => {
   // nome, da, a, lato (+1 = sinistra anatomica = x+), raggio, vettore "davanti" a riposo
   const DEF = [['pelvis', LM.P0, LM.Pm, 0, 1.6], ['chest', LM.Pm, LM.N, 0, 2.2], ['neck', LM.N, LM.HB, 0, .6], ['head', LM.HB, LM.HT, 0, 1.0]];
   [[1, 'L', x => x], [-1, 'R', mir]].forEach(([sd, s, f]) => {
+    DEF.push(['fing' + s, f([8.45,-2.5,0.1]), f(LM.F), sd, .3]);
     DEF.push(['clav' + s, LM.N, f(LM.S), sd, .5], ['armU' + s, f(LM.S), f(LM.E), sd, .8], ['armF' + s, f(LM.E), f(LM.W), sd, .55], ['hand' + s, f(LM.W), f(LM.F), sd, .35],
       ['legU' + s, f(LM.H), f(LM.Kn), sd, 1.1], ['legL' + s, f(LM.Kn), f(LM.A), sd, .8], ['foot' + s, f(LM.A), f(LM.T), sd, .5]);
   });
@@ -75,12 +76,17 @@ const RIG = (() => {
         let c = [];
         for (let b = 0; b < NB; b++) {
           const d = DEF[b]; const side = d[3]; let f = 1;
+          if (d[0].startsWith('fing')) continue;
           const name = d[0];
           if (side !== 0 && p[0] * side < -0.35 && !name.startsWith('clav')) continue;
           if (/^arm|^hand/.test(name) && Math.abs(p[0]) < 3.4 && p[1] < -2.6) f *= sm(1.6, 3.2, Math.abs(p[0]));
           const de = Math.max(0, segDist(p, d[1], d[2]) - d[4]);
           c.push([b, f / Math.pow(de + .15, 3)]);
         }
+        { let t0 = 0; c.forEach(e => t0 += e[1]); c.forEach(e => e[1] /= t0);
+          ['L', 'R'].forEach(s => { const sg = s === 'L' ? 1 : -1, hb = IDX['hand' + s], fbn = IDX['fing' + s];
+            if (p[0] * sg > 8.3) { const u = Math.max(0, Math.min(1, (Math.abs(p[0]) - 8.45) / 0.45)), e = c.find(x => x[0] === hb);
+              if (e && u > 0) { const mv = e[1] * u; e[1] -= mv; c.push([fbn, mv]); } } }); }
         c.sort((a, b) => b[1] - a[1]); c = c.slice(0, 4); let tot = 0; c.forEach(e => tot += e[1]);
         for (let k = 0; k < 4; k++) { si[v*4 + k] = c[k] ? c[k][0] : 0; sw[v*4 + k] = c[k] ? c[k][1] / tot : 0; }
         const m = muscleMask(p[0], p[1], p[2], nor.getX(v), nor.getY(v), nor.getZ(v));
@@ -153,6 +159,13 @@ const RIG = (() => {
         const sh = J.sh[s], el = J.el[s], wr = J.wr[s], u = wr.clone().sub(el).normalize();
         const wrist = el.clone().lerp(wr, 2.6 / 3.6), tip = wrist.clone().addScaledVector(u, 1.95 * K);
         setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.armF[s]); setBone('hand' + s, wrist, tip, J.armF[s]);
+        { const kn = wrist.clone().lerp(tip, .45 / 1.95), fb = bones[IDX['fing' + s]];
+          setBone('fing' + s, kn, tip, J.armF[s]);
+          const obj = J.obj && J.obj[s], th = (obj ? 82 : 22) * Math.PI / 180, L = kn.distanceTo(tip);
+          const xw = new THREE.Vector3(1, 0, 0).applyQuaternion(fb.quaternion), yw = new THREE.Vector3(0, 1, 0).applyQuaternion(fb.quaternion);
+          const target = obj || J.H, cand = ph => kn.clone().addScaledVector(xw, -Math.sin(ph) * L).addScaledVector(yw, Math.cos(ph) * L).distanceTo(target);
+          const ph = cand(th) <= cand(-th) ? th : -th;
+          fb.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), ph)); }
         setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], J.legF[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
       });
       root.updateMatrixWorld(true);
