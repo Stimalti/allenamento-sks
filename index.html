@@ -10,10 +10,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
+  <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6.5 12h11M4 8v8M20 8v8M1.8 10v4M22.2 10v4"/></svg></span>
   <h1 id="ttl">Allenamento</h1>
   <span id="saved" aria-live="polite"></span>
   <button id="cfg" aria-label="Impostazioni e backup">⚙</button>
@@ -21,8 +24,10 @@
 <main id="main"></main>
 <nav id="nav"></nav>
 <div id="modal" hidden><div class="sheet"><button class="x" id="mx" aria-label="Chiudi">✕</button><div id="mbody"></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="data.js"></script>
 <script src="figure.js"></script>
+<script src="figure3d.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

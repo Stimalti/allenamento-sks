@@ -35,13 +35,15 @@ async function initCloud() {
 }
 function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => s.classList.remove('on'), 2200); }
 
+const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
+const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const TABS = [
-  {id:'lib', a:'Esercizi', b:'🔍'},
-  {id:'g1', a:'Giorno 1', b:'Petto'},
-  {id:'g2', a:'Giorno 2', b:'Schiena'},
-  {id:'g3', a:'Giorno 3', b:'Spalle'},
-  {id:'g4', a:'Giorno 4', b:'Gambe'},
-  {id:'giulia', a:'Giulia', b:'Gambe'}
+  {id:'lib', a:'Esercizi', b:ICON_LIB},
+  {id:'g1', a:'Petto', b:'1'},
+  {id:'g2', a:'Schiena', b:'2'},
+  {id:'g3', a:'Spalle', b:'3'},
+  {id:'g4', a:'Gambe', b:'4'},
+  {id:'giulia', a:'Giulia', b:'G'}
 ];
 const planOf = id => PLAN.find(p => p.id === id);
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
@@ -99,25 +101,29 @@ function setsHtml(k, n, target) {
     <button data-act="hist" data-k="${k}">Storico</button></div>`;
 }
 
+const cab = ex => ex.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(ex.a)}</span>`;
+const gtag = ex => `<span class="tag" style="background:color-mix(in srgb,${GCOL[ex.g]} 16%,transparent);color:${GCOL[ex.g]}">${esc(GRUPPI[ex.g])}</span>`;
 function exCard(x, idx, prof) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s);
   const done = c.sets.filter(s => s.done).length;
-  return `<article class="card ex" id="c-${k.replace(':', '-')}">
-   <div class="exh"><div class="n"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
-    <div><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2></div></div>
-    <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b> · recupero ${esc(x.rec)} · ${esc(ex.a)}</div></div>
+  return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
+   <div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
+    <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div></div></div>
+   <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>
    <div class="role">${esc(x.ruolo)}</div>
    ${setsHtml(k, x.s, x.r)}${lastLine(k)}${hintLine(k, x.r)}
-   <details class="tech"><summary>Tecnica, cavi e spiegazione</summary><div class="tb">${techHtml(ex)}</div></details>
+   <details class="tech"><summary>Tecnica 3D, cavi e spiegazione</summary><div class="tb">${techHtml(ex)}</div></details>
   </article>`;
 }
 
+const secs = rec => { const m = String(rec).match(/(\d+)\s*min/), t = String(rec).match(/(\d+)\s*s\b/); return m ? +m[1] * 60 : t ? +t[1] : 20; };
 function planView(p, prof) {
-  let tot = 0, dn = 0;
-  p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; });
-  return `<div class="card intro"><h2>${esc(p.nome)} — ${esc(p.sotto)}</h2><p>${esc(p.obiettivo)}</p>
-   <p style="color:var(--mut);font-size:14px">Scrivi peso e ripetizioni: si salva da solo a ogni modifica. Tocca ✓ quando chiudi una serie. Gli esercizi “opzionali” si saltano se hai poco tempo.</p>
-   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><small style="color:var(--mut)">${dn}/${tot} serie completate</small></div>
+  let tot = 0, dn = 0, mins = 0;
+  p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); });
+  const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
+  return `<section class="hero"><div class="eyebrow">${prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
+   <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
+   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate</div></section>
    ${p.ex.map((x, i) => exCard(x, i, prof)).join('')}
    <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
 }
@@ -135,16 +141,16 @@ function libView() {
   <div class="chips">${chip('g', '', 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo')}${atts.map(a => chip('a', a, a)).join('')}</div>
   <div class="count">${list.length} di ${EX.length} esercizi</div>
-  <div id="list">${list.map(e => `<button class="li" data-act="open" data-id="${e.id}"><span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.a)}</small></span>${planCount(e.id) ? '<span class="tag">in scheda</span>' : ''}</button>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
+  <div id="list">${list.map(e => `<button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}"><span class="dot">${esc(GRUPPI[e.g][0])}</span><span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
 }
-const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" data-act="chip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
+const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`;
 
 /* ---------- render ---------- */
 function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
-  $('#ttl').textContent = tab === 'lib' ? 'Tutti gli esercizi' : tab === 'giulia' ? 'Giulia · Gambe e glutei' : planOf(tab).nome + ' · ' + planOf(tab).sotto;
-  $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}"><b>${x.b}</b>${x.a}</button>`).join('');
+  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
+  $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${x.a}"><i>${x.b}</i>${x.a}</button>`).join('');
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
@@ -172,7 +178,7 @@ function openEx(id) {
   modal(`<h2 style="padding-right:44px">${esc(ex.n)}</h2><p style="color:var(--mut);margin:0 0 8px">${esc(GRUPPI[ex.g])} · ${esc(ex.a)}</p>
    <div class="card" style="padding:8px">${techHtml(ex)}</div>
    <div class="card"><h2>I tuoi pesi</h2>${setsHtml(k, 3, '')}${lastLine(k)}</div>`);
-  const f = $('#mbody [data-fig]'); if (f) FIG.mount(f, ex);
+  const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, ex, FIG.mount);
 }
 function histView(k) {
   const [prof, id] = k.split(':'), ex = byId[id], h = (DB.hist[k] || []).slice().reverse();
@@ -222,7 +228,8 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('toggle', e => {
   const d = e.target; if (!d.matches || !d.matches('details.tech') || !d.open) return;
-  const f = d.querySelector('[data-fig]'); if (f && !f.dataset.m) { f.dataset.m = 1; FIG.mount(f, byId[f.dataset.fig]); }
+  document.querySelectorAll('details.tech[open]').forEach(o => { if (o !== d) o.open = false; });
+  const f = d.querySelector('[data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount);
 }, true);
 
 function planFind(k) { const [prof, id] = k.split(':'); const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }

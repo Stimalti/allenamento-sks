@@ -616,6 +616,51 @@ E({id:'g-rdl-cavo', n:'Stacco rumeno al cavo basso', g:'gambe', a:'Cavi', m:'Fem
  why:'Il cavo dà tensione costante: anche in alto i glutei devono lavorare per chiudere il movimento, cosa che con il bilanciere non succede. Costruisce femorali e glutei con un carico ben controllabile.',
  err:['Schiena arrotondata','Piegare troppo le ginocchia','Inarcare la schiena in alto']});
 
+E({id:'p-panca-cavi', n:'Panca piana con cavi (chest press su panca)', g:'petto', a:'Cavi', m:'Pettorali, tricipiti, deltoidi anteriori',
+ st:'lie', eq:'cable', an:[40,200], fr:[[80,180],[180,180]], cap:['Maniglie ai lati del petto, cavi in tensione','Braccia distese sopra il petto'],
+ set:'Panca piana tra le due torri con la testa verso i cavi, cavi BASSI (puleggia al minimo) con maniglie singole. Prendi le maniglie da seduto, poi sdraiati tenendole al petto.',
+ pos:'Scapole addotte e depresse, petto alto, piedi a terra. Gomiti a ~45° dal busto.',
+ ese:['Parti con le maniglie ai lati del petto, gomiti sotto i polsi.','Spingi verso l’alto avvicinando le mani sopra il petto.','Contrai il petto 1 secondo in alto.','Scendi lentamente controllando il cavo.'],
+ cue:'Spingi i gomiti verso il centro del petto: il cavo tira sempre, anche in alto.',
+ why:'Come la panca, ma con tensione costante e le due braccia indipendenti: il petto lavora anche in chiusura, dove con il bilanciere si "scarica".',
+ err:['Gomiti troppo larghi','Schiena inarcata','Peso troppo alto e movimento corto']});
+
+E({id:'p-incl-cavi', n:'Panca inclinata con cavi', g:'petto', a:'Cavi', m:'Petto alto (clavicolare), deltoidi anteriori, tricipiti',
+ st:'inc', eq:'cable', an:[40,215], fr:[[55,180],[178,180]], cap:['Maniglie ai lati del petto alto','Braccia distese, mani unite sopra il petto'],
+ set:'Panca a 30° tra le torri, cavi BASSI con maniglie singole. Siediti con la schiena ben appoggiata.',
+ pos:'Petto alto, scapole indietro e giù, piedi a terra. Polsi dritti.',
+ ese:['Parti con le maniglie all’altezza del petto alto.','Spingi in alto e leggermente verso il centro.','Contrai 1 secondo.','Ritorna lentamente.'],
+ cue:'Spingi "verso il mento" con i gomiti che si avvicinano in alto.',
+ why:'Il petto alto sviluppato con tensione costante: sostituisce la panca inclinata con i manubri e carica meno le spalle.',
+ err:['Panca troppo inclinata','Gomiti svasati','Usare lo slancio']});
+
+E({id:'s-press-cavo', n:'Shoulder press ai cavi (seduto)', g:'spalle', a:'Cavi', m:'Deltoidi, tricipiti',
+ st:'seat', eq:'cable', an:[40,215], fr:[[15,175],[178,180]], cap:['Maniglie all’altezza delle spalle','Braccia distese sopra la testa'],
+ set:'Panca verticale (80-85°) tra le torri, cavi BASSI con maniglie singole. Portale sulle spalle.',
+ pos:'Schiena appoggiata, core contratto, polsi sopra i gomiti.',
+ ese:['Parti con le maniglie all’altezza delle spalle.','Spingi in alto in linea verticale, avvicinando le mani.','Scendi lentamente fino alle orecchie.'],
+ cue:'Gomiti sotto le maniglie, spingi "il soffitto" senza inarcare la schiena.',
+ why:'Il cavo mantiene tensione in ogni punto: le spalle lavorano in modo continuo e i due lati si sincronizzano da soli.',
+ err:['Schiena inarcata','Gomiti che vanno indietro','Corsa incompleta']});
+
+E({id:'c-curl-panca-cavo', n:'Curl su panca inclinata ai cavi', g:'bicipiti', a:'Cavi', m:'Bicipiti (capo lungo)',
+ st:'inc', eq:'cable', an:[40,212], fr:[[-5,-5],[-5,140]], cap:['Braccia distese, bicipiti in allungamento','Maniglie alle spalle'],
+ set:'Panca inclinata a 45-60° davanti a una torre, cavi BASSI con maniglie singole. Siediti con la schiena appoggiata e le braccia lungo i fianchi, leggermente indietro.',
+ pos:'Spalle appoggiate, gomiti fermi e leggermente dietro il busto.',
+ ese:['Parti con le braccia distese e il bicipite ben allungato.','Fletti i gomiti portando le maniglie alle spalle, palmi verso l’alto.','Contrai 1 secondo.','Scendi lentamente fino all’allungamento completo.'],
+ cue:'Gomiti fermi indietro: il bicipite parte da allungato e con il cavo resta in tensione fino in cima.',
+ why:'Bicipite in massimo allungamento con tensione costante: molto stimolo senza barare con il busto.',
+ err:['Gomiti in avanti','Schiena staccata dalla panca','Dondolare']});
+
+E({id:'b-row-busto-cavi', n:'Rematore ai cavi a busto inclinato', g:'schiena', a:'Cavi', m:'Dorsali, romboidi, trapezio, bicipiti',
+ st:'hinge', eq:'cable', an:[250,212], fr:[[50,55],[-70,-5]], cap:['Braccia tese verso i cavi','Gomiti dietro al busto, scapole chiuse'],
+ set:'Cavi BASSI con maniglie singole, una per mano (o una barra). Stai a un passo dalla torre, busto inclinato di ~45° e schiena neutra, ginocchia morbide.',
+ pos:'Piedi alla larghezza delle spalle, sguardo a terra, core contratto.',
+ ese:['Parti con le braccia tese e le scapole in avanti.','Porta i gomiti indietro e in alto vicino al busto, avvicinando le scapole.','Contrai 1 secondo.','Ritorna lentamente.'],
+ cue:'Gomiti alle tasche posteriori, non tirare con le mani.',
+ why:'Il rematore con carichi importanti ma senza peso sulla schiena: il cavo non "cade" mai e tiene tensione ovunque.',
+ err:['Busto che si alza','Tirare con i bicipiti','Schiena arrotondata']});
+
 /* ============================== PIANI DI ALLENAMENTO ============================== */
 const GRUPPI = {petto:'Petto', spalle:'Spalle', schiena:'Schiena', bicipiti:'Bicipiti', tricipiti:'Tricipiti', avambracci:'Avambracci', gambe:'Gambe', addome:'Addome'};
 
@@ -625,7 +670,8 @@ const PLAN = [
   ex:[
    {e:'p-panca', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: carico alto, tecnica perfetta.'},
    {e:'p-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Spinta pesante con traiettoria indipendente.'},
-   {e:'p-press-cavi', s:3, r:'10-12', rec:'90 s', ruolo:'Spinta ai cavi: tensione costante e core attivo.'},
+   {e:'p-incl-cavi', s:3, r:'10-12', rec:'90 s', ruolo:'Petto alto ai cavi: tensione costante, poco stress sulle spalle.'},
+   {e:'p-press-cavi', s:3, r:'10-12', rec:'90 s', ruolo:'Spinta in piedi: tensione costante e core attivo.', opt:true},
    {e:'p-croci-alte', s:3, r:'12-15', rec:'75 s', ruolo:'Petto (parte centrale-bassa) ai cavi alti.'},
    {e:'p-croci-basse', s:3, r:'12-15', rec:'75 s', ruolo:'Petto alto ai cavi bassi.'},
    {e:'t-push-corda', s:4, r:'10-12', rec:'75 s', ruolo:'Tricipiti: volume e forza di lockout.'},
@@ -636,11 +682,13 @@ const PLAN = [
   ex:[
    {e:'b-rackpull', s:4, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: catena posteriore e presa.'},
    {e:'b-lat-larga', s:4, r:'8-10', rec:'2 min', ruolo:'Ampiezza e forza di trazione verticale.'},
-   {e:'b-row-cavo', s:4, r:'10-12', rec:'90 s', ruolo:'Spessore della schiena con tensione costante.'},
+   {e:'b-row-busto-cavi', s:4, r:'8-10', rec:'2 min', ruolo:'Rematore pesante senza carico sulla schiena.'},
+   {e:'b-row-cavo', s:3, r:'10-12', rec:'90 s', ruolo:'Spessore della schiena con tensione costante.'},
    {e:'b-row-singolo', s:3, r:'10 per lato', rec:'75 s', ruolo:'Dorsali e romboidi, un braccio alla volta.'},
    {e:'b-pulldown-braccia-tese', s:3, r:'12-15', rec:'75 s', ruolo:'Isolamento del dorsale, senza bicipiti.', opt:true},
    {e:'c-curl-cavo', s:3, r:'10-12', rec:'75 s', ruolo:'Bicipiti: tensione costante.'},
    {e:'c-curl-alti', s:3, r:'12', rec:'75 s', ruolo:'Bicipiti in contrazione massima (posa double biceps).'},
+   {e:'c-curl-panca-cavo', s:3, r:'10-12', rec:'75 s', ruolo:'Bicipiti in allungamento con tensione costante.', opt:true},
    {e:'w-wrist-curl', s:3, r:'15', rec:'60 s', ruolo:'Presa più forte per stacchi e trazioni.'},
    {e:'w-reverse-curl', s:3, r:'12', rec:'60 s', ruolo:'Estensori e gomito (prevenzione).', opt:true}
   ]},
@@ -648,6 +696,7 @@ const PLAN = [
   ex:[
    {e:'s-military', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: spalle e tronco.'},
    {e:'s-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Forza monolaterale, anti-rotazione del core.'},
+   {e:'s-press-cavo', s:3, r:'10-12', rec:'90 s', ruolo:'Spinta sopra la testa ai cavi: tensione continua.'},
    {e:'s-laterali', s:4, r:'12-15', rec:'60 s', ruolo:'Larghezza delle spalle (deltoide laterale) al cavo.'},
    {e:'s-facepull', s:4, r:'15', rec:'60 s', ruolo:'Salute della spalla: deltoide posteriore e cuffia.'},
    {e:'s-posteriori', s:3, r:'15', rec:'60 s', ruolo:'Deltoide posteriore ai cavi incrociati.', opt:true},
