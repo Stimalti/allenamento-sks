@@ -117,7 +117,7 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .vbox{margin:10px 0}.vlinks{display:flex;flex-direction:column;gap:8px}
 .vlink{display:block;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:14px;padding:12px 14px;font-weight:700}
 .vlink small{display:block;font-weight:500;opacity:.9;font-size:12.5px}
-.vlinks .vlink:nth-child(n+2){background:var(--in);color:var(--tx);border:1px solid var(--line)}.vlinks .vlink:nth-child(n+2) small{color:var(--mut)}
+.vlinks .vrow:nth-child(n+2) .vlink{background:var(--in);color:var(--tx);border:1px solid var(--line)}.vlinks .vrow:nth-child(n+2) .vlink small{color:var(--mut)}
 .vmine{margin-top:10px}.vplay video{width:100%;max-height:60vh;border-radius:14px;background:#000}
 .vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.vadd{cursor:pointer;display:inline-block}
 .vnote,.vnone{font-size:13px;color:var(--mut);margin:6px 0 0}
@@ -152,3 +152,4 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
   #printarea h1{font-size:20pt;margin:0 0 4pt}#printarea p{margin:0 0 10pt;color:#444}
   #printarea .rp{break-inside:avoid}#printarea .rp h3{font-size:13pt;border-bottom:1.5pt solid #000;padding-bottom:2pt}#printarea .rp td{border-bottom:.5pt solid #bbb;color:#000}
 }
+.vrow{display:flex;gap:8px;align-items:stretch}.vrow .vlink{flex:1;min-width:0}

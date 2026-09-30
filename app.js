@@ -9,7 +9,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+function fixDB(d) { if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }
@@ -102,8 +102,8 @@ const VDB = {
   async del(id) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('v', 'readwrite'); t.objectStore('v').delete(id); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
 };
 function videoBlock(ex) {
-  const l = DB.hideRef ? [] : (typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || [];
-  const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${x.s ? 'Video trovato online' : (i ? 'Altro video' : 'Guarda il video originale')}<small>${esc(x.n)}${x.s ? ' · scelto dal titolo, non verificato' : ''}</small></a>`).join('')}</div>` : '<p class="vnone">' + (DB.hideRef ? 'I video di riferimento sono nascosti (puoi mostrarli da ⚙).' : 'Per questo esercizio non c’è un video di riferimento.') + '</p>';
+  const l = DB.hideRef ? [] : ((typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || []).filter(x => !DB.hiddenRef[x.u]);
+  const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<div class="vrow"><a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${x.s ? 'Video trovato online' : (i ? 'Altro video' : 'Guarda il video originale')}<small>${esc(x.n)}${x.s ? ' · scelto dal titolo, non verificato' : ''}</small></a><button class="ghost danger" data-act="vrefdel" data-id="${ex.id}" data-u="${esc(x.u)}" aria-label="Togli questo video">Togli</button></div>`).join('')}</div>` : '<p class="vnone">' + (DB.hideRef ? 'I video di riferimento sono nascosti (puoi mostrarli da ⚙).' : 'Per questo esercizio non c’è un video di riferimento.') + '</p>';
   return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}
    <div class="vmine"><h3>I tuoi video</h3><div class="vmy"></div>
    <div class="vbtns"><label class="ghost vadd">⬆ Aggiungi un video dal telefono<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label></div>
@@ -314,8 +314,8 @@ function settings() {
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
-   <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure nascondi i link ai video di riferimento. Non tocca pesi e storico.</p>
-   <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Nascondi i video di riferimento'}</button></p></div>
+   <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
+   <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
    <div class="card"><h2>Attrezzatura prevista</h2><p>Powerrack Atletica SKS con safety, bilanciere e dischi, manubri, panca regolabile con attacco leg extension, jammer arms, doppia puleggia (cavi alto/basso) con corda, barra dritta/V, maniglie singole e cavigliera, sbarra per trazioni. Se manca qualcosa, nella Libreria filtra per attrezzo e sostituisci.</p></div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Le icone degli esercizi sono disegnate con lo stesso modello 3D.</p></div>
@@ -360,13 +360,15 @@ document.addEventListener('click', e => {
   else if (a === 'export') exportData();
   else if (a === 'vwipe') { const n = Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0);
     ask(n ? 'Cancellare tutti i tuoi ' + n + ' video (file e link)? Non si può annullare.' : 'Cancellare tutti i video salvati su questo dispositivo? Non si può annullare.', 'Cancella tutto', async () => { try { await VDB.clear(); } catch (e) {} DB.myv = {}; save(); flash('✓ Tutti i tuoi video sono stati cancellati'); render(true); }); }
+  else if (a === 'vrefdel') { const box = b.closest('.vbox'), id = box.dataset.vid, root = box.parentElement; DB.hiddenRef[b.dataset.u] = 1; save(); box.outerHTML = videoBlock(byId[id]); loadMine(root); flash('Video tolto'); }
+  else if (a === 'vrefall') { DB.hideRef = false; DB.hiddenRef = {}; save(); flash('Video di riferimento ripristinati'); settings(); }
   else if (a === 'vref') { DB.hideRef = !DB.hideRef; save(); flash(DB.hideRef ? 'Video di riferimento nascosti' : 'Video di riferimento visibili'); settings(); }
   else if (a === 'report') reportView();
   else if (a === 'rprint') reportPrint();
   else if (a === 'rshare') reportShare(false);
   else if (a === 'rcopy') reportShare(true);
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, v: 3}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', async e => {
