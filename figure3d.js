@@ -42,6 +42,96 @@ const FIG3 = (() => {
     P.push(seg(a, f, 5.4, 4.8, SHOE), sph(f, 4.8, SHOE), sph(a, 5.2, SHOE));
   }
 
+  /* ---- vettori 3D, IK del braccio con gomito che si apre di lato ---- */
+  const vs = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]], va = (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]], vm = (a, k) => [a[0]*k, a[1]*k, a[2]*k];
+  const vl = a => Math.hypot(a[0], a[1], a[2]), vn = a => { const l = vl(a) || 1; return [a[0]/l, a[1]/l, a[2]/l]; };
+  const vd = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2], vc = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  function ik3(S, W, l1, l2, pole) {
+    const dv = vs(W, S); let d = vl(dv); const dc = Math.min(d, l1 + l2 - .5), u = vn(dv);
+    const a = (l1*l1 - l2*l2 + dc*dc) / (2*dc), h = Math.sqrt(Math.max(0, l1*l1 - a*a));
+    let pv = vs(pole, vm(u, vd(pole, u))); pv = vn(pv);
+    const E = va(va(S, vm(u, a)), vm(pv, h));
+    return E;
+  }
+
+  /* ---- muscoli in rosso con fibre ---- */
+  const MUS = '#e11d2e', FIB = '#ff9aa2';
+  const musOf = ex => {
+    const t = (ex.m + ' ' + ex.n).toLowerCase(), r = [];
+    const has = (...k) => k.some(x => t.includes(x));
+    if (has('pettoral', 'petto')) r.push('pecs');
+    if (has('deltoid', 'spalle', 'cuffia')) r.push('delts');
+    if (has('bicipit', 'brachiale')) r.push('biceps');
+    if (has('tricip')) r.push('triceps');
+    if (has('avambracc', 'flessori', 'estensori', 'brachioradiale')) r.push('forearms');
+    if (has('dorsal', 'romboid')) r.push('lats');
+    if (has('trapez')) r.push('traps');
+    if (has('erettori', 'lombar')) r.push('lowerback');
+    if (has('addominal', 'retto dell', 'core', 'obliqui')) r.push('abs');
+    if (has('obliqui')) r.push('obliques');
+    if (has('quadric')) r.push('quads');
+    if (has('femoral')) r.push('hams');
+    if (has('glute', 'gluteo')) r.push('glutes');
+    if (has('polpacc', 'gastrocn')) r.push('calves');
+    if (has('adduttori')) r.push('quads');
+    return [...new Set(r)];
+  };
+  const mpatch = (P, c, axis, rw, rl) => P.push({k:'e', a:c, b:va(c, axis), rw, rl, col:MUS, m:1});
+  const fib = (P, a, b, r) => P.push({k:'c', a, b, rx: r || .85, rz: r || .85, rr: 1, col:FIB, m:2});
+  function limbMus(P, a, b, fwd, off, rw, rl, t0, nf) {
+    t0 = t0 ?? .5; nf = nf || 3;
+    const ax = vn(vs(b, a)), c0 = va(a, vm(vs(b, a), t0)), c = va(c0, vm(fwd, off));
+    mpatch(P, c, ax, rw, rl);
+    const lat = vn(vc(ax, fwd));
+    for (let i = 0; i < nf; i++) {
+      const o = (i - (nf - 1) / 2) * (rw * 1.15 / Math.max(nf - 1, 1));
+      const base = va(c0, vm(fwd, off + rw * .92));
+      fib(P, va(va(base, vm(ax, -rl * .86)), vm(lat, o)), va(va(base, vm(ax, rl * .86)), vm(lat, o * .5)));
+    }
+  }
+  function torsoMus(P, m, F) {       // F: {H,S,fwd,lat,z}
+    const tv = vs(F.S, F.H), tn = vn(tv), L = t => va(F.H, vm(tv, t)), fw = F.fwd, bk = vm(fw, -1), z = F.lat;
+    const sides = [1, -1];
+    if (m.includes('pecs')) sides.forEach(sg => {
+      mpatch(P, va(va(L(.77), vm(fw, 10)), vm(z, sg * 11)), z, 10.5, 8.5);
+      for (let i = 0; i < 4; i++) fib(P, va(va(L(.70 + .05 * i), vm(fw, 13.2)), vm(z, sg * 2)), va(va(F.S, vm(tn, -i * 3.2)), va(vm(fw, 8.5), vm(z, sg * 20))));
+    });
+    if (m.includes('lats')) sides.forEach(sg => {
+      mpatch(P, va(va(L(.52), vm(bk, 9)), vm(z, sg * 12)), tn, 7.5, 17);
+      for (let i = 0; i < 4; i++) fib(P, va(va(L(.16 + .03 * i), vm(bk, 12)), vm(z, sg * 3)), va(va(L(.78 + .03 * i), vm(bk, 9.5)), vm(z, sg * (15 + i))));
+    });
+    if (m.includes('traps')) {
+      mpatch(P, va(L(.95), vm(bk, 7)), z, 6.5, 19);
+      sides.forEach(sg => { for (let i = 0; i < 3; i++) fib(P, va(va(L(1.04), vm(bk, 6.5)), vm(z, sg * 2)), va(va(L(.85 - i * .06), vm(bk, 8.5)), vm(z, sg * 18))); });
+    }
+    if (m.includes('abs')) {
+      mpatch(P, va(L(.3), vm(fw, 10)), tn, 8.5, 15);
+      [-5, 0, 5].forEach(o => fib(P, va(va(L(.14), vm(fw, 12)), vm(z, o)), va(va(L(.46), vm(fw, 12)), vm(z, o))));
+    }
+    if (m.includes('obliques')) sides.forEach(sg => { mpatch(P, va(va(L(.36), vm(fw, 4)), vm(z, sg * 14)), tn, 6, 13); for (let i = 0; i < 3; i++) fib(P, va(va(L(.22 + .06 * i), vm(fw, 4)), vm(z, sg * 17)), va(va(L(.42 + .06 * i), vm(fw, 4)), vm(z, sg * 11))); });
+    if (m.includes('lowerback')) sides.forEach(sg => { mpatch(P, va(va(L(.22), vm(bk, 8)), vm(z, sg * 5)), tn, 5, 12); [-1.5, 1.5].forEach(o => fib(P, va(va(L(.1), vm(bk, 11)), vm(z, sg * 5 + o)), va(va(L(.36), vm(bk, 11)), vm(z, sg * 5 + o)))); });
+    if (m.includes('glutes')) sides.forEach(sg => {
+      const c = va(va(F.H, vm(bk, 8)), vm(z, sg * 8.5)); P.push({k:'s', p:c, r:10.5, col:MUS, m:1});
+      for (let i = 0; i < 3; i++) fib(P, va(va(F.H, vm(bk, 12 - i)), va(vm(z, sg * 2), vm(tn, -2 + i * 3))), va(va(F.H, vm(bk, 10)), va(vm(z, sg * 14), vm(tn, -8 + i * 2))));
+    });
+    if (m.includes('delts')) sides.forEach(sg => {
+      const c = va(F.S, vm(z, sg * (F.dz || 17))); P.push({k:'s', p:c, r:8.8, col:MUS, m:1});
+      for (let i = 0; i < 3; i++) fib(P, va(c, va(vm(tn, 7), vm(z, (i - 1) * 3))), va(c, va(vm(tn, -8), vm(z, (i - 1) * 3.5))));
+    });
+  }
+  function limbsMus(P, m, arms, legs) {   // arms/legs: [{a,b,c?, fwd}]
+    arms.forEach(A => {
+      if (m.includes('biceps')) limbMus(P, A.S, A.E, A.fwd, 5.4, 5.8, 14.5);
+      if (m.includes('triceps')) limbMus(P, A.S, A.E, vm(A.fwd, -1), 5.4, 5.8, 14.5);
+      if (m.includes('forearms')) limbMus(P, A.E, A.W, A.ffwd || A.fwd, 4, 4.5, 14, .35);
+    });
+    legs.forEach(Lg => {
+      if (m.includes('quads')) limbMus(P, Lg.H, Lg.K, Lg.fwd, 6, 9.4, 21);
+      if (m.includes('hams')) limbMus(P, Lg.H, Lg.K, vm(Lg.fwd, -1), 6, 9.4, 21);
+      if (m.includes('calves')) limbMus(P, Lg.K, Lg.A, vm(Lg.sfwd || Lg.fwd, -1), 4.4, 6.3, 15, .3);
+    });
+  }
+
   function benchPrims(P, ex) {
     const st = ex.benchSt || ST[ex.st].bench, h = ST[ex.st].h, c = '#3b4668', pad = '#232b42', D = 40;
     const padBox = (a, b) => { P.push(box(a, b, 9, D, pad)); };
@@ -64,13 +154,22 @@ const FIG3 = (() => {
   }
   const sideZ = (z, one) => z >= 0 ? 62 : -62;
 
+  const tzSide = (an, sg) => an[1] < 60 ? 0 : 62 * sg;
   function geoSide(ex, p) {
     const P = [], ZN = 17, ZF = -17, LN = 11, LF = -11;
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = add(A, 17, p.sh + 90 + p.ft);
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(W, 14, p.fa + p.hd) : W;
-    if (ex.eq === 'barh') { grip = H; E = ik(S, H, UA, FA); W = H; }
+    const GZ = ex.gz ?? (ex.eq === 'bar' ? 27 : 21), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
+    const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
+    let E3n, W3n, E3f, W3f, g3n, g3f;
+    if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
+    else {
+      W3n = [W[0], W[1], GZ]; E3n = ik3(pt3(S, ZN), W3n, UA, FA, [pe[0], pe[1], latW]); g3n = [grip[0], grip[1], GZ];
+      if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF); W3f = pt3(Wf, ZF); g3f = g3n; }
+      else { W3f = [W[0], W[1], -GZ]; E3f = ik3(pt3(S, ZF), W3f, UA, FA, [pe[0], pe[1], -latW]); g3f = [grip[0], grip[1], -GZ]; }
+    }
     benchPrims(P, ex);
     // gamba lontana
     let K2, A2, f2;
@@ -79,8 +178,7 @@ const FIG3 = (() => {
     else { K2 = K; A2 = A; f2 = foot; }
     leg(P, H, K2, A2, f2, SKF, '#1f2742', LF);
     // braccio lontano
-    const Ef = ex.one ? add(S, UA, 5) : E, Wf = ex.one ? add(Ef, FA, 5) : W;
-    arm(P, pt3(S, ZF), pt3(Ef, ZF), pt3(Wf, ZF), SKF);
+    arm(P, pt3(S, ZF), E3f, W3f, SKF);
     // tronco: bacino (pantaloncini), addome e torace (canotta), collo, testa, capelli
     const mid = lerp3(pt3(H, 0), pt3(S, 0), .5);
     P.push(seg(pt3(H, 0), mid, 10.5, 10.8, SHO, 1.75));
@@ -92,30 +190,37 @@ const FIG3 = (() => {
     P.push(sph(pt3([head[0] - 2.6, head[1] - 2.8], 0), 11.6, HAIR));
     // gamba vicina e braccio vicino
     leg(P, H, K, A, foot, SK, SHO, LN);
-    arm(P, pt3(S, ZN), pt3(E, ZN), pt3(W, ZN), SK);
-    if (ex.hand) P.push(seg(pt3(W, ZN), pt3(grip, ZN), 3.6, 3.2, SK));
+    arm(P, pt3(S, ZN), E3n, W3n, SK);
+    if (ex.hand) P.push(seg(W3n, g3n, 3.6, 3.2, SK));
     // attrezzi
-    const g1 = pt3(grip, ZN), g2 = pt3(grip, ex.one ? ZN : ZF);
+    const g1 = g3n, g2 = ex.one ? g3n : g3f;
     if (ex.eq === 'cable' && ex.an) {
       const an = Array.isArray(ex.an[0]) ? ex.an[0] : ex.an;
-      if (ex.cp === 'ankle') { cableTo(P, pt3(A, LN), an, 62); P.push(cyl(pt3(A, LN - 4), pt3(A, LN + 4), 6.6, BLK)); }
-      else if (ex.one) cableTo(P, g1, an, 62);
-      else { cableTo(P, g1, an, 62); cableTo(P, g2, an, -62); P.push(cyl(g1, g2, 1.4, BLK)); }
+      if (ex.cp === 'ankle') { cableTo(P, pt3(A, LN), an, tzSide(an, 1)); P.push(cyl(pt3(A, LN - 4), pt3(A, LN + 4), 6.6, BLK)); }
+      else if (ex.one) cableTo(P, g1, an, tzSide(an, 1));
+      else { cableTo(P, g1, an, tzSide(an, 1)); cableTo(P, g2, an, tzSide(an, -1)); P.push(cyl(g1, g2, 1.4, BLK)); }
     } else if (ex.eq === 'jam' && ex.an) {
       const pv = pt3(ex.an, 0);
       [ZN, ex.one ? null : ZF].forEach(z => { if (z === null) return; P.push(cyl(pt3(ex.an, z * 1.6), pt3(grip, z), 3.6, TW), sph(pt3(ex.an, z * 1.6), 6.5, '#8d99b3')); });
       P.push(cyl(pt3(ex.an, -40), pt3(ex.an, 40), 2.6, TW));
       P.push(cyl(pt3(grip, ZN - 6), pt3(grip, ZN + 6), 8.5, BLK), cyl(pt3(grip, ZN - 7), pt3(grip, ZN - 5), 9.4, '#6b7693'));
     } else if (ex.eq === 'bar' || ex.eq === 'barh') {
-      P.push(cyl(pt3(grip, -60), pt3(grip, 60), 2.4, STEEL));
-      [[-50, -43], [43, 50]].forEach(([z0, z1]) => { P.push(cyl(pt3(grip, z0), pt3(grip, z1), 12.5, BLK), cyl(pt3(grip, z0 - .3), pt3(grip, z1 + .3), 4.5, '#5b6580')); });
+      const gw = Math.max(GZ, 27); P.push(cyl(pt3(grip, -gw - 26), pt3(grip, gw + 26), 2.4, STEEL));
+      [[-gw - 24, -gw - 17], [gw + 17, gw + 24]].forEach(([z0, z1]) => { P.push(cyl(pt3(grip, z0), pt3(grip, z1), 12.5, BLK), cyl(pt3(grip, z0 - .3), pt3(grip, z1 + .3), 4.5, '#5b6580')); });
     } else if (ex.eq === 'db') {
       const zs = ex.one ? [ZN] : [ZN, ZF];
-      zs.forEach(z => { P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
+      zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
     } else if (ex.eq === 'hb') {
       P.push(cyl(pt3([150, 20], -62), pt3([150, 20], 62), 3, STEEL), cyl(pt3([150, 20], -62), pt3([150, FLOOR], -62), 4, TW), cyl(pt3([150, 20], 62), pt3([150, FLOOR], 62), 4, TW));
     } else if (ex.eq === 'pad') {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
+    }
+    if (p.showM) {
+      const m = musOf(ex), fwT = [...dir(p.t - 90), 0], fwD = th => [...dir(th + 90), 0];
+      torsoMus(P, m, {H: pt3(H, 0), S: pt3(S, 0), fwd: fwT, lat: [0, 0, 1], dz: ZN});
+      limbsMus(P, m,
+        [{S: pt3(S, ZN), E: E3n, W: W3n, fwd: fwD(p.ua), ffwd: fwD(p.fa)}, {S: pt3(S, ZF), E: E3f, W: W3f, fwd: fwD(ex.one ? 5 : p.ua), ffwd: fwD(ex.one ? 5 : p.fa)}],
+        [{H: pt3(H, LN), K: pt3(K, LN), A: pt3(A, LN), fwd: fwD(p.th), sfwd: fwD(p.sh)}, {H: pt3(H, LF), K: pt3(K2, LF), A: pt3(A2, LF), fwd: fwD(ex.rl || ex.sup ? 0 : p.th), sfwd: fwD(ex.rl || ex.sup ? 0 : p.sh)}]);
     }
     return P;
   }
@@ -151,12 +256,20 @@ const FIG3 = (() => {
     arm(P, [Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0], SK);
     const an = ex.an || [], wr = pt3(rA.W, 0), wl = pt3(lA.W, 0);
     if (ex.bar) {
-      P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, 0]; cableTo(P, m, an[0], 0);
+      P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, 0]; cableTo(P, m, an[0], 78);
+      if (seatF) { P.push(cyl([cx - 34, hy - 8, 20], [cx + 34, hy - 8, 20], 7.5, BLK)); P.push(cyl([cx - 30, hy - 8, 20], [cx - 30, hy + 7, 4], 2.5, TW), cyl([cx + 30, hy - 8, 20], [cx + 30, hy + 7, 4], 2.5, TW)); }
     } else if (ex.eq === 'cable') {
       const rg = ex.cp === 'ankle' ? pt3(rAnk, 0) : wr;
-      if (an.length === 1) cableTo(P, rg, an[0], 0);
+      if (an.length === 1) cableTo(P, rg, an[0], Math.abs(an[0][0] - 150) < 40 ? 78 : 0);
       else if (ex.cross) { cableTo(P, wr, an[0], 0); cableTo(P, wl, an[1], 0); }
       else { cableTo(P, wl, an[0], 0); cableTo(P, wr, an[1], 0); }
+    }
+    if (p.showM) {
+      const m = musOf(ex), F = [0, 0, 1], Z = v => [v[0], v[1], 0];
+      torsoMus(P, m, {H: [cx, hy, 0], S: [cx, sy + 2, 0], fwd: F, lat: [1, 0, 0], dz: 26});
+      limbsMus(P, m,
+        [{S: [Rs[0], Rs[1], 0], E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0], fwd: F}, {S: [Ls[0], Ls[1], 0], E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0], fwd: F}],
+        [{H: [cx + 10, hy, 0], K: [cx + 18, hy + 52, 0], A: [cx + 26, FLOOR - 2, 0], fwd: F}, {H: [cx - 10, hy, 0], K: [cx - 18, hy + 52, 0], A: [cx - 26, FLOOR - 2, 0], fwd: F}]);
     }
     return P;
   }
@@ -170,6 +283,7 @@ const FIG3 = (() => {
     try { o.renderer.dispose(); o.renderer.forceContextLoss(); } catch (e) {}
   }
   const mats = {};
+  const matM = () => new THREE.MeshStandardMaterial({color: 0xd6121f, emissive: 0xff1030, emissiveIntensity: .55, roughness: .5, transparent: true, opacity: .6, depthWrite: false});
   const mat = col => mats[col] || (mats[col] = new THREE.MeshStandardMaterial({color: col, roughness: .55, metalness: .08}));
 
   function mount(el, ex, fallback) {
@@ -180,7 +294,7 @@ const FIG3 = (() => {
       const cv = document.createElement('canvas');
       renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
     } catch (e) { return fallback(el, ex); }
-    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div>';
+    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button></div><div class="legend3d"></div>';
     const stage = el.querySelector('.stage'); stage.prepend(renderer.domElement);
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 50);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, .95));
@@ -189,12 +303,14 @@ const FIG3 = (() => {
     const floor = new THREE.Mesh(new THREE.CircleGeometry(1.9, 64), new THREE.MeshStandardMaterial({color: 0x161c2e, roughness: .95}));
     floor.rotation.x = -Math.PI / 2; floor.position.y = -.005; scene.add(floor);
     const ring = new THREE.Mesh(new THREE.RingGeometry(1.86, 1.9, 64), new THREE.MeshBasicMaterial({color: 0xff7a30})); ring.rotation.x = -Math.PI / 2; scene.add(ring);
+    const mM = matM(), mF = new THREE.MeshBasicMaterial({color: 0xff9aa2, transparent: true, opacity: .95});
     const cylG = {}; const gCylR = rr => { const k = Math.round(rr * 20); return cylG[k] || (cylG[k] = new THREE.CylinderGeometry(k / 20, 1, 1, 16)); };
     const gSph = new THREE.SphereGeometry(1, 16, 12), gBox = new THREE.BoxGeometry(1, 1, 1);
     const group = new THREE.Group(); scene.add(group); const pool = [];
     const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])];
-    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button');
-    const o = {el, renderer, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
+    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m])'), mb = el.querySelector('.mbtn'), leg = el.querySelector('.legend3d');
+    leg.textContent = 'In rosso i muscoli che lavorano: ' + ex.m + '.';
+    const o = {el, renderer, showM: true, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
     active = o;
     const V = (p) => new THREE.Vector3((p[0] - 150) / S3, (FLOOR - p[1]) / S3, (p[2] || 0) / S3);
     const up = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion(), d = new THREE.Vector3();
@@ -206,7 +322,7 @@ const FIG3 = (() => {
         if (m) group.remove(m);
         m = new THREE.Mesh(type === 'c' ? gCylR(pr.rr) : (type === 's' || type === 'e') ? gSph : gBox, mat(pr.col)); m.userData.k = type; group.add(m); pool[i] = m;
       }
-      m.material = mat(pr.col);
+      m.material = pr.m === 1 ? mM : pr.m === 2 ? mF : mat(pr.col);
       if (pr.k === 'c') {
         const a = V(pr.a), b = V(pr.b); d.subVectors(b, a); const len = Math.max(d.length(), 1e-4);
         m.position.copy(a).add(b).multiplyScalar(.5); q.setFromUnitVectors(up, d.normalize()); m.quaternion.copy(q); m.scale.set(pr.rx / S3, len, pr.rz / S3);
@@ -229,6 +345,7 @@ const FIG3 = (() => {
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
     btns.forEach(b => b.onclick = () => { btns.forEach(x => x.classList.remove('on')); b.classList.add('on'); o.hold = b.dataset.k === 'a' ? null : +b.dataset.k; o.t0 = performance.now(); });
     let lastK = -1;
+    mb.onclick = () => { o.showM = !o.showM; mb.classList.toggle('on', o.showM); leg.style.display = o.showM ? '' : 'none'; lastK = -1; };
     function frame(t) {
       if (o.dead) return;
       o.raf = requestAnimationFrame(frame);
@@ -239,10 +356,11 @@ const FIG3 = (() => {
       if (o.hold !== null) k = o.hold;
       else { const ph = ((t - o.t0) / 1000) % 4; k = ph < .6 ? 0 : ph < 2 ? (ph - .6) / 1.4 : ph < 2.6 ? 1 : 1 - (ph - 2.6) / 1.4; k = k*k*(3-2*k); }
       if (k !== lastK) {
-        lastK = k; const prims = geo(ex, lerp(pose[0], pose[1], k)); prims.forEach((pr, i) => place(i, pr));
+        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; const prims = geo(ex, pp); prims.forEach((pr, i) => place(i, pr));
         while (pool.length > prims.length) group.remove(pool.pop());
         cap.textContent = k < .5 ? ex.cap[0] : ex.cap[1];
       }
+      mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k;
       if (!o.drag && t - o.idle > 2500) o.az = .75 * Math.sin(t / 2600) - (ex.v === 'f' ? 0 : .35);
       const r = o.ct[2], cx = o.ct[0], cy = o.ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
