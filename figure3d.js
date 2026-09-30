@@ -10,7 +10,7 @@ const FIG3 = (() => {
     stand:{h:[150,118],t:180,th:0,sh:0}, hinge:{h:[130,120],t:115,th:18,sh:-8},
     seat:{h:[120,172],t:180,th:90,sh:0,bench:'seat'}, lie:{h:[215,178],t:-90,th:100,sh:2,bench:'flat'},
     inc:{h:[190,170],t:225,th:95,sh:2,bench:'inc'}, kneel:{h:[150,162],t:180,th:0,sh:-90,bench:'kneel'},
-    hang:{h:[150,150],t:180,th:6,sh:-28}
+    hang:{h:[150,150],t:180,th:6,sh:-28}, floor:{h:[112,210],t:180,th:90,sh:82,bench:'floor'}
   };
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
@@ -143,6 +143,7 @@ const FIG3 = (() => {
     else if (st === 'seat') { padBox(pt3([h[0]-26,h[1]+10],0), pt3([h[0]+46,h[1]+10],0)); padBox(pt3([h[0]-14,h[1]+8],0), pt3([h[0]-14,h[1]-74],0)); P.push(cyl(pt3([h[0]+8,h[1]+15],0), pt3([h[0]+8,FLOOR],0), 3, c)); }
     else if (st === 'flat') { padBox(pt3([100,h[1]+11],0), pt3([250,h[1]+11],0)); P.push(cyl(pt3([120,h[1]+16],-12), pt3([120,FLOOR],-12), 2.5, c), cyl(pt3([230,h[1]+16],12), pt3([230,FLOOR],12), 2.5, c)); }
     else if (st === 'inc') { const a = [h[0]-4, h[1]+10]; padBox(pt3(a,0), pt3(add(a,88,225),0)); padBox(pt3([h[0]-20,h[1]+12],0), pt3([h[0]+44,h[1]+12],0)); P.push(cyl(pt3([h[0]+10,h[1]+17],0), pt3([h[0]+10,FLOOR],0), 3, c)); }
+    else if (st === 'floor') { P.push(box(pt3([50,FLOOR-2],0), pt3([230,FLOOR-2],0), 4, 46, '#2a7fb8'), box(pt3([218,FLOOR-34],0), pt3([218,FLOOR],0), 5, 46, pad)); }
     else if (st === 'kneel') { P.push(box(pt3([60,FLOOR-2],0), pt3([200,FLOOR-2],0), 4, 46, '#2a7fb8')); }
     if (ex.bench === 'bulg') { padBox(pt3([36,188],0), pt3([90,188],0)); P.push(cyl(pt3([48,193],-12), pt3([48,FLOOR],-12), 2.5, c), cyl(pt3([80,193],12), pt3([80,FLOOR],12), 2.5, c)); }
   }

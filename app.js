@@ -251,7 +251,7 @@ function libView() {
 const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
-  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button></div>` +
+  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button></div>` +
     (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div class="count">${list.length} di ${EX.length} esercizi</div>${list.map(e => exRow(e, 'ptog', cp.id)).join('') || '<p class="count">Nessun risultato.</p>'}</section>` : '');
 }
 const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
@@ -327,6 +327,33 @@ function reportView() {
    <div class="sbar" style="padding:0 0 10px"><button class="ghost" data-act="rprint">🖨 Stampa / Salva PDF</button><button class="ghost" data-act="rshare">📤 Condividi</button><button class="ghost" data-act="rcopy">Copia testo</button></div>
    <p class="vnote" style="margin:0 0 10px">“Stampa / Salva PDF”: nella finestra che si apre scegli <b>Salva come PDF</b> (su telefono: Condividi → Salva in File) e poi invialo a chi vuoi.</p>
    <div class="rpbox">${reportHtml(data)}</div>`);
+}
+/* ---------- piano della settimana ---------- */
+function weekData() {
+  return DAYS.map(([tid, , full]) => { const p = planOf(tabPlan(tid));
+    return {name: p.nome + (p.sotto ? ' · ' + p.sotto : ''), day: full, rows: p.ex.map(x => { const ex = byId[x.e], c = DB.cur[pk(p.profilo, x.e)], kgs = c ? c.sets.map(s => s.kg).filter(Boolean) : [], h = lastHist(pk(p.profilo, x.e));
+      const kg = kgs.length ? kgs.join(' / ') : (h ? h.sets.map(s => s.kg).filter(Boolean).join(' / ') : '');
+      return {n: ex.n, t: (c ? c.sets.length : x.s) + ' × ' + x.r + (x.rec ? ' · rec. ' + x.rec : '') + (kg ? ' · ' + kg + ' kg' : ''), obj: x.obj ? FIN[x.obj] : ''}; })}; });
+}
+const weekHtml = () => weekData().map(d => `<section class="rp"><h3>${esc(d.day)} <small>${d.name === d.day ? '' : esc(d.name)}</small></h3>${d.rows.length ? `<table>${d.rows.map(r => `<tr><td>${esc(r.n)}${r.obj ? ` <small>(${esc(r.obj)})</small>` : ''}</td><td>${esc(r.t)}</td></tr>`).join('')}</table>` : '<p class="vnote">Riposo / nessun esercizio.</p>'}</section>`).join('');
+const weekText = () => 'PIANO SETTIMANALE\n' + weekData().map(d => '\n' + d.day.toUpperCase() + (d.name === d.day ? '' : ' (' + d.name + ')') + '\n' + (d.rows.length ? d.rows.map(r => '  - ' + r.n + ': ' + r.t).join('\n') : '  riposo')).join('\n');
+function weekView() {
+  modal(`<h2 style="padding-right:44px">Piano della settimana</h2>
+   <div class="sbar" style="padding:0 0 10px"><button class="ghost" data-act="wprint">🖨 Stampa / Salva PDF</button><button class="ghost" data-act="wshare">📤 Condividi</button></div>
+   <p class="vnote" style="margin:0 0 10px">Esercizi, serie, ripetizioni e pesi di ogni giorno. Restano salvati finché non li modifichi tu.</p><div class="rpbox" style="max-height:55vh">${weekHtml()}</div>`);
+}
+function printHtml(title, html) {
+  const pa = document.createElement('div'); pa.id = 'printarea';
+  pa.innerHTML = `<h1>${esc(title)}</h1><p>Aggiornato al ${fmtFull(today())}</p>` + html;
+  document.body.appendChild(pa); document.body.classList.add('printing');
+  const done = () => { document.body.classList.remove('printing'); pa.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  try { window.print(); } catch (e) { done(); flash('⚠ Stampa non disponibile qui: usa Condividi'); }
+}
+async function shareText(title, text) {
+  if (navigator.share) { try { await navigator.share({title, text}); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text); flash('✓ Testo copiato: incollalo in un messaggio'); }
+  catch (e) { modal(`<h2 style="padding-right:44px">Copia il testo</h2><textarea id="bk" readonly style="width:100%;height:50vh;font:12px monospace">${esc(text)}</textarea>`); $('#bk').select(); }
 }
 function reportPrint() {
   const pa = document.createElement('div'); pa.id = 'printarea';
@@ -431,6 +458,9 @@ document.addEventListener('click', e => {
   else if (a === 'logopick') { const f = $('#logofile'); f.onchange = () => setLogo(f.files[0]); f.click(); }
   else if (a === 'logoreset') { delete DB.logo; try { localStorage.removeItem(LOGO_KEY); } catch (e) {} save(); applyLogo(); logoMsg('Foto originale ripristinata'); }
   else if (a === 'report') reportView();
+  else if (a === 'week') weekView();
+  else if (a === 'wprint') printHtml('Piano settimanale', weekHtml());
+  else if (a === 'wshare') shareText('Piano settimanale', weekText());
   else if (a === 'rprint') reportPrint();
   else if (a === 'rshare') reportShare(false);
   else if (a === 'rcopy') reportShare(true);
@@ -474,10 +504,10 @@ function finish(pid, prof) {
     const sets = c.sets.filter(s => s.kg || s.reps).map(s => ({kg: s.kg, reps: s.reps}));
     if (!sets.length) return;
     (DB.hist[k] = DB.hist[k] || []).push({d: today(), sets}); n++;
-    c.sets.forEach(s => { s.done = false; s.reps = ''; });
+    c.sets.forEach(s => { s.done = false; });
   });
   if (!n) { flash('Compila almeno una serie'); return; }
-  save(); render(true); flash('✓ Allenamento archiviato (' + n + ' esercizi)');
+  save(); render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi e ripetizioni restano per la prossima volta');
 }
 async function exportData() {
   const txt = JSON.stringify(DB, null, 1), name = 'allenamento-backup-' + today() + '.json';

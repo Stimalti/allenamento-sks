@@ -197,3 +197,53 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     if (FORZAISO.has(e.id)) e.fin = ['forza', 'massa', 'tonificare'];
   });
 })();
+
+/* ===== altri esercizi ai cavi (varianti delle pose già calibrate) ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const add = o => EX.push(o);
+  add(cl('b-row-cavo', {id:'b-row-terra', n:'Rematore ai cavi seduto a terra', st:'floor', an:[258,212],
+    trj:'Le mani vanno in linea retta dal cavo basso verso l’addome, parallele al pavimento; il busto oscilla solo di pochi gradi.',
+    cap:['Seduto a terra, braccia distese davanti, busto leggermente avanti','Maniglia all’addome, gomiti dietro, busto dritto'],
+    set:'Cavo BASSO con maniglia a V o triangolo. Siediti su un tappetino davanti alla torre, gambe distese o appena piegate con i piedi contro una pedana o la base della torre. Il cavo deve partire all’altezza del pavimento.',
+    pos:'Schiena neutra e petto alto, ginocchia leggermente piegate, piedi appoggiati a un appoggio fisso, addominali contratti.',
+    ese:['Parti con le braccia distese e le scapole lasciate scivolare in avanti.','Tira la maniglia verso l’addome portando i gomiti dietro di te e raddrizzando il busto.','Contrai le scapole 1 secondo, senza inclinarti indietro oltre la verticale.','Torna lentamente a braccia distese, controllando il cavo.'],
+    cue:'Gomiti dietro le costole, petto alto: il busto non si inclina oltre la verticale.',
+    why:'Stessa trazione orizzontale del rematore seduto ma da terra: lavoro più libero per l’anca, nessuna panca necessaria e più stabilità dei piedi; allena dorsali, romboidi e bicipiti con tensione costante.',
+    err:['Inclinarsi all’indietro per “barare” la trazione','Schiena che si arrotonda in partenza','Tirare con le braccia invece che con le scapole','Piedi non appoggiati (il corpo scivola verso il cavo)']}));
+  add(cl('b-row-terra', {id:'b-row-terra-singolo', n:'Rematore a un braccio ai cavi seduto a terra', one:true,
+    set:'Cavo BASSO con maniglia singola. Siediti su un tappetino con i piedi contro un appoggio fisso, busto dritto. L’altra mano resta appoggiata sulla coscia.',
+    ese:['Parti con il braccio disteso e la scapola in avanti.','Tira la maniglia verso l’addome portando il gomito dietro, senza ruotare il busto.','Contrai la scapola 1 secondo.','Torna lentamente a braccio disteso.'],
+    why:'Lavoro unilaterale per le dorsali: permette di sentire meglio la contrazione di un lato alla volta e di correggere squilibri.'}));
+  add(cl('s-laterali', {id:'s-laterali-doppio', n:'Alzate laterali ai cavi bassi a due braccia', one:false, an:[[25,212],[275,212]],
+    set:'Due cavi BASSI, uno per torre. Stai al centro tra le torri con una maniglia per mano: il cavo di ogni lato passa davanti al corpo.',
+    ese:['Parti con le braccia lungo il corpo, gomiti leggermente piegati.','Alza entrambe le braccia di lato fino all’altezza delle spalle.','Fermati 1 secondo in alto.','Scendi lentamente controllando il cavo.'],
+    cue:'Porta i gomiti verso l’esterno come per versare una brocca: mani non più alte dei gomiti.',
+    why:'Lavora entrambi i deltoidi laterali nello stesso tempo, con tensione costante del cavo anche in basso dove con i manubri non c’è.'}));
+  add(cl('s-frontali', {id:'s-frontali-singolo', n:'Alzate frontali a un braccio al cavo basso', one:true,
+    set:'Cavo BASSO con maniglia singola. Stai di schiena alla torre, cavo che passa accanto alla gamba, braccio che lavora disteso lungo il fianco.',
+    ese:['Parti con il braccio lungo il fianco e il gomito appena piegato.','Solleva la maniglia in avanti fino all’altezza della spalla.','Fermati 1 secondo.','Scendi lentamente.'],
+    why:'Lavoro unilaterale per il deltoide anteriore con tensione costante e possibilità di concentrarsi su un lato.'}));
+  add(cl('c-hammer', {id:'c-hammer-singolo', n:'Curl a martello a un braccio al cavo basso', one:true,
+    set:'Cavo BASSO con maniglia singola (presa neutra, pollice in alto). Stai di fronte alla torre, gomito fermo lungo il fianco.',
+    ese:['Parti con il braccio disteso e il palmo verso la coscia (presa neutra).','Fletti il gomito portando la maniglia verso la spalla, senza ruotare il polso.','Contrai 1 secondo.','Torna lentamente a braccio disteso.'],
+    why:'Lavoro unilaterale per brachiale e brachioradiale (spessore del braccio) oltre al bicipite, con tensione costante.'}));
+  add(cl('t-push-barra', {id:'t-push-prono-singolo', n:'Pushdown a un braccio, presa prona', one:true,
+    set:'Cavo ALTO con maniglia singola (presa prona, palmo verso il basso). Stai di fronte alla torre, gomito fermo lungo il fianco.',
+    ese:['Parti con il gomito piegato a ~90°, avambraccio parallelo al pavimento.','Spingi la maniglia verso il basso distendendo il gomito.','Contrai il tricipite 1 secondo.','Risali lentamente fino a 90° senza muovere il gomito.'],
+    why:'Lavoro unilaterale per il tricipite con tensione costante: permette di non compensare con il lato più forte.'}));
+  add(cl('b-lat-neutra', {id:'b-lat-singolo', n:'Lat machine a un braccio', one:true,
+    set:'Cavo ALTO con maniglia singola. Siediti con le cosce bloccate, busto leggermente inclinato indietro. Con l’altra mano ti tieni al rack o alla coscia.',
+    ese:['Parti con il braccio disteso verso l’alto e la scapola “in alto”.','Porta il gomito verso l’anca tirando la maniglia alla spalla.','Contrai 1 secondo.','Risali lentamente a braccio disteso.'],
+    why:'Lavoro unilaterale per i dorsali: stesso schema della lat machine ma con escursione più ampia e attenzione a un lato alla volta.'}));
+  add(cl('b-row-cavo', {id:'b-row-cavo-singolo', n:'Rematore al cavo basso seduto a un braccio', one:true,
+    set:'Cavo BASSO con maniglia singola, panca per sedersi davanti alla torre e piedi su un appoggio fisso. Busto dritto, l’altra mano sulla coscia.',
+    ese:['Parti con il braccio disteso e la scapola in avanti.','Tira la maniglia verso l’addome portando il gomito indietro senza ruotare il busto.','Contrai la scapola 1 secondo.','Torna lentamente a braccio disteso.'],
+    why:'Lavoro unilaterale per dorsali e romboidi, utile per correggere differenze di forza tra i due lati.'}));
+  add(cl('s-press-cavo', {id:'s-press-cavo-singolo', n:'Shoulder press a un braccio ai cavi in piedi', st:'stand', one:true, an:[40,215],
+    set:'Cavo BASSO con maniglia singola. Stai di schiena alla torre con un piede avanti, maniglia all’altezza della spalla.',
+    pos:'Glutei e addominali contratti, costole basse, busto che non ruota né si inclina di lato.',
+    ese:['Parti con la maniglia all’altezza della spalla e l’avambraccio verticale.','Spingi verso l’alto distendendo il braccio davanti al viso.','Fermati senza bloccare di scatto il gomito.','Scendi lentamente alla spalla.'],
+    cue:'Costole basse e busto fermo: spingi il soffitto senza inclinarti.',
+    why:'Spinta verticale unilaterale: allena deltoidi e tricipiti e, in piedi, anche il core come anti-inclinazione.'}));
+})();
