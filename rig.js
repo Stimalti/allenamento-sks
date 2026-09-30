@@ -10,9 +10,14 @@ const RIG = (() => {
     H:[1.3,-7.3,-0.3], Kn:[1.75,-11.25,0.12], A:[2.3,-15.4,-0.05], T:[2.4,-16.0,2.25]};
   const mir = p => [-p[0], p[1], p[2]];
   // nome, da, a, lato (+1 = sinistra anatomica = x+), raggio, vettore "davanti" a riposo
+  // dita: catena di punti (mesh, mano sinistra) MCP -> falangi -> punta; indice, medio, anulare, mignolo, pollice
+  const FY = -2.55, fp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, FY, a[1] + (b[1] - a[1]) * t];
+  const FING = [['fi', [8.6, .52], [9.82, .70]], ['fm', [8.6, .27], [9.97, .25]], ['fr', [8.6, -.02], [9.82, -.15]], ['fp', [8.55, -.27], [9.5, -.5]]]
+    .map(([n, a, b]) => ({n, th: 0, q: [fp(a, b, 0), fp(a, b, .45), fp(a, b, .75), fp(a, b, 1)], A: [0, .45, .75].map(t => t * Math.hypot(b[0] - a[0], b[1] - a[1]))}));
+  FING.push({n: 'ft', th: 1, q: [[8.15, FY, .72], [8.55, FY, .9], [8.93, FY, 1.1]], A: [0, Math.hypot(.4, .18)]});
   const DEF = [['pelvis', LM.P0, LM.Pm, 0, 1.6], ['chest', LM.Pm, LM.N, 0, 2.2], ['neck', LM.N, LM.HB, 0, .6], ['head', LM.HB, LM.HT, 0, 1.0]];
   [[1, 'L', x => x], [-1, 'R', mir]].forEach(([sd, s, f]) => {
-    DEF.push(['fing' + s, f([8.45,-2.5,0.1]), f(LM.F), sd, .3]);
+    FING.forEach(F => F.q.forEach((q, k) => { if (k < F.q.length - 1) DEF.push([F.n + s + k, f(q), f(F.q[k + 1]), sd, .13]); }));
     DEF.push(['clav' + s, LM.N, f(LM.S), sd, .5], ['armU' + s, f(LM.S), f(LM.E), sd, .8], ['armF' + s, f(LM.E), f(LM.W), sd, .55], ['hand' + s, f(LM.W), f(LM.F), sd, .35],
       ['legU' + s, f(LM.H), f(LM.Kn), sd, 1.1], ['legL' + s, f(LM.Kn), f(LM.A), sd, .8], ['foot' + s, f(LM.A), f(LM.T), sd, .5]);
   });
@@ -76,7 +81,7 @@ const RIG = (() => {
         let c = [];
         for (let b = 0; b < NB; b++) {
           const d = DEF[b]; const side = d[3]; let f = 1;
-          if (d[0].startsWith('fing')) continue;
+          if (/^f[imrpt][LR]\d/.test(d[0])) continue;
           const name = d[0];
           if (side !== 0 && p[0] * side < -0.35 && !name.startsWith('clav')) continue;
           if (/^arm|^hand/.test(name) && Math.abs(p[0]) < 3.4 && p[1] < -2.6) f *= sm(1.6, 3.2, Math.abs(p[0]));
@@ -84,9 +89,22 @@ const RIG = (() => {
           c.push([b, f / Math.pow(de + .15, 3)]);
         }
         { let t0 = 0; c.forEach(e => t0 += e[1]); c.forEach(e => e[1] /= t0);
-          ['L', 'R'].forEach(s => { const sg = s === 'L' ? 1 : -1, hb = IDX['hand' + s], fbn = IDX['fing' + s];
-            if (p[0] * sg > 8.3) { const u = Math.max(0, Math.min(1, (Math.abs(p[0]) - 8.45) / 0.45)), e = c.find(x => x[0] === hb);
-              if (e && u > 0) { const mv = e[1] * u; e[1] -= mv; c.push([fbn, mv]); } } }); }
+          ['L', 'R'].forEach(s => { const sg = s === 'L' ? 1 : -1, hb = IDX['hand' + s], e = c.find(x => x[0] === hb);
+            if (!e || p[0] * sg < 8.1) return;
+            const px = p[0] * sg, pz = p[2], fw = [];
+            FING.forEach(F => { const qa = F.q, n = qa.length - 1; let best = 1e9, aa = 0;
+              for (let k = 0; k < n; k++) { const ax = qa[k + 1][0] - qa[k][0], az = qa[k + 1][2] - qa[k][2], L2 = ax * ax + az * az;
+                let t = ((px - qa[k][0]) * ax + (pz - qa[k][2]) * az) / L2, tc = Math.max(0, Math.min(1, t));
+                const d = Math.hypot(px - qa[k][0] - ax * tc, pz - qa[k][2] - az * tc); if (d < best) { best = d; aa = F.A[k] + t * Math.sqrt(L2); } }
+              const aEnd = aa; fw.push({F, d: best, a: aEnd}); });
+            let tw = 0; fw.forEach(o => { o.w = 1 / Math.pow(o.d + .06, 4); tw += o.w; });
+            const dmin = Math.min(...fw.map(o => o.d)), gate = (1 - sm(.3, .5, dmin));
+            const add = [], kept = [];
+            let wh = 0; fw.forEach(o => { const F = o.F, a = o.a, w = o.w / tw, ws = [];
+              if (F.th) { const J1 = F.A[1]; const h0 = 1 - sm(-.05, .3, a); ws.push(h0, (1 - h0) * (1 - sm(J1 - .1, J1 + .12, a)), (1 - h0) * sm(J1 - .1, J1 + .12, a)); }
+              else { const h0 = 1 - sm(-.25, .12, a), p1 = F.A[1], p2 = F.A[2]; ws.push(h0, (1 - h0) * (1 - sm(p1 - .12, p1 + .12, a)), (1 - h0) * sm(p1 - .12, p1 + .12, a) * (1 - sm(p2 - .1, p2 + .1, a)), (1 - h0) * sm(p2 - .1, p2 + .1, a)); }
+              wh += w * ws[0]; for (let k = 1; k < ws.length; k++) add.push([IDX[F.n + s + (k - 1)], w * ws[k]]); });
+            const tot0 = e[1], mv = tot0 * gate; e[1] = tot0 - mv * (1 - wh); add.forEach(a2 => c.push([a2[0], a2[1] * mv])); }); }
         c.sort((a, b) => b[1] - a[1]); c = c.slice(0, 4); let tot = 0; c.forEach(e => tot += e[1]);
         for (let k = 0; k < 4; k++) { si[v*4 + k] = c[k] ? c[k][0] : 0; sw[v*4 + k] = c[k] ? c[k][1] / tot : 0; }
         const m = muscleMask(p[0], p[1], p[2], nor.getX(v), nor.getY(v), nor.getZ(v));
@@ -159,13 +177,18 @@ const RIG = (() => {
         const sh = J.sh[s], el = J.el[s], wr = J.wr[s], u = wr.clone().sub(el).normalize();
         const wrist = el.clone().lerp(wr, 2.6 / 3.6), tip = wrist.clone().addScaledVector(u, 1.95 * K);
         setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.armF[s]); setBone('hand' + s, wrist, tip, J.armF[s]);
-        { const kn = wrist.clone().lerp(tip, .45 / 1.95), fb = bones[IDX['fing' + s]];
-          setBone('fing' + s, kn, tip, J.armF[s]);
-          const obj = J.obj && J.obj[s], th = (obj ? 82 : 22) * Math.PI / 180, L = kn.distanceTo(tip);
-          const xw = new THREE.Vector3(1, 0, 0).applyQuaternion(fb.quaternion), yw = new THREE.Vector3(0, 1, 0).applyQuaternion(fb.quaternion);
-          const target = obj || J.H, cand = ph => kn.clone().addScaledVector(xw, -Math.sin(ph) * L).addScaledVector(yw, Math.cos(ph) * L).distanceTo(target);
-          const ph = cand(th) <= cand(-th) ? th : -th;
-          fb.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), ph)); }
+        { const hbI = IDX['hand' + s], hb = bones[hbI]; hb.updateMatrix();
+          const Mm = hb.matrix.clone().multiply(inv[hbI]), obj = J.obj && J.obj[s], target = obj || J.H;
+          const hd = tip.clone().sub(wrist).normalize(), ax = J.armF[s].clone().addScaledVector(hd, -J.armF[s].dot(hd)).normalize();
+          const mapP = q => V3(s === 'L' ? q : [-q[0], q[1], q[2]]).applyMatrix4(Mm);
+          const CURL = obj ? {fi: [58, 88, 52], fm: [64, 95, 55], fr: [70, 100, 55], fp: [76, 100, 58], ft: [38, 46]} : {fi: [10, 16, 10], fm: [13, 18, 12], fr: [16, 20, 12], fp: [20, 22, 14], ft: [8, 10]};
+          const chain = (F, sg) => { const ang = CURL[F.n], pts = F.q.map(mapP), out = [pts[0]]; let cum = 0, dir = null;
+            for (let k = 0; k < pts.length - 1; k++) { const d0 = pts[k + 1].clone().sub(pts[k]), L = d0.length();
+              cum += ang[k] * Math.PI / 180 * sg; const d = d0.normalize().applyAxisAngle(ax, cum); out.push(out[k].clone().addScaledVector(d, L)); }
+            return out; };
+          const mid = FING[1], ps = chain(mid, 1), ms = chain(mid, -1);
+          const sg = ps[3].distanceTo(target) <= ms[3].distanceTo(target) ? 1 : -1;
+          FING.forEach(F => { const o = chain(F, sg); for (let k = 0; k < o.length - 1; k++) setBone(F.n + s + k, o[k], o[k + 1], J.armF[s]); }); }
         setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], J.legF[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
       });
       root.updateMatrixWorld(true);
