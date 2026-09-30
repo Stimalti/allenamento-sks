@@ -222,6 +222,11 @@ const FIG3 = (() => {
     } else if (ex.eq === 'bar' || ex.eq === 'barh') {
       const gw = Math.max(GZ, rig ? 40 : 27); P.push(cyl(pt3(grip, -gw - 26), pt3(grip, gw + 26), 2.4, STEEL));
       [[-gw - 24, -gw - 17], [gw + 17, gw + 24]].forEach(([z0, z1]) => { P.push(cyl(pt3(grip, z0), pt3(grip, z1), 12.5, BLK), cyl(pt3(grip, z0 - .3), pt3(grip, z1 + .3), 4.5, '#5b6580')); });
+      if (ex.sm) { // Smith machine: due binari verticali, la barra scorre su carrelli
+        const rx = grip[0], zs = [-gw - 34, gw + 34];
+        zs.forEach(z => { P.push(cyl(pt3([rx, FLOOR], z), pt3([rx, FLOOR - 285], z), 3.4, TW), cyl(pt3([rx - 7, FLOOR], z), pt3([rx + 7, FLOOR], z), 5, BLK), cyl(pt3(grip, z > 0 ? gw + 26 : -gw - 26), pt3(grip, z), 3, TW), cyl(pt3([rx, grip[1] - 7], z), pt3([rx, grip[1] + 7], z), 6, BLK)); });
+        P.push(cyl(pt3([rx, FLOOR - 285], zs[0]), pt3([rx, FLOOR - 285], zs[1]), 3.4, TW));
+      }
     } else if (ex.eq === 'db') {
       const zs = ex.one ? [ZN] : [ZN, ZF];
       zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
