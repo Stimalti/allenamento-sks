@@ -9,7 +9,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'mia'];
-function fixDB(d) { if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+function fixDB(d) { if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia; return d; }
 fixDB(DB);
 let saveTimer;
@@ -52,7 +52,7 @@ const TABS = [
 ];
 const rtList = id => DB.rt[id] || (DB.rt[id] = []);
 const customPlan = id => { const base = PLAN.find(p => p.id === id);
-  return {id, custom: true, profilo: id === 'mia' ? 'mia' : 'io', nome: base ? base.nome : 'La mia routine', sotto: base ? base.sotto : 'Scegli tu gli esercizi',
+  return {id, custom: true, profilo: id === 'mia' ? 'mia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : base ? base.nome : 'La mia routine', sotto: DB.names[id] ? (DB.names[id].m || '') : base ? base.sotto : 'Scegli tu gli esercizi',
     obiettivo: 'Esercizi scelti da te: aggiungili o toglili dalla Libreria con il tasto + e riordinali qui sotto.',
     ex: rtList(id).filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))}; };
 const planOf = id => CUST.includes(id) ? customPlan(id) : PLAN.find(p => p.id === id);
@@ -63,8 +63,15 @@ function toggleRt(rid, id) {
   else { let d = {s: 3, r: '8-12', rec: '90 s'}; for (const p of PLAN) { const x = p.ex.find(x => x.e === id); if (x) { d = {s: x.s, r: x.r, rec: x.rec}; break; } } rtList(rid).push({e: id, ...d}); }
   save();
 }
+function renameRt(id) {
+  const cp = customPlan(id);
+  modal(`<h2 style="padding-right:44px">Rinomina scheda</h2>
+   <label class="fl">Nome (es. Giorno 1, Pausa)<input id="rn-n" maxlength="30" value="${esc(cp.nome)}"></label>
+   <label class="fl">Muscoli o descrizione (separa con la virgola, es. Petto, Tricipiti)<input id="rn-m" maxlength="60" value="${esc(cp.sotto)}"></label>
+   <div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="renreset" data-id="${id}">Ripristina</button><button class="primary" style="width:auto;padding:10px 18px" data-act="rensave" data-id="${id}">Salva</button></div>`);
+}
 function pickRt(id) {
-  const rows = () => CUST.map(r => { const t = TABS.find(x => x.id === r); return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(t.full)}</button>`; }).join('');
+  const rows = () => CUST.map(r => { const t = TABS.find(x => x.id === r); const cp = customPlan(r); return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(cp.nome + (cp.sotto ? ': ' + cp.sotto : ''))}</button>`; }).join('');
   modal(`<h2 style="padding-right:44px">Aggiungi a…</h2><p style="color:var(--mut);margin:0 0 10px">${esc(byId[id].n)}</p><div id="rtrows">${rows()}</div>`);
   pickRt.rows = rows;
 }
@@ -170,41 +177,50 @@ function planView(p, prof) {
   return `<section class="hero"><div class="eyebrow">${prof === 'giulia' ? 'Giulia' : p.custom ? 'Creata da te' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
    <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate</div></section>
+   ${p.custom ? custTools(p) : ''}
    ${p.ex.map((x, i) => exCard(x, i, prof, p)).join('')}
-   ${p.custom ? '<button class="ghost addmore" data-act="tab" data-id="lib">+ Aggiungi altri esercizi dalla Libreria</button>' : ''}
+   ${p.custom ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : ''}
    <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
 }
 
-function libView() {
-  const q = norm(lib.q).split(/\s+/).filter(Boolean);
-  const list = EX.filter(e => {
-    if (lib.g && e.g !== lib.g) return false;
-    if (lib.a && e.a !== lib.a) return false;
-    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.cue, e.why, e.set].join(' '));
-    return q.every(t => hay.includes(t));
-  });
+const pick = {open: false, q: '', g: '', a: ''};
+const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
+  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false;
+    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.cue, e.why, e.set].join(' ')); return q.every(t => hay.includes(t)); }); };
+const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+function filters(st, sid, qid) {
   const atts = [...new Set(EX.map(e => e.a))];
-  return `<input class="search" id="q" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(lib.q)}" autocomplete="off">
-  <div class="chips">${chip('g', '', 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v)).join('')}</div>
-  <div class="chips">${chip('a', '', 'Ogni attrezzo')}${atts.map(a => chip('a', a, a)).join('')}</div>
-  <div class="count">${list.length} di ${EX.length} esercizi</div>
-  <div id="list">${list.map(e => `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${inAny(e.id) ? 'on' : ''}" data-act="mtog" data-id="${e.id}" aria-label="Aggiungi a una scheda">${inAny(e.id) ? '✓' : '+'}</button></div>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
+  return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off">
+  <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
+  <div class="chips">${chip('a', '', 'Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>`;
 }
-const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`;
+function libView() {
+  const list = filt(lib);
+  return `${filters(lib, 'lib', 'q')}<div class="count">${list.length} di ${EX.length} esercizi</div>
+  <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
+}
+function custTools(cp) {
+  const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
+  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button></div>` +
+    (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div class="count">${list.length} di ${EX.length} esercizi</div>${list.map(e => exRow(e, 'ptog', cp.id)).join('') || '<p class="count">Nessun risultato.</p>'}</section>` : '');
+}
+const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
 
 /* ---------- render ---------- */
 function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
   $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : CUST.includes(tab) ? esc(planOf(tab).nome) + '<small>' + rtList(tab).length + ' esercizi scelti da te</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
-  $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${x.full}"><i>${x.b}</i><span>${x.a.map(esc).join('<br>')}</span></button>`).join('');
+  $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[x.id]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); }
+    return `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${esc(full)}"><i>${x.b}</i><span>${a.map(esc).join('<br>')}</span></button>`; }).join('');
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
     h = `<div class="pills">${['gA', 'gB'].map(id => `<button class="${giuliaSub === id ? 'on' : ''}" data-act="sub" data-id="${id}">${planOf(id).nome}<br><small>${planOf(id).sotto}</small></button>`).join('')}</div>` + planView(planOf(giuliaSub), 'giulia');
   } else if (CUST.includes(tab)) {
     const cp = planOf(tab);
-    h = cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Creata da te</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Questa scheda è vuota: costruiscila tu. Apri la Libreria e tocca il <b>+</b> accanto agli esercizi che vuoi fare (ti chiede a quale scheda aggiungerlo). Poi torna qui: li trovi con serie, pesi e tecnica 3D.</p></section><button class="primary" data-act="tab" data-id="lib">Scegli gli esercizi</button>`;
+    h = cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Creata da te</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
   } else h = planView(planOf(tab), 'io');
   $('#main').innerHTML = h;
   if (keep) window.scrollTo(0, y);
@@ -260,12 +276,28 @@ document.addEventListener('click', e => {
   else if (a === 'rtpick') { toggleRt(b.dataset.r, b.dataset.id); $('#rtrows').innerHTML = pickRt.rows(); flash(inRt(b.dataset.r, b.dataset.id) ? '✓ Aggiunto' : 'Tolto'); }
   else if (a === 'mrm') { const id = b.dataset.id, pid = b.dataset.pid; ask('Togliere “' + byId[id].n + '” da questa scheda? I pesi già salvati restano nello storico.', 'Togli', () => { DB.rt[pid] = rtList(pid).filter(x => x.e !== id); save(); render(true); }); }
   else if (a === 'mup' || a === 'mdn') { const L = rtList(b.dataset.pid), j = L.findIndex(x => x.e === b.dataset.id), d = a === 'mup' ? -1 : 1; if (j >= 0 && L[j + d]) { [L[j], L[j + d]] = [L[j + d], L[j]]; save(); render(true); } }
+  else if (a === 'chip') { (b.dataset.s === 'pk' ? pick : lib)[b.dataset.t] = b.dataset.v; render(true); }
+  else if (a === 'ptoggle') { pick.open = !pick.open; render(true); }
+  else if (a === 'ptog') { pick.open = true; toggleRt(b.dataset.r, b.dataset.id); flash(inRt(b.dataset.r, b.dataset.id) ? '✓ Aggiunto alla scheda' : 'Tolto dalla scheda'); render(true); }
+  else if (a === 'ren') renameRt(b.dataset.id);
+  else if (a === 'rensave') { const id = b.dataset.id; DB.names[id] = {n: $('#rn-n').value.trim(), m: $('#rn-m').value.trim()}; save(); closeModal(); render(true); }
+  else if (a === 'renreset') { const id = b.dataset.id; delete DB.names[id]; save(); closeModal(); render(true); }
+  else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress(); }
+  else if (a === 'addset' || a === 'delset') {
+    const c = DB.cur[k], n = Math.max(1, c.sets.length + (a === 'addset' ? 1 : -1));
+    if (a === 'delset') c.sets.length = n; else curFor(k, n);
+    save(); const host = b.closest('.ex, #mbody'); const holder = host.querySelector('[data-sets]');
+    const tgt = b.closest('.ex') ? (planFind(k)?.r || '') : '';
+    const tmp = document.createElement('div'); tmp.innerHTML = setsHtml(k, n, tgt);
+    holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
+    const pre = host.querySelector('.presc b'); if (pre) { const sp = pre.querySelector('.n'); if (sp) sp.textContent = n; else pre.textContent = n + ' × ' + (planFind(k)?.r || ''); } refreshProgress();
+  }
   else if (a === 'vdel') { VDB.del(b.dataset.id).then(() => { flash('Video rimosso'); loadMine(b.closest('.tb, #mbody') || document); }); }
   else if (a === 'hist') histView(k);
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData();
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', async e => {
@@ -276,6 +308,7 @@ document.addEventListener('change', async e => {
 });
 document.addEventListener('input', e => {
   const t = e.target;
+  if (t.id === 'pq') { pick.q = t.value; const pos = t.selectionStart; render(true); const q = $('#pq'); q.focus(); q.setSelectionRange(pos, pos); return; }
   if (t.id === 'q') { lib.q = t.value; const pos = t.selectionStart; render(true); const q = $('#q'); q.focus(); q.setSelectionRange(pos, pos); return; }
   if (t.dataset.mf) { const x = rtList(t.dataset.pid).find(m => m.e === t.dataset.id); if (x) { x[t.dataset.mf] = t.value.slice(0, 12); save(); } return; }
   if (t.dataset.f) { const s = DB.cur[t.dataset.k].sets[+t.dataset.i]; s[t.dataset.f] = t.value.replace(/[^\d.,]/g, ''); if (t.value !== s[t.dataset.f]) t.value = s[t.dataset.f]; save(); }
