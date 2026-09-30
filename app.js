@@ -41,6 +41,30 @@ async function initCloud() {
 }
 function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => s.classList.remove('on'), 2200); }
 
+const FIN = {forza: 'Forza', massa: 'Massa', tonificare: 'Tonificare'};
+// serie (n), intervallo serie, ripetizioni, recupero, % del massimale (p = valore medio), ripetizioni in riserva
+const PRESC = {
+  comp: {forza: {s: 4, sr: '4-5', r: '3-5', rec: '3 min', pct: '85-90%', p: .87, rir: '1-2'}, massa: {s: 4, sr: '3-4', r: '6-10', rec: '90-120 s', pct: '70-80%', p: .75, rir: '1-2'}, tonificare: {s: 3, sr: '2-3', r: '12-15', rec: '60 s', pct: '55-65%', p: .6, rir: '2-3'}},
+  semi: {massa: {s: 3, sr: '3-4', r: '8-12', rec: '90 s', pct: '65-75%', p: .7, rir: '1-2'}, tonificare: {s: 3, sr: '2-3', r: '12-15', rec: '45-60 s', pct: '50-60%', p: .55, rir: '2-3'}},
+  iso: {massa: {s: 3, sr: '3-4', r: '10-15', rec: '60-90 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '2-3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
+  pol: {massa: {s: 4, sr: '4', r: '10-15', rec: '60 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
+  core: {tonificare: {s: 3, sr: '3', r: '12-20', rec: '30-45 s', pct: 'solo corpo libero o carico leggero', p: 0, rir: '2-3'}, massa: {s: 3, sr: '3-4', r: '8-12', rec: '60-90 s', pct: 'carico medio', p: 0, rir: '1-2'}}
+};
+const presOf = (ex, f) => (PRESC[ex.tipo] || PRESC.iso)[f] || null;
+// massimale stimato (formula di Epley) dalle serie che hai già registrato
+function est1RM(id) {
+  let best = 0;
+  Object.entries(DB.hist).forEach(([k, arr]) => { if (k.split(':')[1] !== id) return; arr.forEach(h => (h.sets || []).forEach(st => { const kg = num(st.kg), r = num(st.reps); if (kg > 0 && r >= 1 && r <= 12) best = Math.max(best, kg * (1 + r / 30)); })); });
+  return best || null;
+}
+function pesoTxt(ex, f) {
+  const p = presOf(ex, f); if (!p) return '';
+  const e = est1RM(ex.id);
+  if (e && p.p) { const kg = Math.round(e * p.p / 2.5) * 2.5; return `peso indicativo ≈ ${kg} kg (${p.pct} del tuo massimale stimato)`; }
+  if (p.p) return `peso: ${p.pct} del tuo massimale (se non lo conosci, scegli un carico che ti lasci ${p.rir} ripetizioni in riserva)`;
+  return `carico: ${p.pct}; ${p.rir} ripetizioni in riserva`;
+}
+const finLine = (ex, f) => { const p = presOf(ex, f); return p ? `<li><b>${FIN[f]}</b>: ${p.sr} serie × ${p.r} ripetizioni, recupero ${p.rec}. ${esc(pesoTxt(ex, f))}.</li>` : ''; };
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const DAYS = [['g1', 'Lun', 'Lunedì'], ['g2', 'Mar', 'Martedì'], ['g3', 'Mer', 'Mercoledì'], ['g4', 'Gio', 'Giovedì'], ['giulia', 'Ven', 'Venerdì'], ['mia', 'Sab', 'Sabato'], ['dom', 'Dom', 'Domenica']];
@@ -75,7 +99,7 @@ function pickRt(id) {
 }
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
 let giuliaSub = 'gA';
-const lib = {q: '', g: '', a: ''};
+const lib = {q: '', g: '', a: '', f: ''};
 
 const pk = (prof, id) => prof + ':' + id;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -101,10 +125,18 @@ const VDB = {
   async clear() { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('v', 'readwrite'); t.objectStore('v').clear(); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
   async del(id) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('v', 'readwrite'); t.objectStore('v').delete(id); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
 };
+const GLU = new Set('g-hip-thrust sm-hip-thrust g-kickback g-kickback-flesso g-kickback-diag g-abd-cavo g-add-cavo g-pullthrough g-bulgaro g-split g-rdl g-rdl-cavo g-squat-cavo g-sumo g-squat sm-squat sm-rdl g-front-squat sm-front-squat'.split(' '));
+const ytSearch = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+function creatorLinks(ex) {
+  const cr = ex.sm ? [['Team Underground Physique / Gianluca Olgiati', 'Underground Physique Gianluca Olgiati'], ['Sly05 / Team Synergic', 'Sly05 Team Synergic']]
+    : [['Niko_In_Forma Team', 'Niko In Forma Team'], ['Underground Physique', 'Underground Physique Gianluca Olgiati'], ['Filippo Rispoli / IronManager', 'Filippo Rispoli IronManager']];
+  const a = (l, q) => `<a class="vlink2" href="${ytSearch(q)}" target="_blank" rel="noopener noreferrer">🔎 ${esc(l)}</a>`;
+  return `<div class="vcr"><h4>Cerca su YouTube i video dei canali consigliati</h4><div class="vcrl">${cr.map(([l, q]) => a(l, ex.n + ' ' + q + ' shorts')).join('')}${GLU.has(ex.id) ? a('Shorts glutei di donne', ex.n + ' glutei shorts donna') : ''}</div><p class="vnote">Si apre la ricerca su YouTube per questo esercizio: scegli tu il video.</p></div>`;
+}
 function videoBlock(ex) {
   const l = DB.hideRef ? [] : ((typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || []).filter(x => !DB.hiddenRef[x.u]);
   const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<div class="vrow"><a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${x.s ? 'Video trovato online' : (i ? 'Altro video' : 'Guarda il video originale')}<small>${esc(x.n)}${x.s ? ' · scelto dal titolo, non verificato' : ''}</small></a><button class="ghost danger" data-act="vrefdel" data-id="${ex.id}" data-u="${esc(x.u)}" aria-label="Togli questo video">Togli</button></div>`).join('')}</div>` : '<p class="vnone">' + (DB.hideRef ? 'I video di riferimento sono nascosti (puoi mostrarli da ⚙).' : 'Per questo esercizio non c’è un video di riferimento.') + '</p>';
-  return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}
+  return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}${creatorLinks(ex)}
    <div class="vmine"><h3>I tuoi video</h3><div class="vmy"></div>
    <div class="vbtns"><label class="ghost vadd">⬆ Aggiungi un video dal telefono<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label></div>
    <div class="vurl"><input type="url" class="vurlin" inputmode="url" placeholder="Oppure incolla il link di un video online" autocomplete="off" aria-label="Link del video"><button class="ghost" data-act="vurl" data-id="${ex.id}">＋ Aggiungi link</button></div>
@@ -136,6 +168,7 @@ function techHtml(ex) {
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   ${videoBlock(ex)}
   <h3>Muscoli</h3><p>${esc(ex.m)}</p>
+  ${ex.fin ? `<h3>Finalità e carichi consigliati</h3><p>Adatto a: <b>${ex.fin.map(f => FIN[f]).join(' · ')}</b></p><ul>${ex.fin.map(f => finLine(ex, f)).join('')}</ul><p class="vnote">Indicazioni generali, non personalizzate. “Ripetizioni in riserva” = quante ne potresti ancora fare a fine serie. Per <b>tonificare</b> (muscolo più definito) servono carichi moderati e ripetizioni alte, ma il risultato dipende anche da alimentazione e dal grasso corporeo.</p>` : ''}
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>
   <h3>Esecuzione</h3><ol>${li(ex.ese)}</ol>
@@ -177,7 +210,7 @@ function exCard(x, idx, prof, pl) {
    ${cov(ex.id, 'cover')}${cu ? `<div class="mctl"><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">Togli</button></div>` : ''}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
     <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div></div></div>
    ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>recupero</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
-   <div class="role">${esc(x.ruolo)}</div>
+   ${cu && ex.fin ? `<div class="objrow"><span>Obiettivo</span>${ex.fin.map(f => `<button class="${x.obj === f ? 'on' : ''}" data-act="objset" data-pid="${pid}" data-id="${ex.id}" data-f="${f}">${FIN[f]}</button>`).join('')}</div>${x.obj && presOf(ex, x.obj) ? `<div class="objtip">Consigliato per ${FIN[x.obj].toLowerCase()}: ${presOf(ex, x.obj).sr} × ${presOf(ex, x.obj).r}, recupero ${presOf(ex, x.obj).rec} · ${esc(pesoTxt(ex, x.obj))}</div>` : ''}` : `<div class="role">${esc(x.ruolo)}</div>`}
    ${setsHtml(k, x.s, x.r)}${lastLine(k)}${hintLine(k, x.r)}
    <details class="tech"><summary>Tecnica 3D, cavi e spiegazione</summary><div class="tb">${techHtml(ex)}</div></details>
   </article>`;
@@ -197,16 +230,17 @@ function planView(p, prof) {
    <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
 }
 
-const pick = {open: false, q: '', g: '', a: ''};
+const pick = {open: false, q: '', g: '', a: '', f: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false;
+  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.cue, e.why, e.set].join(' ')); return q.every(t => hay.includes(t)); }); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = [...new Set(EX.map(e => e.a))];
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off">
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
+  <div class="chips">${chip('f', '', 'Ogni obiettivo', sid)}${Object.entries(FIN).map(([k, v]) => chip('f', k, v === 'Tonificare' ? 'Per tonificare' : v === 'Forza' ? 'Per la forza' : 'Per la massa', sid)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>`;
 }
 function libView() {
@@ -309,11 +343,28 @@ async function reportShare(copyOnly) {
   try { await navigator.clipboard.writeText(text); flash('✓ Testo copiato: incollalo in un messaggio'); }
   catch (e) { modal(`<h2 style="padding-right:44px">Copia il testo</h2><textarea id="bk" readonly style="width:100%;height:50vh;font:12px monospace">${esc(text)}</textarea>`); $('#bk').select(); }
 }
+/* ---- icona personalizzata (foto scelta da te, salvata solo su questo dispositivo) ---- */
+const LOGO_KEY = 'sks_logo', logoEl = document.querySelector('.logo'), LOGO_SVG = logoEl ? logoEl.innerHTML : '';
+function applyLogo() {
+  let d = null; try { d = localStorage.getItem(LOGO_KEY); } catch (e) {}
+  if (logoEl) { logoEl.style.backgroundImage = d ? `url(${d})` : ''; logoEl.classList.toggle('ph', !!d); logoEl.innerHTML = d ? '' : LOGO_SVG; }
+  document.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]').forEach(l => { if (!l.dataset.o) l.dataset.o = l.getAttribute('href'); l.setAttribute('href', d || l.dataset.o); if (d) l.removeAttribute('type'); });
+}
+function setLogo(file) {
+  if (!file) return; const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 192; const x = c.getContext('2d'), m = Math.min(img.width, img.height);
+    x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 192, 192); URL.revokeObjectURL(url);
+    try { localStorage.setItem(LOGO_KEY, c.toDataURL('image/jpeg', .85)); applyLogo(); flash('✓ Icona cambiata'); } catch (e) { flash('⚠ Non riesco a salvare l’immagine'); } };
+  img.onerror = () => flash('⚠ Immagine non valida'); img.src = url;
+}
+applyLogo();
 function settings() {
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
+   <div class="card"><h2>Icona dell'app</h2><p>Scegli una tua foto da usare come icona in alto e nella scheda del browser (viene ritagliata al centro in un quadrato). Resta solo su questo dispositivo. Per averla anche sulla schermata Home del telefono, ricrea il collegamento “Aggiungi a Home” dopo averla scelta.</p>
+   <p><button class="ghost" data-act="logopick">🖼 Scegli una foto</button> <button class="ghost" data-act="logoreset">↺ Icona originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
@@ -329,6 +380,8 @@ document.addEventListener('click', e => {
   if (a === 'tab') go(b.dataset.id);
   else if (a === 'sub') { giuliaSub = b.dataset.id; render(); }
   else if (a === 'open') openEx(b.dataset.id);
+  else if (a === 'objset') { const x = rtList(b.dataset.pid).find(v => v.e === b.dataset.id), ex = byId[b.dataset.id], p = presOf(ex, b.dataset.f);
+    if (x && p) { x.obj = b.dataset.f; x.s = p.s; x.r = p.r; x.rec = p.rec; const c = curFor(pk(planOf(b.dataset.pid).profilo, x.e), p.s); while (c.sets.length > p.s && !c.sets[c.sets.length - 1].kg && !c.sets[c.sets.length - 1].reps) c.sets.pop(); save(); render(true); flash('Impostato per ' + FIN[x.obj].toLowerCase()); } }
   else if (a === 'mtog') pickRt(b.dataset.id);
   else if (a === 'rtpick') { toggleRt(b.dataset.r, b.dataset.id); $('#rtrows').innerHTML = pickRt.rows(); flash(inRt(b.dataset.r, b.dataset.id) ? '✓ Aggiunto' : 'Tolto'); }
   else if (a === 'mrm') { const id = b.dataset.id, pid = b.dataset.pid; ask('Togliere “' + byId[id].n + '” da questa scheda? I pesi già salvati restano nello storico.', 'Togli', () => { DB.rt[pid] = rtList(pid).filter(x => x.e !== id); save(); render(true); }); }
@@ -363,6 +416,8 @@ document.addEventListener('click', e => {
   else if (a === 'vrefdel') { const box = b.closest('.vbox'), id = box.dataset.vid, root = box.parentElement; DB.hiddenRef[b.dataset.u] = 1; save(); box.outerHTML = videoBlock(byId[id]); loadMine(root); flash('Video tolto'); }
   else if (a === 'vrefall') { DB.hideRef = false; DB.hiddenRef = {}; save(); flash('Video di riferimento ripristinati'); settings(); }
   else if (a === 'vref') { DB.hideRef = !DB.hideRef; save(); flash(DB.hideRef ? 'Video di riferimento nascosti' : 'Video di riferimento visibili'); settings(); }
+  else if (a === 'logopick') { const f = $('#logofile'); f.onchange = () => setLogo(f.files[0]); f.click(); }
+  else if (a === 'logoreset') { try { localStorage.removeItem(LOGO_KEY); } catch (e) {} applyLogo(); flash('Icona originale ripristinata'); }
   else if (a === 'report') reportView();
   else if (a === 'rprint') reportPrint();
   else if (a === 'rshare') reportShare(false);

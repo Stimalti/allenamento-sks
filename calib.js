@@ -143,3 +143,41 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue:'Abbraccia un albero con un braccio: il gomito resta sempre leggermente piegato.',
     why:'Lavoro singolo per il petto con arco di movimento libero: permette di concentrarsi sulla contrazione di un lato alla volta.'}));
 })();
+
+/* ===== altri esercizi con Jammer Arms ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('p-jammer-press', {id:'j-incl', n:'Chest press inclinato con Jammer Arms', st:'inc', fr:[[55,180],[178,180]],
+    cap:['Impugnature ai lati della parte alta del petto','Braccia quasi distese sopra il petto'],
+    set:'Panca inclinata a 30-45° tra le jammer arms agganciate al rack, dischi sulle estremità. Regola le arms in modo che, da sdraiato, le impugnature siano all’altezza della parte alta dei pettorali.',
+    pos:'Scapole addotte e depresse, petto alto, piedi a terra, testa appoggiata allo schienale. Ogni braccio lavora in modo indipendente.',
+    ese:['Parti con le impugnature ai lati della parte alta del petto, gomiti a ~45°.','Spingi verso l’alto avvicinando leggermente le mani.','Fermati a braccia quasi distese senza bloccare i gomiti.','Ritorna lento controllando la discesa dei dischi.'],
+    cue:'Spingi le impugnature verso il soffitto avvicinandole un po’: il petto resta alto.',
+    why:'Enfatizza la parte alta del petto con un movimento indipendente per ogni lato: puoi spingere pesante e, se serve, lasciare andare in sicurezza.'}));
+  EX.push(cl('s-jammer-press', {id:'j-shoulder2', n:'Shoulder press con Jammer Arms a due braccia (seduto)', one:false, st:'seat', fr:[[15,175],[178,180]],
+    cap:['Impugnature all’altezza delle spalle','Braccia distese sopra la testa'],
+    set:'Panca verticale (schienale a 90°) davanti al rack, jammer arms all’altezza delle spalle con dischi sulle estremità. Siediti con la schiena appoggiata e i piedi a terra.',
+    pos:'Schiena appoggiata, glutei fermi, costole basse (niente arco lombare), gomiti appena davanti alla linea delle spalle.',
+    ese:['Parti con le impugnature all’altezza delle spalle.','Spingi verso l’alto distendendo entrambe le braccia: il percorso segue un arco leggermente in avanti.','Fermati senza bloccare di scatto i gomiti.','Scendi lentamente alle spalle.'],
+    cue:'Costole basse e schiena appoggiata: spingi il soffitto con i gomiti.',
+    why:'Permette di spingere pesante con le spalle in una traiettoria guidata, con ogni braccio indipendente (nessun lato compensa l’altro).'}));
+  EX.push(cl('b-row-jammer', {id:'j-row-singolo', n:'Rematore a un braccio con Jammer Arms', one:true,
+    set:'Jammer arm bassa davanti a te, dischi sull’estremità. Stai in piedi con un piede avanti, una mano appoggiata al rack per sostegno.',
+    pos:'Busto inclinato a ~45°, schiena neutra, ginocchia morbide; il busto non ruota.',
+    ese:['Parti con il braccio disteso verso l’impugnatura.','Tira l’impugnatura verso l’anca portando il gomito indietro e in alto.','Contrai la scapola 1 secondo.','Scendi lentamente a braccio disteso.'],
+    cue:'Gomito verso l’anca come per mettere la mano in tasca; il busto resta fermo.',
+    why:'Lavoro unilaterale per dorsali e romboidi con carico guidato: corregge gli squilibri tra i due lati.'}));
+})();
+
+/* ===== finalità: tipo di esercizio (per le indicazioni di serie, ripetizioni e carico) ===== */
+(() => {
+  const COMP = new Set('p-panca sm-panca sm-incl p-incl-db s-military sm-military s-press-db b-rackpull b-row-bar sm-row b-trazioni t-panca-stretta sm-panca-stretta g-squat sm-squat g-front-squat sm-front-squat g-rdl sm-rdl g-hip-thrust sm-hip-thrust g-bulgaro g-split g-sumo p-jammer-press j-incl j-shoulder2 s-jammer-press b-row-jammer j-row-singolo b-lat-larga b-lat-neutra b-lat-supina p-jammer-press'.split(' '));
+  const SEMI = new Set('p-press-cavi p-press-cavo-singolo p-panca-cavi p-incl-cavi s-press-cavo b-row-cavo b-lat-ginocchio b-row-singolo b-row-busto-cavi g-squat-cavo g-rdl-cavo g-pullthrough s-upright t-french-cavo t-overhead-corda t-overhead-singolo p-croci-panca'.split(' '));
+  const POL = new Set(['g-calf', 'sm-calf']);
+  const NOTON = new Set('b-rackpull p-panca sm-panca t-panca-stretta sm-panca-stretta s-military sm-military'.split(' '));
+  EX.forEach(e => {
+    e.tipo = COMP.has(e.id) ? 'comp' : SEMI.has(e.id) ? 'semi' : POL.has(e.id) ? 'pol' : e.g === 'addome' ? 'core' : 'iso';
+    e.fin = e.tipo === 'comp' ? ['forza', 'massa', 'tonificare'] : e.tipo === 'core' ? ['tonificare'] : ['massa', 'tonificare'];
+    if (NOTON.has(e.id)) e.fin = ['forza', 'massa'];
+  });
+})();
