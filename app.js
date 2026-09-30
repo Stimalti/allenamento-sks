@@ -66,12 +66,32 @@ function curFor(k, n) {
 }
 
 /* ---------- blocchi HTML ---------- */
+/* ---- video dell'esercizio: link alla fonte + video personale salvato solo sul dispositivo (IndexedDB) ---- */
+const VDB = {
+  open() { return new Promise((res, rej) => { try { const r = indexedDB.open('sks_video', 1); r.onupgradeneeded = () => r.result.createObjectStore('v'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); },
+  async get(id) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('v').objectStore('v').get(id); q.onsuccess = () => res(q.result || null); q.onerror = () => rej(q.error); }); },
+  async set(id, blob) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('v', 'readwrite'); t.objectStore('v').put(blob, id); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+  async del(id) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('v', 'readwrite'); t.objectStore('v').delete(id); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
+};
+function videoBlock(ex) {
+  const l = (typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || [];
+  const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${i ? 'Altro video' : 'Guarda il video originale'}<small>${esc(x.n)}</small></a>`).join('')}</div>` : '<p class="vnone">Per questo esercizio non c’è un video di riferimento.</p>';
+  return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}
+   <div class="vmine"><div class="vplay"></div><div class="vbtns"><label class="ghost vadd">⬆ Aggiungi il tuo video<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label><button class="ghost danger" data-act="vdel" data-id="${ex.id}" hidden>Rimuovi</button></div>
+   <p class="vnote">Il video che aggiungi resta solo su questo dispositivo: non viene caricato online e non lo vede nessun altro.</p></div></div>`;
+}
+async function loadMine(root) {
+  const box = root.querySelector('.vbox'); if (!box) return; const id = box.dataset.vid, play = box.querySelector('.vplay'), del = box.querySelector('[data-act=vdel]');
+  try { const b = await VDB.get(id); if (b) { play.innerHTML = ''; const v = document.createElement('video'); v.controls = true; v.playsInline = true; v.preload = 'metadata'; v.src = URL.createObjectURL(b); play.appendChild(v); del.hidden = false; } else { play.innerHTML = ''; del.hidden = true; } }
+  catch (e) { play.innerHTML = '<p class="vnone">Il tuo browser non permette di salvare video qui.</p>'; }
+}
 function techHtml(ex) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
   return `<div class="fig" data-fig="${ex.id}"></div>
   <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
+  ${videoBlock(ex)}
   <h3>Muscoli</h3><p>${esc(ex.m)}</p>
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>
@@ -182,6 +202,7 @@ function openEx(id) {
    <div class="card" style="padding:8px">${techHtml(ex)}</div>
    <div class="card"><h2>I tuoi pesi</h2>${setsHtml(k, 3, '')}${lastLine(k)}</div>`);
   const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, ex, FIG.mount);
+  loadMine($('#mbody'));
 }
 function histView(k) {
   const [prof, id] = k.split(':'), ex = byId[id], h = (DB.hist[k] || []).slice().reverse();
@@ -218,6 +239,7 @@ document.addEventListener('click', e => {
     holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
     const pre = host.querySelector('.presc b'); if (pre) pre.textContent = n + ' × ' + (planFind(k)?.r || ''); refreshProgress();
   }
+  else if (a === 'vdel') { VDB.del(b.dataset.id).then(() => { flash('Video rimosso'); loadMine(b.closest('.tb, #mbody') || document); }); }
   else if (a === 'hist') histView(k);
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData();
@@ -225,6 +247,12 @@ document.addEventListener('click', e => {
   else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = {cur: {}, hist: {}}; save(); render(); })
 });
 $('#cfg').onclick = settings;
+document.addEventListener('change', async e => {
+  const t = e.target; if (!t.dataset || !t.dataset.vfile) return; const f = t.files && t.files[0]; if (!f) return;
+  if (f.size > 400 * 1024 * 1024) { flash('⚠ Video troppo grande (max 400 MB)'); return; }
+  try { await VDB.set(t.dataset.vfile, f); flash('✓ Video salvato sul dispositivo'); } catch (err) { flash('⚠ Non riesco a salvare il video'); }
+  loadMine(t.closest('.tb, #mbody') || document);
+});
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'q') { lib.q = t.value; const pos = t.selectionStart; render(true); const q = $('#q'); q.focus(); q.setSelectionRange(pos, pos); return; }
@@ -234,6 +262,7 @@ document.addEventListener('toggle', e => {
   const d = e.target; if (!d.matches || !d.matches('details.tech') || !d.open) return;
   document.querySelectorAll('details.tech[open]').forEach(o => { if (o !== d) o.open = false; });
   const f = d.querySelector('[data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount);
+  loadMine(d);
 }, true);
 
 function planFind(k) { const [prof, id] = k.split(':'); const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }

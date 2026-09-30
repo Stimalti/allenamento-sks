@@ -113,3 +113,11 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .legend3d{color:#a3202c}
 
 .warn{font-size:13px;background:#fff4d6;color:#6b4b00;border-radius:12px;padding:9px 12px;margin:8px 0}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{background:#3a2f10;color:#ffd98a}}:root[data-theme="dark"] .warn{background:#3a2f10;color:#ffd98a}
+
+.vbox{margin:10px 0}.vlinks{display:flex;flex-direction:column;gap:8px}
+.vlink{display:block;text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:14px;padding:12px 14px;font-weight:700}
+.vlink small{display:block;font-weight:500;opacity:.9;font-size:12.5px}
+.vlinks .vlink:nth-child(n+2){background:var(--in);color:var(--tx);border:1px solid var(--line)}.vlinks .vlink:nth-child(n+2) small{color:var(--mut)}
+.vmine{margin-top:10px}.vplay video{width:100%;max-height:60vh;border-radius:14px;background:#000}
+.vbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.vadd{cursor:pointer;display:inline-block}
+.vnote,.vnone{font-size:13px;color:var(--mut);margin:6px 0 0}
