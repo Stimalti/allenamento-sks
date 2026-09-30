@@ -9,7 +9,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+function fixDB(d) { if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }
@@ -104,13 +104,28 @@ function videoBlock(ex) {
   const l = (typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || [];
   const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${x.s ? 'Video trovato online' : (i ? 'Altro video' : 'Guarda il video originale')}<small>${esc(x.n)}${x.s ? ' · scelto dal titolo, non verificato' : ''}</small></a>`).join('')}</div>` : '<p class="vnone">Per questo esercizio non c’è un video di riferimento.</p>';
   return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}
-   <div class="vmine"><div class="vplay"></div><div class="vbtns"><label class="ghost vadd">⬆ Aggiungi il tuo video<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label><button class="ghost danger" data-act="vdel" data-id="${ex.id}" hidden>Rimuovi</button></div>
-   <p class="vnote">Il video che aggiungi resta solo su questo dispositivo: non viene caricato online e non lo vede nessun altro.</p></div></div>`;
+   <div class="vmine"><h3>I tuoi video</h3><div class="vmy"></div>
+   <div class="vbtns"><label class="ghost vadd">⬆ Aggiungi un video dal telefono<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label></div>
+   <div class="vurl"><input type="url" class="vurlin" inputmode="url" placeholder="Oppure incolla il link di un video online" autocomplete="off" aria-label="Link del video"><button class="ghost" data-act="vurl" data-id="${ex.id}">＋ Aggiungi link</button></div>
+   <p class="vnote">I video caricati dal telefono restano solo su questo dispositivo. I link si salvano con i tuoi dati. Puoi aggiungerne quanti vuoi.</p></div></div>`;
 }
 async function loadMine(root) {
-  const box = root.querySelector('.vbox'); if (!box) return; const id = box.dataset.vid, play = box.querySelector('.vplay'), del = box.querySelector('[data-act=vdel]');
-  try { const b = await VDB.get(id); if (b) { play.innerHTML = ''; const v = document.createElement('video'); v.controls = true; v.playsInline = true; v.preload = 'metadata'; v.src = URL.createObjectURL(b); play.appendChild(v); del.hidden = false; } else { play.innerHTML = ''; del.hidden = true; } }
-  catch (e) { play.innerHTML = '<p class="vnone">Il tuo browser non permette di salvare video qui.</p>'; }
+  const box = root.querySelector('.vbox'); if (!box) return; const id = box.dataset.vid, host = box.querySelector('.vmy');
+  const list = DB.myv[id] = DB.myv[id] || [];
+  try { if (!list.some(x => x.k === id) && !DB.myv['_m' + id]) { DB.myv['_m' + id] = 1; const old = await VDB.get(id); if (old) { list.unshift({t: 'f', k: id, n: 'Il tuo video'}); save(); } } } catch (e) {}
+  host.innerHTML = '';
+  for (const x of list) {
+    const row = document.createElement('div'); row.className = 'vitem';
+    const del = `<button class="ghost danger" data-act="vdel" data-id="${id}" data-k="${esc(x.k)}">Rimuovi</button>`;
+    if (x.t === 'u') { row.innerHTML = `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ Apri il video<small>${esc(x.n || x.u)}</small></a>${del}`; }
+    else {
+      row.innerHTML = `<div class="vplay"></div><div class="vcap"><span>${esc(x.n || 'Il tuo video')}</span>${del}</div>`;
+      try { const b = await VDB.get(x.k); if (b) { const v = document.createElement('video'); v.controls = true; v.playsInline = true; v.preload = 'metadata'; v.src = URL.createObjectURL(b); row.querySelector('.vplay').appendChild(v); } else row.querySelector('.vplay').innerHTML = '<p class="vnone">Video non più presente su questo dispositivo.</p>'; }
+      catch (e) { row.querySelector('.vplay').innerHTML = '<p class="vnone">Il tuo browser non permette di salvare video qui.</p>'; }
+    }
+    host.appendChild(row);
+  }
+  if (!list.length) host.innerHTML = '<p class="vnone">Nessun video aggiunto.</p>';
 }
 function techHtml(ex) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
@@ -290,20 +305,26 @@ document.addEventListener('click', e => {
     holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
     const pre = host.querySelector('.presc b'); if (pre) { const sp = pre.querySelector('.n'); if (sp) sp.textContent = n; else pre.textContent = n + ' × ' + (planFind(k)?.r || ''); } refreshProgress();
   }
-  else if (a === 'vdel') { VDB.del(b.dataset.id).then(() => { flash('Video rimosso'); loadMine(b.closest('.tb, #mbody') || document); }); }
+  else if (a === 'vdel') { const id = b.dataset.id, key = b.dataset.k, root = b.closest('.tb, #mbody') || document; const x = (DB.myv[id] || []).find(v => v.k === key);
+    DB.myv[id] = (DB.myv[id] || []).filter(v => v.k !== key); save(); (x && x.t === 'f' ? VDB.del(key).catch(() => {}) : Promise.resolve()).then(() => { flash('Video rimosso'); loadMine(root); }); }
+  else if (a === 'vurl') { const id = b.dataset.id, inp = b.parentElement.querySelector('.vurlin'); let u = inp.value.trim(); if (!u) { flash('Incolla prima un link'); return; }
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u; let p; try { p = new URL(u); } catch (e) { p = null; }
+    if (!p || !/^https?:$/.test(p.protocol) || !p.hostname.includes('.')) { flash('⚠ Link non valido'); return; }
+    (DB.myv[id] = DB.myv[id] || []).push({t: 'u', k: 'u' + Date.now(), u: p.href, n: p.hostname.replace(/^www\./, '')}); save(); inp.value = ''; flash('✓ Link aggiunto'); loadMine(b.closest('.tb, #mbody') || document); }
   else if (a === 'hist') histView(k);
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData();
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', async e => {
   const t = e.target; if (!t.dataset || !t.dataset.vfile) return; const f = t.files && t.files[0]; if (!f) return;
   if (f.size > 400 * 1024 * 1024) { flash('⚠ Video troppo grande (max 400 MB)'); return; }
-  try { await VDB.set(t.dataset.vfile, f); flash('✓ Video salvato sul dispositivo'); } catch (err) { flash('⚠ Non riesco a salvare il video'); }
+  try { const key = t.dataset.vfile + '#' + Date.now(); await VDB.set(key, f); (DB.myv[t.dataset.vfile] = DB.myv[t.dataset.vfile] || []).push({t: 'f', k: key, n: f.name.slice(0, 40)}); save(); flash('✓ Video salvato sul dispositivo'); t.value = ''; } catch (err) { flash('⚠ Non riesco a salvare il video'); }
   loadMine(t.closest('.tb, #mbody') || document);
 });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('vurlin')) { e.preventDefault(); e.target.parentElement.querySelector('[data-act=vurl]').click(); } });
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'pq') { pick.q = t.value; const pos = t.selectionStart; render(true); const q = $('#pq'); q.focus(); q.setSelectionRange(pos, pos); return; }

@@ -138,3 +138,6 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .ctools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.ctools .ghost{flex:1;min-width:140px}
 .picker{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 12px 4px;margin:0 0 14px}.picker h3{margin:0 0 10px;font-size:15px}
 .fl{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:0 0 12px}.fl input{display:block;width:100%;margin-top:6px;border:1px solid var(--line);background:var(--in);border-radius:12px;padding:12px;font:inherit;font-size:16px;color:var(--tx)}
+.vmine h3{margin:14px 0 8px}.vitem{margin:0 0 10px}.vitem .vlink{margin-bottom:6px}.vcap{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}.vcap span{font-size:13px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vurl{display:flex;gap:8px;margin-top:10px}.vurlin{flex:1;min-width:0;border:1px solid var(--line);background:var(--in);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;color:var(--tx)}.vurl .ghost{white-space:nowrap}
+.vitem:has(>.vlink){display:flex;gap:8px;align-items:stretch}.vitem>.vlink{flex:1;margin:0;min-width:0}
