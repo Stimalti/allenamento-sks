@@ -8,9 +8,11 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '
 
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
-const CUST = ['g1', 'g2', 'g3', 'g4', 'mia', 'gA', 'gB'];
+const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
 function fixDB(d) { if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
-  delete d.mia; return d; }
+  delete d.mia;
+  if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
+  return d; }
 fixDB(DB);
 let saveTimer;
 let remote = null, cloudTimer;
@@ -41,18 +43,14 @@ function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('o
 
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
-const TABS = [
-  {id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'},
-  {id:'g1', a:['Petto','Tricipiti','Avambracci'], b:'1', full:'Giorno 1: petto, tricipiti e avambracci'},
-  {id:'g2', a:['Schiena','Bicipiti','Avambracci'], b:'2', full:'Giorno 2: schiena, bicipiti e avambracci'},
-  {id:'g3', a:['Spalle','Bicipiti','Tricipiti','Avambracci'], b:'3', full:'Giorno 3: spalle, bicipiti, tricipiti e avambracci'},
-  {id:'g4', a:['Gambe','Glutei','Addome'], b:'4', full:'Giorno 4: gambe, glutei e addominali'},
-  {id:'giulia', a:['Giulia','Gambe','Glutei'], b:'G', full:'Giulia: gambe, glutei e addominali'},
-  {id:'mia', a:['La mia','routine'], b:'★', full:'La mia routine: esercizi scelti da te'}
-];
+const DAYS = [['g1', 'Lun', 'Lunedì'], ['g2', 'Mar', 'Martedì'], ['g3', 'Mer', 'Mercoledì'], ['g4', 'Gio', 'Giovedì'], ['giulia', 'Ven', 'Venerdì'], ['mia', 'Sab', 'Sabato'], ['dom', 'Dom', 'Domenica']];
+const TABS = [{id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'}, ...DAYS.map(([id, sh, full], i) => ({id, a:[sh], b:String(i + 1), full}))];
+const dayName = id => (DAYS.find(d => d[0] === (id === 'gA' ? 'giulia' : id)) || [])[2] || 'Scheda';
+const tabPlan = id => id === 'giulia' ? 'gA' : id;
+
 const rtList = id => DB.rt[id] || (DB.rt[id] = []);
 const customPlan = id => { const base = PLAN.find(p => p.id === id);
-  return {id, custom: true, profilo: id === 'mia' ? 'mia' : id[0] === 'g' && id.length === 2 && id[1] > '9' ? 'giulia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : base ? base.nome : 'La mia routine', sotto: DB.names[id] ? (DB.names[id].m || '') : base ? base.sotto : 'Scegli tu gli esercizi',
+  return {id, custom: true, profilo: id === 'mia' ? 'mia' : id[0] === 'g' && id.length === 2 && id[1] > '9' ? 'giulia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : dayName(id), sotto: DB.names[id] ? (DB.names[id].m || '') : '',
     obiettivo: 'Esercizi scelti da te: aggiungili o toglili dalla Libreria con il tasto + e riordinali qui sotto.',
     ex: rtList(id).filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))}; };
 const planOf = id => CUST.includes(id) ? customPlan(id) : PLAN.find(p => p.id === id);
@@ -71,7 +69,7 @@ function renameRt(id) {
    <div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="renreset" data-id="${id}">Ripristina</button><button class="primary" style="width:auto;padding:10px 18px" data-act="rensave" data-id="${id}">Salva</button></div>`);
 }
 function pickRt(id) {
-  const rows = () => CUST.map(r => { const cp = customPlan(r), pre = r === 'gA' || r === 'gB' ? 'Giulia · ' : ''; return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(pre + cp.nome + (cp.sotto ? ': ' + cp.sotto : ''))}</button>`; }).join('');
+  const rows = () => CUST.map(r => { const cp = customPlan(r), pre = ''; return `<button class="rtrow ${inRt(r, id) ? 'on' : ''}" data-act="rtpick" data-r="${r}" data-id="${id}"><span>${inRt(r, id) ? '✓' : '+'}</span>${esc(pre + cp.nome + (cp.sotto ? ': ' + cp.sotto : ''))}</button>`; }).join('');
   modal(`<h2 style="padding-right:44px">Aggiungi a…</h2><p style="color:var(--mut);margin:0 0 10px">${esc(byId[id].n)}</p><div id="rtrows">${rows()}</div>`);
   pickRt.rows = rows;
 }
@@ -174,7 +172,7 @@ function planView(p, prof) {
   let tot = 0, dn = 0, mins = 0;
   p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); });
   const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
-  return `<section class="hero"><div class="eyebrow">${prof === 'giulia' ? 'Giulia' : p.custom ? 'Creata da te' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
+  return `<section class="hero"><div class="eyebrow">${p.custom ? 'Allenamento' : prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
    <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate</div></section>
    ${p.custom ? custTools(p) : ''}
@@ -200,7 +198,7 @@ function libView() {
   return `${filters(lib, 'lib', 'q')}<div class="count">${list.length} di ${EX.length} esercizi</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
 }
-const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">${cp.profilo === 'giulia' ? 'Giulia' : 'Creata da te'}</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
+const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
   return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button></div>` +
@@ -212,13 +210,13 @@ const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<
 function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
-  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : CUST.includes(tab) ? esc(planOf(tab).nome) + '<small>' + rtList(tab).length + ' esercizi scelti da te</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
-  $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[x.id]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); }
+  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : esc(planOf(tabPlan(tab)).nome) + '<small>' + (planOf(tabPlan(tab)).sotto ? esc(planOf(tabPlan(tab)).sotto) + ' · ' : '') + rtList(tabPlan(tab)).length + ' esercizi scelti da te</small>';
+  $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[tabPlan(x.id)]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); if (!nm.m && nm.n.length > 7) a = [nm.n.slice(0, 7) + '.']; }
     return `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${esc(full)}"><i>${x.b}</i><span>${a.map(esc).join('<br>')}</span></button>`; }).join('');
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
-    h = `<div class="pills">${['gA', 'gB'].map(id => `<button class="${giuliaSub === id ? 'on' : ''}" data-act="sub" data-id="${id}">${esc(planOf(id).nome)}<br><small>${esc(planOf(id).sotto)}</small></button>`).join('')}</div>` + custView(planOf(giuliaSub));
+    h = custView(planOf('gA'));
   } else if (CUST.includes(tab)) {
     h = custView(planOf(tab));
   } else h = planView(planOf(tab), 'io');
@@ -322,7 +320,7 @@ document.addEventListener('toggle', e => {
 
 function planFind(k) { const [prof, id] = k.split(':'); if (prof !== 'giulia') { for (const r of (prof === 'mia' ? ['mia'] : ['g1', 'g2', 'g3', 'g4'])) { const x = rtList(r).find(x => x.e === id); if (x) return x; } return null; } const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
 function refreshProgress() {
-  const p = tab === 'giulia' ? planOf(giuliaSub) : planOf(tab); if (!p) return;
+  const p = planOf(tabPlan(tab)); if (!p) return;
   const prof = p.profilo || 'io'; let tot = 0, dn = 0;
   p.ex.forEach(x => { const c = DB.cur[pk(prof, x.e)]; if (c) { tot += c.sets.length; dn += c.sets.filter(s => s.done).length; } });
   const bar = document.querySelector('.prog i'); if (bar) { bar.style.width = (tot ? Math.round(dn / tot * 100) : 0) + '%'; bar.parentElement.nextElementSibling.textContent = dn + '/' + tot + ' serie completate'; }
