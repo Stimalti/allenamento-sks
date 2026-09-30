@@ -38,12 +38,12 @@ function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('o
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const TABS = [
-  {id:'lib', a:'Esercizi', b:ICON_LIB},
-  {id:'g1', a:'Petto', b:'1'},
-  {id:'g2', a:'Schiena', b:'2'},
-  {id:'g3', a:'Spalle', b:'3'},
-  {id:'g4', a:'Gambe', b:'4'},
-  {id:'giulia', a:'Giulia', b:'G'}
+  {id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'},
+  {id:'g1', a:['Petto','Tricipiti'], b:'1', full:'Giorno 1: petto e tricipiti'},
+  {id:'g2', a:['Schiena','Bicipiti','Avambracci'], b:'2', full:'Giorno 2: schiena, bicipiti e avambracci'},
+  {id:'g3', a:['Spalle','Bicipiti','Tricipiti'], b:'3', full:'Giorno 3: spalle, bicipiti e tricipiti'},
+  {id:'g4', a:['Gambe','Glutei','Addome'], b:'4', full:'Giorno 4: gambe, glutei e addominali'},
+  {id:'giulia', a:['Giulia','Gambe','Glutei'], b:'G', full:'Giulia: gambe, glutei e addominali'}
 ];
 const planOf = id => PLAN.find(p => p.id === id);
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
@@ -151,7 +151,7 @@ function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
   $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
-  $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${x.a}"><i>${x.b}</i>${x.a}</button>`).join('');
+  $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${x.full}"><i>${x.b}</i><span>${x.a.map(esc).join('<br>')}</span></button>`).join('');
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {

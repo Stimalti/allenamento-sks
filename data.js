@@ -706,7 +706,7 @@ const PLAN = [
    {e:'t-push-barra', s:3, r:'12', rec:'senza pausa', ruolo:'Superserie 2A: tricipiti, volume ai cavi.'},
    {e:'c-hammer', s:3, r:'12', rec:'90 s dopo la coppia', ruolo:'Superserie 2B: brachiale e spessore del braccio.'}
   ]},
- {id:'g4', nome:'Giorno 4', sotto:'Gambe + Addominali', obiettivo:'Forza delle gambe e del core, che sostengono tutti gli altri sollevamenti. Squat pesante, poi catena posteriore ai cavi e addominali.',
+ {id:'g4', nome:'Giorno 4', sotto:'Gambe + Glutei + Addominali', obiettivo:'Forza delle gambe e del core, che sostengono tutti gli altri sollevamenti. Squat pesante, poi catena posteriore ai cavi e addominali.',
   ex:[
    {e:'g-squat', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: gambe e tronco.'},
    {e:'g-rdl-cavo', s:3, r:'10', rec:'2 min', ruolo:'Femorali e glutei con tensione costante.'},
