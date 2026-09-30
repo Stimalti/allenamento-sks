@@ -235,6 +235,7 @@ const FIG3 = (() => {
       let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
       P.tilt = Math.round(tilt);
     }
+    P.gp = ex.cp === 'ankle' ? pt3(A, LN) : (ex.one ? g3n : [g3n[0], g3n[1], 0]);
     if (rig) {
       const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, 0)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
       const fS = (Sx, Ex, Wx, fb) => bendFront(W3(Sx), W3(Ex), W3(Wx), fb);
@@ -307,6 +308,8 @@ const FIG3 = (() => {
       else if (ex.cross) { cableTo(P, wr, an[0], ex.tzf ?? 0); cableTo(P, wl, an[1], ex.tzf ?? 0); }
       else { cableTo(P, wl, an[0], 0); cableTo(P, wr, an[1], 0); }
     }
+    P.gp = ex.cp === 'ankle' ? (rAnk.length > 2 ? rAnk : pt3(rAnk, 0)) : (ex.bar ? [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, (wl[2] + wr[2]) / 2] : wr);
+    if (!ex.one && !ex.bar && ex.cp !== 'ankle') P.gp2 = wl;
     if (rig) {
       const Fz = Wv(0, 0, 1), up0 = Wv(0, 1, 0), p3 = (x, y, z) => W3([x, y, z || 0]);
       const fa = (S, E, Wr) => bendFront(p3(...S), p3(...E), p3(...Wr), Fz);
@@ -355,7 +358,7 @@ const FIG3 = (() => {
       const cv = document.createElement('canvas');
       renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
     } catch (e) { return fallback(el, ex); }
-    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button></div><div class="legend3d"></div>';
+    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button><button data-k="t" class="on tbtn">↗ Traiettoria</button></div><div class="legend3d"></div>';
     const stage = el.querySelector('.stage'); stage.prepend(renderer.domElement);
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 50);
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -371,6 +374,20 @@ const FIG3 = (() => {
     const gSph = new THREE.SphereGeometry(1, 16, 12), gBox = new THREE.BoxGeometry(1, 1, 1);
     const group = new THREE.Group(); scene.add(group); const pool = [];
     let pose = null, rigInst = null;
+    const trail = new THREE.Group(); scene.add(trail);
+    const tMat = new THREE.MeshBasicMaterial({color: 0x22c7ff, depthTest: false, transparent: true, opacity: .95}), sMat = new THREE.MeshBasicMaterial({color: 0x22c55e, depthTest: false}), eMat = new THREE.MeshBasicMaterial({color: 0xff6b35, depthTest: false});
+    function buildTrail() {
+      while (trail.children.length) trail.remove(trail.children[0]);
+      const N = 28, lines = [[], []];
+      for (let i = 0; i <= N; i++) {
+        const k = i / N, pp = lerp(pose[0], pose[1], k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k);
+        const P = geo(ex, pp, !!rigInst); if (P.gp) lines[0].push(P.gp); if (P.gp2) lines[1].push(P.gp2);
+      }
+      lines.forEach(L => { if (L.length < 2) return;
+        for (let i = 0; i < L.length; i++) { const m = new THREE.Mesh(gSph, i === 0 ? sMat : i === L.length - 1 ? eMat : tMat); m.position.copy(V(L[i])); m.scale.setScalar((i === 0 || i === L.length - 1 ? 3.4 : 1.7) / S3 * 1.0); m.renderOrder = 20; trail.add(m); }
+        for (let i = 0; i < L.length - 1; i++) { const a = V(L[i]), b = V(L[i + 1]), d = b.clone().sub(a), len = d.length(); if (len < 1e-4) continue; const c = new THREE.Mesh(gCylR(1), tMat); c.position.copy(a).add(b).multiplyScalar(.5); c.quaternion.setFromUnitVectors(up, d.normalize()); c.scale.set(.9 / S3, len, .9 / S3); c.renderOrder = 20; trail.add(c); }
+      });
+    }
     // traiettoria della mano in linea retta (panca, military...): la posizione del polso si interpola in linea
     // e le braccia si adattano con un IK piano, così il bilanciere non disegna un arco
     const sOf = p => ex.v === 'f' ? [175, (ex.st === 'seat' ? 107 : 62) + 4] : add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
@@ -383,8 +400,9 @@ const FIG3 = (() => {
       const ua = Math.hypot(ea[0] - Er[0], ea[1] - Er[1]) <= Math.hypot(eb[0] - Er[0], eb[1] - Er[1]) ? base + A : base - A, E = add(S, UA, ua);
       pp.ua = ua; pp.fa = Math.atan2(Wt[0] - E[0], Wt[1] - E[1]) / R;
     }
-    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m])'), mb = el.querySelector('.mbtn'), leg = el.querySelector('.legend3d');
-    leg.textContent = 'In rosso i muscoli che lavorano: ' + ex.m + '.';
+    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m]):not([data-k=t])'), mb = el.querySelector('.mbtn'), tb = el.querySelector('.tbtn'), leg = el.querySelector('.legend3d');
+    const legTxt = 'In rosso i muscoli che lavorano: ' + ex.m + '. Linea azzurra: percorso della mano, della barra o del piede (verde = partenza, arancione = arrivo).';
+    leg.textContent = legTxt;
     const o = {el, renderer, showM: true, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
     active = o;
     const V = (p) => new THREE.Vector3((p[0] - 150) / S3, (FLOOR - p[1]) / S3, (p[2] || 0) / S3);
@@ -420,7 +438,8 @@ const FIG3 = (() => {
     stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
     btns.forEach(b => b.onclick = () => { btns.forEach(x => x.classList.remove('on')); b.classList.add('on'); o.hold = b.dataset.k === 'a' ? null : +b.dataset.k; o.t0 = performance.now(); });
     let lastK = -1;
-    mb.onclick = () => { o.showM = !o.showM; mb.classList.toggle('on', o.showM); leg.style.display = o.showM ? '' : 'none'; lastK = -1; };
+    mb.onclick = () => { o.showM = !o.showM; mb.classList.toggle('on', o.showM); lastK = -1; };
+    tb.onclick = () => { trail.visible = !trail.visible; tb.classList.toggle('on', trail.visible); };
     function frame(t) {
       if (o.dead) return;
       o.raf = requestAnimationFrame(frame);
@@ -455,6 +474,7 @@ const FIG3 = (() => {
       if (typeof RIG !== 'undefined' && THREE.GLTFLoader) { try { rigInst = await RIG.create(); } catch (e) { rigInst = null; } }
       if (o.dead) { if (rigInst) rigInst.dispose(); return; }
       rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])]; if (ex.lin) o.lw = pose.map(handOf);
+      buildTrail();
       if (rigInst) { scene.add(rigInst.root); rigInst.meshes.forEach(m => { m.castShadow = true; }); o.rig = rigInst; }
       o.raf = requestAnimationFrame(frame);
     })();
