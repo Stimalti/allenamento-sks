@@ -456,13 +456,6 @@ const VIDEOS = {
 "v": "20"
 }
 ],
-"a-woodchop": [
-{
-"u": "https://www.facebook.com/share/r/19CRW3q2qz/",
-"n": "circa 0:07-0:11",
-"v": "20"
-}
-],
 "a-leg-raise": [
 {
 "u": "https://www.facebook.com/share/r/19CRW3q2qz/",
@@ -477,19 +470,17 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1DzLK7aUH2/",
 "n": "kickback glutei al cavo, tutto il video",
 "v": "40"
+},
+{
+"u": "https://www.facebook.com/share/r/17cMz1FN58/",
+"n": "vista laterale, circa 0:09-0:11",
+"v": "41"
 }
 ],
 "g-abd-cavo": [
 {
 "u": "https://www.facebook.com/share/r/17cMz1FN58/",
 "n": "abduzione al cavo, circa 0:08-0:14",
-"v": "41"
-}
-],
-"g-add-cavo": [
-{
-"u": "https://www.facebook.com/share/r/17cMz1FN58/",
-"n": "circa 0:05-0:08",
 "v": "41"
 }
 ],
