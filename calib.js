@@ -309,3 +309,71 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   };
   Object.entries(P).forEach(([k, ids]) => ids.split(' ').forEach(id => { const e = EX.find(x => x.id === id); if (e) e.presa = k; }));
 })();
+
+/* ===== correzioni: rotazione esterna (avambraccio che ruota attorno al gomito fermo), rematore con manubrio, kickback a due braccia ===== */
+(() => {
+  const rot = EX.find(e => e.id === 's-rot-est');
+  Object.assign(rot, {he: {a: [-0.72, 0.12, 0.68], b: [0.82, 0.12, 0.55]}, fr: [[6, 0], [6, 0]], az: 0.75, tzf: 62,
+    cap: ['Gomito al fianco piegato a 90°, avambraccio davanti alla pancia', 'Avambraccio ruotato verso l’esterno, gomito sempre al fianco'],
+    trj: 'Il gomito non si muove: l’avambraccio, orizzontale, ruota come una porta sul cardine dal davanti della pancia verso l’esterno (circa 80-90°).'});
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('b-row-singolo', {id: 'b-row-db', n: 'Rematore a un braccio con manubrio', a: 'Manubri', eq: 'db', an: undefined, lin: true, st: 'hinge', one: true, fr: [[35, 30, {t: 112}], [-62, -5, {t: 112}]], presa: 'neu',
+    cap: ['Busto inclinato, manubrio verso il pavimento', 'Manubrio all’anca, gomito indietro'],
+    set: 'Manubrio nella mano che lavora, presa neutra. Piede opposto avanti, busto inclinato; la mano libera si appoggia al rack, a una panca o alla coscia per sostenere la schiena.',
+    pos: 'Schiena parallela al pavimento e neutra, spalla non ruotata, sguardo verso il basso.',
+    ese: ['Parti con il braccio disteso verso il pavimento.', 'Tira il manubrio verso l’anca portando il gomito indietro e in alto, vicino al busto.', 'Contrai 1 secondo.', 'Scendi lentamente fino a stirare il dorsale.'],
+    cue: 'Gomito alla tasca posteriore, spalla lontana dall’orecchio; il busto non ruota.',
+    why: 'Il rematore con manubrio permette di caricare molto in sicurezza con l’appoggio sulla panca e di lavorare un lato alla volta.',
+    err: ['Ruotare il busto per alzare il peso', 'Tirare con il bicipite', 'Schiena arrotondata', 'Gomito che si apre di lato']}));
+  EX.push(cl('t-kickback', {id: 't-kickback-doppio', n: 'Kickback ai cavi a due braccia', one: false, presa: 'neu',
+    cap: ['Busto inclinato, gomiti alti e fermi, avambracci verso il basso', 'Braccia distese dietro, tricipiti contratti'],
+    set: 'Due cavi BASSI o medi con maniglie singole (uno per mano), oppure un cavo basso con corda. Stai di fronte alla torre, busto inclinato in avanti.',
+    pos: 'Busto inclinato di circa 45-60°, schiena neutra, gomiti alti e vicini ai fianchi: restano fermi per tutta la serie.',
+    ese: ['Parti con i gomiti alti e gli avambracci verso il basso.', 'Distendi entrambe le braccia indietro fino a bloccare i gomiti.', 'Contrai i tricipiti 1 secondo.', 'Torna lentamente a 90°.'],
+    cue: 'I gomiti sono cardini fermi: si muovono solo gli avambracci.',
+    why: 'Stesso lavoro del kickback a un braccio ma su entrambi i lati insieme: più veloce e con tensione costante del cavo.',
+    err: ['Gomiti che scendono', 'Slancio del busto', 'Peso troppo alto']}));
+})();
+
+/* ===== muscoli nel dettaglio (per la ricerca e la scheda) ===== */
+(() => {
+  const D = {
+    pettoAlto: 'grande pettorale (fascio clavicolare), deltoide anteriore, tricipite brachiale, dentato anteriore',
+    petto: 'grande pettorale (fascio sternale e clavicolare), deltoide anteriore, tricipite brachiale, dentato anteriore',
+    pettoBasso: 'grande pettorale (fascio sternale e costale), deltoide anteriore, dentato anteriore',
+    press: 'deltoide anteriore, deltoide laterale, tricipite brachiale, trapezio superiore, dentato anteriore',
+    laterali: 'deltoide laterale, sovraspinato, deltoide anteriore, trapezio superiore',
+    frontali: 'deltoide anteriore, grande pettorale (fascio clavicolare), dentato anteriore',
+    posteriori: 'deltoide posteriore, romboidi, trapezio medio, sottospinato, piccolo rotondo',
+    cuffia: 'sottospinato, piccolo rotondo, deltoide posteriore',
+    lat: 'gran dorsale, grande rotondo, romboidi, trapezio inferiore, bicipite brachiale, brachiale, brachioradiale',
+    row: 'gran dorsale, romboidi, trapezio medio, deltoide posteriore, bicipite brachiale, brachiale, erettori spinali',
+    cerniera: 'erettori spinali (gran lombare), grande gluteo, femorali (bicipite femorale, semitendinoso, semimembranoso), trapezio, avambracci',
+    trapezi: 'trapezio superiore, elevatore della scapola, avambracci',
+    curl: 'bicipite brachiale (capo lungo e capo breve), brachiale, brachioradiale',
+    martello: 'brachioradiale, brachiale, bicipite brachiale, estensori del polso',
+    polsoF: 'flessori del polso e delle dita (flessore radiale e ulnare del carpo)',
+    polsoE: 'estensori del polso e delle dita (estensore radiale e ulnare del carpo), brachioradiale',
+    tri: 'tricipite brachiale (capo laterale, capo mediale, capo lungo), anconeo',
+    triLungo: 'tricipite brachiale (capo lungo soprattutto), capo laterale e mediale, anconeo',
+    squat: 'quadricipite (retto femorale, vasto laterale, vasto mediale, vasto intermedio), grande gluteo, adduttori, erettori spinali, polpacci',
+    glutei: 'grande gluteo, medio gluteo, femorali (bicipite femorale, semitendinoso)',
+    abd: 'medio gluteo, piccolo gluteo, tensore della fascia lata',
+    add: 'adduttori (lungo, breve, grande), gracile, pettineo',
+    quad: 'quadricipite (retto femorale, vasto laterale, vasto mediale, vasto intermedio)',
+    fem: 'femorali (bicipite femorale, semitendinoso, semimembranoso), gastrocnemio',
+    polp: 'gastrocnemio, soleo',
+    core: 'retto addominale, obliqui esterni e interni, trasverso dell’addome',
+    obl: 'obliqui esterni e interni, trasverso dell’addome, retto addominale',
+    affondo: 'quadricipite, grande gluteo, medio gluteo, femorali, adduttori, polpacci',
+    trazioni: 'gran dorsale, bicipite brachiale, brachiale, romboidi, grande rotondo, retto addominale'
+  };
+  const K = [[/^p-incl|sm-incl|j-incl|croci-basse/, 'pettoAlto'], [/croci-alte/, 'pettoBasso'], [/^p-|^sm-panca$|panca-stretta$|^t-panca/, 'petto'],
+    [/^s-lateral/, 'laterali'], [/^s-frontal/, 'frontali'], [/facepull|posteriori|rope-facepull/, 'posteriori'], [/rot-est/, 'cuffia'], [/upright/, 'laterali'], [/military/, 'press'], [/^s-|^j-shoulder/, 'press'],
+    [/lat-|pulldown|rope-lat/, 'lat'], [/row|rope-row|shrug-cavo/, 'row'], [/rackpull|rdl/, 'cerniera'], [/scrollate/, 'trapezi'], [/trazioni|chinup/, 'trazioni'],
+    [/hammer|reverse-curl/, 'martello'], [/wrist-curl/, 'polsoF'], [/wrist-ext/, 'polsoE'], [/^c-/, 'curl'], [/overhead|french|over-db/, 'triLungo'], [/^t-/, 'tri'],
+    [/squat|sumo/, 'squat'], [/bulgaro|split/, 'affondo'], [/abd-cavo/, 'abd'], [/add-cavo/, 'add'], [/leg-ext/, 'quad'], [/leg-curl/, 'fem'], [/calf/, 'polp'],
+    [/hip-thrust|kickback|pullthrough/, 'glutei'], [/woodchop|pallof/, 'obl'], [/^a-/, 'core']];
+  EX.forEach(e => { if (e.mm) return; for (const [re, k] of K) { if (re.test(e.id)) { e.mm = D[k]; break; } } if (!e.mm) e.mm = e.m; });
+  EX.forEach(e => { if (/kickback-doppio|^t-kickback/.test(e.id)) e.mm = D.tri; if (/scrollate|shrug/.test(e.id)) e.mm = D.trapezi; if (/panca-stretta/.test(e.id)) e.mm = D.tri + ', grande pettorale, deltoide anteriore'; });
+})();

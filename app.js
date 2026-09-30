@@ -167,7 +167,7 @@ function techHtml(ex) {
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   ${videoBlock(ex)}
-  <h3>Muscoli</h3><p>${esc(ex.m)}</p>
+  <h3>Muscoli</h3><p>${esc(ex.m)}</p>${ex.mm && ex.mm !== ex.m ? `<p class="vnote">Nel dettaglio: ${esc(ex.mm)}.</p>` : ''}
   ${ex.fin ? `<h3>Finalità e carichi consigliati</h3><p>Adatto a: <b>${ex.fin.map(f => FIN[f]).join(' · ')}</b></p><ul>${ex.fin.map(f => finLine(ex, f)).join('')}</ul><p class="vnote">Indicazioni generali, non personalizzate. “Ripetizioni in riserva” = quante ne potresti ancora fare a fine serie. Per <b>tonificare</b> (muscolo più definito) servono carichi moderati e ripetizioni alte, ma il risultato dipende anche da alimentazione e dal grasso corporeo.</p>` : ''}
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>
@@ -233,7 +233,7 @@ function planView(p, prof) {
 const pick = {open: false, q: '', g: '', a: '', f: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
   return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false;
-    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.cue, e.why, e.set].join(' ')); return q.every(t => hay.includes(t)); }); };
+    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
@@ -251,7 +251,7 @@ function libView() {
 const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
-  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button></div>` +
+  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button></div>` +
     (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div class="count">${list.length} di ${EX.length} esercizi</div>${list.map(e => exRow(e, 'ptog', cp.id)).join('') || '<p class="count">Nessun risultato.</p>'}</section>` : '');
 }
 const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
@@ -395,6 +395,55 @@ async function setLogo(file) {
   save(); applyLogo(); logoMsg('✓ Foto profilo cambiata: la vedi in alto a sinistra');
 }
 applyLogo();
+/* ---------- proposta automatica di esercizi ---------- */
+const WZ = {step: 1, att: [], mus: [], fin: 'massa', pid: null, keep: [], rejected: [], cur: []};
+const ATT_ALL = () => [...new Set(EX.map(e => e.a))];
+const mkey = e => e.g + '|' + norm(e.m.split(',')[0].trim());
+const station = e => { if (e.eq !== 'cable') return e.a; const an = e.an ? (Array.isArray(e.an[0]) ? e.an[0] : e.an) : null, y = an ? an[1] : 100; const att = /corda/i.test(e.set) ? 'corda' : /barra|triangolo|V\b/i.test(e.set) ? 'barra' : /cavigliera/i.test(e.set) ? 'cavigliera' : 'maniglia'; return 'Cavi ' + (y < 60 ? 'alto' : y > 160 ? 'basso' : 'medio') + ' ' + att; };
+function wizPool() {
+  return EX.filter(e => (!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.includes(e.g)) && (e.fin || []).includes(WZ.fin) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
+}
+function wizPropose() {
+  const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
+  let pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e)));
+  if (!pool.length && WZ.rejected.length) { WZ.rejected = []; pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e))); }
+  const covered = new Set(out.map(e => e.g));
+  while (out.length < want && pool.length) {
+    const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
+      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (/singolo|un braccio/i.test(e.n)) s -= .3; return s; };
+    pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); pool = pool.filter(e => mkey(e) !== mkey(pick));
+  }
+  WZ.cur = out.map(e => e.id); return out;
+}
+function wizHtml() {
+  const chip2 = (t, v, on, l) => `<button class="chip ${on ? 'on' : ''}" data-act="wzchip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
+  if (WZ.step === 1) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
+    <p class="vnote">Scegli attrezzi, muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito (stesso attrezzo o stessa postazione).</p>
+    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti')}${ATT_ALL().map(a => chip2('att', a, WZ.att.includes(a), a)).join('')}</div>
+    <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
+    <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
+    <p class="vnote">${wizPool().length} esercizi disponibili con questa scelta.</p>
+    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzgo" ${wizPool().length ? '' : 'disabled'}>Proponi</button></div>`;
+  const list = WZ.cur.map(id => byId[id]);
+  const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
+  return `<h2 style="padding-right:44px">Proposta</h2>
+    <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati.</p>
+    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(station(e))}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
+    <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
+    <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
+    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
+}
+function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; modal(wizHtml()); }
+function wizRender() { $('#mbody').innerHTML = wizHtml(); }
+function wizAdd() {
+  const L = rtList(WZ.pid), added = [], removed = [];
+  WZ.keep.forEach(id => { const e = byId[id];
+    L.slice().forEach(x => { const o = byId[x.e]; if (o && o.id !== id && mkey(o) === mkey(e) && !WZ.keep.includes(o.id)) { removed.push(o.n); L.splice(L.indexOf(x), 1); } });
+    if (!L.some(x => x.e === id)) { const p = presOf(e, WZ.fin) || {s: 3, r: '8-12', rec: '90 s'}; L.push({e: id, s: p.s, r: p.r, rec: p.rec, obj: presOf(e, WZ.fin) ? WZ.fin : undefined}); added.push(e.n); } });
+  save(); closeModal(); go(WZ.pid === 'gA' ? 'giulia' : WZ.pid);
+  const msg = `<h2 style="padding-right:44px">Fatto</h2><p><b>Aggiunti a ${esc(planOf(WZ.pid).nome)}:</b></p><ul>${added.map(n => `<li>${esc(n)}</li>`).join('') || '<li>nessuno (erano già presenti)</li>'}</ul>${removed.length ? `<p><b>Tolti perché lavorano esattamente gli stessi muscoli:</b></p><ul>${removed.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}<p class="vnote">Serie, ripetizioni e recupero sono impostati per l’obiettivo “${esc(FIN[WZ.fin])}”. Puoi cambiarli nella scheda.</p>`;
+  setTimeout(() => modal(msg), 50);
+}
 function settings() {
   setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
@@ -459,6 +508,13 @@ document.addEventListener('click', e => {
   else if (a === 'logoreset') { delete DB.logo; try { localStorage.removeItem(LOGO_KEY); } catch (e) {} save(); applyLogo(); logoMsg('Foto originale ripristinata'); }
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
+  else if (a === 'wiz') wizOpen(b.dataset.pid);
+  else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
+  else if (a === 'wzgo') { WZ.step = 2; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
+  else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }
+  else if (a === 'wzback') { WZ.step = 1; wizRender(); }
+  else if (a === 'wzday') { WZ.pid = b.dataset.id; wizRender(); }
+  else if (a === 'wzadd') wizAdd();
   else if (a === 'wprint') printHtml('Piano settimanale', weekHtml());
   else if (a === 'wshare') shareText('Piano settimanale', weekText());
   else if (a === 'rprint') reportPrint();
@@ -468,6 +524,7 @@ document.addEventListener('click', e => {
   else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.act === 'wzkeep') { const id = t.dataset.id, i = WZ.keep.indexOf(id); if (t.checked && i < 0) WZ.keep.push(id); if (!t.checked && i >= 0) WZ.keep.splice(i, 1); wizRender(); } });
 document.addEventListener('change', async e => {
   const t = e.target; if (!t.dataset || !t.dataset.vfile) return; const f = t.files && t.files[0]; if (!f) return;
   if (f.size > 400 * 1024 * 1024) { flash('⚠ Video troppo grande (max 400 MB)'); return; }

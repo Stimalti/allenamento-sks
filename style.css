@@ -159,3 +159,5 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .vcr{margin:12px 0 4px}.vcr h4{margin:0 0 8px;font-size:14px}.vcrl{display:flex;flex-wrap:wrap;gap:8px}.vlink2{display:inline-block;text-decoration:none;border:1px solid var(--line);background:var(--in);color:var(--tx);border-radius:999px;padding:8px 12px;font-size:13.5px;font-weight:700}
 .logo.ph{background-size:cover;background-position:center}
 .logoprev{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:14px;color:var(--mut)}
+.chips.wrap{flex-wrap:wrap;overflow:visible;margin:0;padding-inline:0}
+.wzrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--in);border-radius:14px;padding:8px 10px;margin:0 0 8px;cursor:pointer}.wzrow.on{border-color:var(--acc);background:var(--accbg)}.wzrow input{width:22px;height:22px;flex:none}.wzrow .t{flex:1;min-width:0}.wzrow .t b{display:block;font-weight:600;line-height:1.25}.wzrow .t small{color:var(--mut);font-size:12.5px}.wzrow .thumb{width:60px;height:45px}

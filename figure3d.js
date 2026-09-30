@@ -167,7 +167,14 @@ const FIG3 = (() => {
   }
   const fw2 = a => { const d = dir(a); return [d[0], -d[1], 0]; };
   const tzSide = (an, sg) => an[1] < 60 ? 0 : 80 * sg;
+  const ankleOf = q => [q.h[0] + TH * Math.sin(q.th * R) + SH * Math.sin(q.sh * R), q.h[1] + TH * Math.cos(q.th * R) + SH * Math.cos(q.sh * R)];
+  function anchorFeet(ex, p, rig) {
+    if (!rig || !['stand', 'hinge'].includes(ex.st) || ex.legs || ex.cp === 'ankle') return p;
+    const a0 = ankleOf(resolve(ex, ex.fr[0])), a1 = ankleOf(p);
+    return Object.assign({}, p, {h: [p.h[0] + (a0[0] - a1[0]), p.h[1] + (a0[1] - a1[1])]});
+  }
   function geoSide(ex, p, rig) {
+    p = anchorFeet(ex, p, rig);
     const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
@@ -282,14 +289,18 @@ const FIG3 = (() => {
       const w0 = Math.sin((1 - k) * om) / so, w1 = Math.sin(k * om) / so, d = [0, 1, 2].map(i => w0 * a[i] + w1 * b[i]), r = ex.hs.r || 71;
       const hp = (S, sg) => [S[0] + sg * r * d[0], S[1] + r * d[1], r * d[2]]; return {R: hp(Rs, 1), L: hp(Ls, -1)}; })() : null;
     if (hsp) { rA.W = [hsp.R[0], hsp.R[1]]; if (!ex.one) lA.W = [hsp.L[0], hsp.L[1]]; }
+    // ex.he = {a, b}: il gomito resta fermo (angolo ua) e la mano percorre un arco attorno al gomito, con profondita' (x>0 esterno, y giu', z avanti)
+    const hep = ex.he && rig && p.k !== undefined ? (() => { const n = v => { const l = Math.hypot(...v); return v.map(c => c / l); }, a = n(ex.he.a), b = n(ex.he.b), k = p.k, dt = Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2])), om = Math.acos(dt), so = Math.sin(om) || 1;
+      const w0 = Math.sin((1 - k) * om) / so, w1 = Math.sin(k * om) / so, d = [0, 1, 2].map(i => w0 * a[i] + w1 * b[i]);
+      const hp = (A, sg) => ({E: [A.E[0], A.E[1], 0], W: [A.E[0] + sg * FA * d[0], A.E[1] + FA * d[1], FA * d[2]]}); return {R: hp(rA, 1), L: hp(lA, -1)}; })() : null;
     // mani con profondità reale (croci, alzate posteriori, upright row, lat): il gomito si piega con IK 3D e le mani passano DAVANTI al corpo
     const hz = ex.hz || [0, 0];
     const hand3 = (A, S, sg) => {
       const xh = Math.abs(A.W[0] - cx), t = Math.max(0, Math.min(1, (SW + 12 - xh) / (SW + 12))), z = hsp ? hsp.R[2] : hz[0] + hz[1] * t;
       const Wp = [A.W[0], A.W[1], z]; return {E: ik3([S[0], S[1], 0], Wp, UA, FA, [sg, .55, -.25]), W: Wp};
     };
-    const R3 = (ex.hz || hsp) && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
-    const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : ((ex.hz || hsp) && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
+    const R3 = hep ? hep.R : (ex.hz || hsp) && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
+    const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : hep ? hep.L : ((ex.hz || hsp) && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
     let rAnk = [cx + 14, hy + 104];
     const frontLeg = (hip, knee, ank, toe, col) => { leg(P, hip, knee, ank, toe, col, SHO, 0); };
     if (seatF) {

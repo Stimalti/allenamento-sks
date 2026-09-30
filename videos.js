@@ -104,11 +104,6 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1atxq8gxQV/",
 "n": "circa 0:03-0:07",
 "v": "36"
-},
-{
-"u": "https://www.facebook.com/share/r/1CkBfohkCr/",
-"n": "circa 0:25-0:35",
-"v": "24"
 }
 ],
 "s-frontali": [
@@ -259,13 +254,8 @@ const VIDEOS = {
 "b-row-singolo": [
 {
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
-"n": "circa 0:21-0:25",
+"n": "rematore a un braccio: con manubrio su panca (0:21) e alla macchina (0:22-0:25)",
 "v": "34"
-},
-{
-"u": "https://www.facebook.com/share/r/18DuKVjMkf/",
-"n": "circa 0:13-0:18",
-"v": "35"
 }
 ],
 "b-row-busto-cavi": [
@@ -449,19 +439,9 @@ const VIDEOS = {
 ],
 "t-kickback": [
 {
-"u": "https://www.facebook.com/share/r/18HKsoGYh7/",
-"n": "coice, circa 0:12-0:20",
-"v": "02"
-},
-{
 "u": "https://www.facebook.com/share/r/19PkTgYkfL/",
 "n": "circa 0:14-0:20",
 "v": "21"
-},
-{
-"u": "https://www.facebook.com/share/r/1DAghFFovF/",
-"n": "circa 0:13-0:18",
-"v": "03"
 }
 ],
 "t-panca-stretta": [
@@ -1248,6 +1228,20 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1YmuzqE61B/",
 "n": "terza parte (deltoidi posteriori), circa 0:14-0:19",
 "v": "42"
+}
+],
+"b-row-db": [
+{
+"u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
+"n": "rematore con manubrio su panca, circa 0:21-0:22",
+"v": "34"
+}
+],
+"t-kickback-doppio": [
+{
+"u": "https://www.facebook.com/share/r/18HKsoGYh7/",
+"n": "kickback a due braccia ai cavi, circa 0:15-0:17",
+"v": "02"
 }
 ]
 };
