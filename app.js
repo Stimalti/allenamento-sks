@@ -41,7 +41,7 @@ const TABS = [
   {id:'g2', a:'Giorno 2', b:'Schiena'},
   {id:'g3', a:'Giorno 3', b:'Spalle'},
   {id:'g4', a:'Giorno 4', b:'Gambe'},
-  {id:'giulia', a:'Giulia', b:'Glutei'}
+  {id:'giulia', a:'Giulia', b:'Gambe'}
 ];
 const planOf = id => PLAN.find(p => p.id === id);
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';

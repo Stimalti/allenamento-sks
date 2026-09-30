@@ -598,75 +598,97 @@ E({id:'g-add-cavo', n:'Adduzione anca al cavo (cavigliera)', g:'gambe', a:'Cavi'
  why:'Gli adduttori lavorano in squat e affondi e sono spesso deboli: equilibrano l’abduzione e proteggono le ginocchia.',
  err:['Slancio','Busto che si piega','Carico troppo alto']});
 
+E({id:'g-squat-cavo', n:'Squat al cavo (goblet con maniglia)', g:'gambe', a:'Cavi', m:'Quadricipiti, glutei, adduttori, core',
+ st:'stand', eq:'cable', an:[255,120], fr:[[50,-70,{t:178}],[50,-70,{t:150,h:[112,163],th:80,sh:-15}]], cap:['In piedi, maniglia al petto, cavo in avanti','Scesa profonda, il cavo ti bilancia in avanti'],
+ set:'Cavo MEDIO-BASSO (circa all’altezza dell’anca) con maniglia singola o corda. Tienila al petto con due mani e allontanati dalla torre finché il cavo è in tensione.',
+ pos:'Piedi alla larghezza delle spalle o più larghi (sumo), punte aperte, gomiti vicini al busto, petto alto. Il cavo ti tira in avanti: resisti con il core.',
+ ese:['Inspira e scendi in verticale, ginocchia in fuori sopra le punte dei piedi.','Scendi fino a cosce parallele o sotto, con il cavo che ti fa da contrappeso.','Spingi i piedi nel pavimento e risali contraendo i glutei in alto.'],
+ cue:'Spingi le ginocchia in fuori e "siediti in mezzo alle gambe": il cavo ti aiuta a restare dritta.',
+ why:'Il cavo ti fa da contrappeso: riesci a scendere più profonda e dritta rispetto a uno squat a corpo libero, con molto lavoro su glutei e cosce e poco carico sulla schiena. Ottimo per imparare lo squat.',
+ err:['Ginocchia che cadono verso l’interno','Talloni che si alzano','Lasciarsi tirare in avanti dal cavo']});
+
+E({id:'g-rdl-cavo', n:'Stacco rumeno al cavo basso', g:'gambe', a:'Cavi', m:'Femorali, glutei, erettori spinali',
+ st:'stand', eq:'cable', an:[45,212], fr:[[0,0,{t:178}],[0,0,{t:135,h:[115,120],th:25,sh:-5}]], cap:['In piedi, barra davanti alle cosce, cavo dietro','Busto inclinato, fianchi indietro'],
+ set:'Cavo BASSO con barra dritta (o corda). Stai di schiena alla torre, a circa un passo, con il cavo che passa tra le gambe.',
+ pos:'Piedi alla larghezza del bacino, ginocchia morbide e ferme, schiena neutra, scapole indietro.',
+ ese:['Spingi i fianchi indietro facendo scendere la barra lungo le cosce.','Scendi fino a sentire lo stiramento dei femorali, schiena sempre dritta.','Spingi i fianchi in avanti, contrai i glutei e torna in piedi senza inarcare la schiena.'],
+ cue:'Fianchi indietro come per chiudere una porta con il sedere; il cavo tira e i glutei lo riportano su.',
+ why:'Il cavo dà tensione costante: anche in alto i glutei devono lavorare per chiudere il movimento, cosa che con il bilanciere non succede. Costruisce femorali e glutei con un carico ben controllabile.',
+ err:['Schiena arrotondata','Piegare troppo le ginocchia','Inarcare la schiena in alto']});
+
 /* ============================== PIANI DI ALLENAMENTO ============================== */
 const GRUPPI = {petto:'Petto', spalle:'Spalle', schiena:'Schiena', bicipiti:'Bicipiti', tricipiti:'Tricipiti', avambracci:'Avambracci', gambe:'Gambe', addome:'Addome'};
 
 /* sets, reps (testo), rec = recupero, ruolo = a cosa serve in questa seduta, opt = opzionale */
 const PLAN = [
- {id:'g1', nome:'Giorno 1', sotto:'Petto + Tricipiti', obiettivo:'Forza nella spinta orizzontale. Panca pesante come primo esercizio (quando sei più fresco), poi volume su petto e tricipiti, che sono il "limite" della panca.',
+ {id:'g1', nome:'Giorno 1', sotto:'Petto + Tricipiti', obiettivo:'Forza nella spinta orizzontale. Panca pesante come primo esercizio (quando sei più fresco), poi tutto ai cavi: petto per volume e tricipiti, che sono il "limite" della panca.',
   ex:[
    {e:'p-panca', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: carico alto, tecnica perfetta.'},
-   {e:'p-incl-db', s:3, r:'8-10', rec:'2 min', ruolo:'Petto alto e simmetria dei due lati.'},
    {e:'p-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Spinta pesante con traiettoria indipendente.'},
-   {e:'p-croci-alte', s:3, r:'12-15', rec:'75 s', ruolo:'Isolamento petto con tensione costante.'},
-   {e:'p-croci-basse', s:3, r:'12-15', rec:'75 s', ruolo:'Petto alto, completa la spinta della panca.', opt:true},
-   {e:'t-panca-stretta', s:4, r:'6', rec:'2 min', ruolo:'Forza di lockout: i tricipiti decidono l’ultima parte della panca.'},
-   {e:'t-push-corda', s:3, r:'10-12', rec:'75 s', ruolo:'Volume sui tricipiti con poco stress articolare.'},
-   {e:'t-overhead-corda', s:3, r:'12', rec:'75 s', ruolo:'Capo lungo del tricipite (il più grosso).'}
+   {e:'p-press-cavi', s:3, r:'10-12', rec:'90 s', ruolo:'Spinta ai cavi: tensione costante e core attivo.'},
+   {e:'p-croci-alte', s:3, r:'12-15', rec:'75 s', ruolo:'Petto (parte centrale-bassa) ai cavi alti.'},
+   {e:'p-croci-basse', s:3, r:'12-15', rec:'75 s', ruolo:'Petto alto ai cavi bassi.'},
+   {e:'t-push-corda', s:4, r:'10-12', rec:'75 s', ruolo:'Tricipiti: volume e forza di lockout.'},
+   {e:'t-overhead-corda', s:3, r:'12', rec:'75 s', ruolo:'Capo lungo del tricipite (il più grosso).'},
+   {e:'t-panca-stretta', s:3, r:'6', rec:'2 min', ruolo:'Forza di lockout con il bilanciere.', opt:true}
   ]},
- {id:'g2', nome:'Giorno 2', sotto:'Schiena + Bicipiti + Avambracci', obiettivo:'Forza nella trazione. Parti dal pesante (rack pull, rematore), poi i cavi per volume e sensibilità, infine braccia e presa.',
+ {id:'g2', nome:'Giorno 2', sotto:'Schiena + Bicipiti + Avambracci', obiettivo:'Forza nella trazione. Rack pull pesante, poi la schiena quasi tutta ai cavi, infine bicipiti e avambracci ai cavi.',
   ex:[
    {e:'b-rackpull', s:4, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: catena posteriore e presa.'},
-   {e:'b-row-bar', s:4, r:'6-8', rec:'2 min', ruolo:'Spessore della schiena con carico alto.'},
    {e:'b-lat-larga', s:4, r:'8-10', rec:'2 min', ruolo:'Ampiezza e forza di trazione verticale.'},
-   {e:'b-row-cavo', s:3, r:'10-12', rec:'90 s', ruolo:'Romboidi e trapezio medio con tensione costante.'},
+   {e:'b-row-cavo', s:4, r:'10-12', rec:'90 s', ruolo:'Spessore della schiena con tensione costante.'},
+   {e:'b-row-singolo', s:3, r:'10 per lato', rec:'75 s', ruolo:'Dorsali e romboidi, un braccio alla volta.'},
    {e:'b-pulldown-braccia-tese', s:3, r:'12-15', rec:'75 s', ruolo:'Isolamento del dorsale, senza bicipiti.', opt:true},
-   {e:'c-curl-bar', s:3, r:'8-10', rec:'90 s', ruolo:'Forza di flessione del gomito con carico alto.'},
-   {e:'c-curl-cavo', s:3, r:'12', rec:'75 s', ruolo:'Tensione costante sul bicipite.'},
+   {e:'c-curl-cavo', s:3, r:'10-12', rec:'75 s', ruolo:'Bicipiti: tensione costante.'},
+   {e:'c-curl-alti', s:3, r:'12', rec:'75 s', ruolo:'Bicipiti in contrazione massima (posa double biceps).'},
    {e:'w-wrist-curl', s:3, r:'15', rec:'60 s', ruolo:'Presa più forte per stacchi e trazioni.'},
    {e:'w-reverse-curl', s:3, r:'12', rec:'60 s', ruolo:'Estensori e gomito (prevenzione).', opt:true}
   ]},
- {id:'g3', nome:'Giorno 3', sotto:'Spalle + Braccia', obiettivo:'Forza sopra la testa e salute della spalla. Military pesante, poi tutti e tre i capi del deltoide e un finale di braccia a "superserie".',
+ {id:'g3', nome:'Giorno 3', sotto:'Spalle + Bicipiti + Tricipiti', obiettivo:'Forza sopra la testa e salute della spalla, poi braccia insieme ai cavi in superserie (un esercizio di bicipiti e uno di tricipiti senza pausa, poi recuperi).',
   ex:[
    {e:'s-military', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: spalle e tronco.'},
    {e:'s-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Forza monolaterale, anti-rotazione del core.'},
-   {e:'s-laterali', s:4, r:'12-15', rec:'60 s', ruolo:'Larghezza delle spalle (deltoide laterale).'},
+   {e:'s-laterali', s:4, r:'12-15', rec:'60 s', ruolo:'Larghezza delle spalle (deltoide laterale) al cavo.'},
    {e:'s-facepull', s:4, r:'15', rec:'60 s', ruolo:'Salute della spalla: deltoide posteriore e cuffia.'},
-   {e:'s-posteriori', s:3, r:'15', rec:'60 s', ruolo:'Deltoide posteriore e postura.', opt:true},
+   {e:'s-posteriori', s:3, r:'15', rec:'60 s', ruolo:'Deltoide posteriore ai cavi incrociati.', opt:true},
    {e:'s-rot-est', s:2, r:'15', rec:'45 s', ruolo:'Cuffia dei rotatori (prevenzione).', opt:true},
-   {e:'t-french-cavo', s:3, r:'10', rec:'75 s', ruolo:'Superserie A: tricipiti capo lungo.'},
-   {e:'c-hammer', s:3, r:'12', rec:'75 s', ruolo:'Superserie B: brachiale e spessore del braccio.'},
-   {e:'c-incl', s:3, r:'10', rec:'75 s', ruolo:'Bicipiti in allungamento.', opt:true}
+   {e:'t-french-cavo', s:3, r:'10-12', rec:'senza pausa', ruolo:'Superserie 1A: tricipiti (capo lungo e mediale).'},
+   {e:'c-curl-singolo', s:3, r:'10-12', rec:'90 s dopo la coppia', ruolo:'Superserie 1B: bicipiti, un braccio alla volta.'},
+   {e:'t-push-barra', s:3, r:'12', rec:'senza pausa', ruolo:'Superserie 2A: tricipiti, volume ai cavi.'},
+   {e:'c-hammer', s:3, r:'12', rec:'90 s dopo la coppia', ruolo:'Superserie 2B: brachiale e spessore del braccio.'}
   ]},
- {id:'g4', nome:'Giorno 4', sotto:'Gambe + Addominali', obiettivo:'Forza delle gambe e del core, che sostengono tutti gli altri sollevamenti. Squat pesante, poi catena posteriore e addominali.',
+ {id:'g4', nome:'Giorno 4', sotto:'Gambe + Addominali', obiettivo:'Forza delle gambe e del core, che sostengono tutti gli altri sollevamenti. Squat pesante, poi catena posteriore ai cavi e addominali.',
   ex:[
    {e:'g-squat', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: gambe e tronco.'},
-   {e:'g-rdl', s:3, r:'8', rec:'2 min', ruolo:'Femorali e glutei, protegge la schiena.'},
-   {e:'g-bulgaro', s:3, r:'8 per gamba', rec:'90 s', ruolo:'Forza monolaterale e stabilità.'},
+   {e:'g-rdl-cavo', s:3, r:'10', rec:'2 min', ruolo:'Femorali e glutei con tensione costante.'},
+   {e:'g-squat-cavo', s:3, r:'12', rec:'90 s', ruolo:'Squat guidato dal cavo: cosce e glutei.'},
    {e:'g-leg-ext', s:3, r:'12', rec:'75 s', ruolo:'Quadricipiti con poco stress sulla schiena.'},
-   {e:'g-leg-curl', s:3, r:'12', rec:'75 s', ruolo:'Femorali, equilibrio con i quadricipiti.'},
-   {e:'g-hip-thrust', s:3, r:'8-10', rec:'90 s', ruolo:'Glutei: forza dell’estensione d’anca.', opt:true},
+   {e:'g-leg-curl', s:3, r:'12', rec:'75 s', ruolo:'Femorali al cavo con cavigliera.'},
+   {e:'g-kickback', s:3, r:'12 per lato', rec:'60 s', ruolo:'Glutei al cavo.', opt:true},
    {e:'g-calf', s:4, r:'12-15', rec:'60 s', ruolo:'Polpacci.', opt:true},
    {e:'a-crunch-cavo', s:3, r:'12', rec:'60 s', ruolo:'Addome con carico progressivo.'},
    {e:'a-pallof', s:3, r:'10 per lato', rec:'60 s', ruolo:'Core anti-rotazione.'},
-   {e:'a-rollout', s:3, r:'8-10', rec:'75 s', ruolo:'Stabilità del core (difficile: fermati quando la schiena cede).', opt:true}
+   {e:'a-woodchop', s:3, r:'12 per lato', rec:'60 s', ruolo:'Obliqui al cavo.', opt:true}
   ]},
- {id:'gA', profilo:'giulia', nome:'Giulia A', sotto:'Glutei + Quadricipiti', obiettivo:'Glutei e cosce. Parti con l’hip thrust (il principale stimolo per il gluteo), poi gambe a carico libero e cavi per il gluteo medio. Scegli un peso con cui l’ultima ripetizione è difficile ma tecnicamente pulita.',
+ {id:'gA', profilo:'giulia', nome:'Giulia A', sotto:'Gambe + Glutei + Addominali', obiettivo:'Gambe e glutei con molti cavi. Parti con l’hip thrust (principale stimolo per il gluteo), poi squat e abduzione al cavo, affondi e leg extension. Scegli un peso con cui l’ultima ripetizione è difficile ma tecnicamente pulita.',
   ex:[
    {e:'g-hip-thrust', s:4, r:'8-10', rec:'2 min', ruolo:'Esercizio principale: il miglior stimolo per il gluteo grande.'},
-   {e:'g-sumo', s:3, r:'10-12', rec:'90 s', ruolo:'Glutei e adduttori con poco carico sulla schiena.'},
+   {e:'g-squat-cavo', s:3, r:'12', rec:'90 s', ruolo:'Squat guidato dal cavo: cosce e glutei con poco carico sulla schiena.'},
    {e:'g-split', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Forza e stabilità monolaterale, forte stimolo al gluteo.'},
+   {e:'g-abd-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Gluteo medio al cavo: forma e stabilità del bacino.'},
    {e:'g-leg-ext', s:3, r:'12-15', rec:'75 s', ruolo:'Quadricipiti, isolamento.'},
-   {e:'g-abd-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Gluteo medio: forma e stabilità del bacino.'},
-   {e:'g-calf', s:3, r:'15', rec:'60 s', ruolo:'Polpacci.', opt:true}
+   {e:'g-calf', s:3, r:'15', rec:'60 s', ruolo:'Polpacci.', opt:true},
+   {e:'a-crunch-cavo', s:3, r:'12-15', rec:'60 s', ruolo:'Addominali al cavo.'},
+   {e:'a-pallof', s:3, r:'10 per lato', rec:'60 s', ruolo:'Core anti-rotazione.', opt:true}
   ]},
- {id:'gB', profilo:'giulia', nome:'Giulia B', sotto:'Glutei + Femorali', obiettivo:'Catena posteriore: glutei e femorali. Stacco rumeno come esercizio principale, poi cavi per isolare il gluteo e la parte posteriore della coscia.',
+ {id:'gB', profilo:'giulia', nome:'Giulia B', sotto:'Gambe + Femorali + Addominali', obiettivo:'Catena posteriore quasi tutta ai cavi: glutei e femorali. Stacco rumeno al cavo come esercizio principale, poi pull-through, kickback e leg curl.',
   ex:[
-   {e:'g-rdl', s:4, r:'8-10', rec:'2 min', ruolo:'Esercizio principale: femorali e glutei.'},
-   {e:'g-pullthrough', s:3, r:'12-15', rec:'90 s', ruolo:'Cerniera d’anca con tensione costante sul gluteo.'},
-   {e:'g-bulgaro', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Gluteo e quadricipiti in unilaterale.'},
+   {e:'g-rdl-cavo', s:4, r:'10', rec:'2 min', ruolo:'Esercizio principale: femorali e glutei con tensione costante.'},
+   {e:'g-pullthrough', s:4, r:'12-15', rec:'90 s', ruolo:'Cerniera d’anca al cavo: gluteo in contrazione a ogni ripetizione.'},
    {e:'g-kickback', s:3, r:'12-15 per lato', rec:'60 s', ruolo:'Isolamento del gluteo grande.'},
-   {e:'g-leg-curl', s:3, r:'12', rec:'75 s', ruolo:'Femorali.'},
-   {e:'g-add-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Adduttori (equilibrio con l’abduzione).', opt:true}
+   {e:'g-leg-curl', s:3, r:'12', rec:'75 s', ruolo:'Femorali al cavo con cavigliera.'},
+   {e:'g-bulgaro', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Gluteo e quadricipiti in unilaterale.'},
+   {e:'g-add-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Adduttori (equilibrio con l’abduzione).', opt:true},
+   {e:'a-woodchop', s:3, r:'12 per lato', rec:'60 s', ruolo:'Addominali obliqui al cavo.'}
   ]}
 ];
