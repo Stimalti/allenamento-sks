@@ -33,7 +33,7 @@ async function initCloud() {
     const snap = await ref.get();
     if (snap.exists) {
       const r = JSON.parse(snap.data().json || 'null');
-      if (r && r.cur && r.hist && (r.ts || 0) > (DB.ts || 0)) { DB = fixDB(r); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} if ($('#modal').hidden) render(true); }
+      if (r && r.cur && r.hist && (r.ts || 0) > (DB.ts || 0)) { DB = fixDB(r); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} applyLogo(); if ($('#modal').hidden) render(true); }
     }
     remote = ref;
     if ((DB.ts || 0) > 0 && !snap.exists) pushCloud();
@@ -345,25 +345,37 @@ async function reportShare(copyOnly) {
 }
 /* ---- icona personalizzata (foto scelta da te, salvata solo su questo dispositivo) ---- */
 const LOGO_KEY = 'sks_logo', logoEl = document.querySelector('.logo'), LOGO_SVG = logoEl ? logoEl.innerHTML : '';
+function curLogo() { let d = DB.logo || null; if (!d) { try { d = localStorage.getItem(LOGO_KEY); } catch (e) {} } return d; }
 function applyLogo() {
-  let d = null; try { d = localStorage.getItem(LOGO_KEY); } catch (e) {}
-  if (logoEl) { logoEl.style.backgroundImage = d ? `url(${d})` : ''; logoEl.classList.toggle('ph', !!d); logoEl.innerHTML = d ? '' : LOGO_SVG; }
+  const d = curLogo();
+  if (logoEl) { logoEl.style.backgroundImage = d ? `url("${d}")` : ''; logoEl.classList.toggle('ph', !!d); logoEl.innerHTML = d ? '' : LOGO_SVG; }
   document.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]').forEach(l => { if (!l.dataset.o) l.dataset.o = l.getAttribute('href'); l.setAttribute('href', d || l.dataset.o); if (d) l.removeAttribute('type'); });
+  const pv = document.getElementById('logoprev'); if (pv) pv.innerHTML = d ? `<img src="${d}" alt="" width="64" height="64" style="border-radius:14px;object-fit:cover"> <span>Icona personalizzata attiva</span>` : '<span>Icona originale (manubrio)</span>';
 }
-function setLogo(file) {
-  if (!file) return; const img = new Image(), url = URL.createObjectURL(file);
-  img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 192; const x = c.getContext('2d'), m = Math.min(img.width, img.height);
-    x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 192, 192); URL.revokeObjectURL(url);
-    try { localStorage.setItem(LOGO_KEY, c.toDataURL('image/jpeg', .85)); applyLogo(); flash('✓ Icona cambiata'); } catch (e) { flash('⚠ Non riesco a salvare l’immagine'); } };
-  img.onerror = () => flash('⚠ Immagine non valida'); img.src = url;
+function logoMsg(t) { const m = document.getElementById('logost'); if (m) m.textContent = t; flash(t); }
+async function setLogo(file) {
+  if (!file) return;
+  let src = null, close = null;
+  try { const bmp = await createImageBitmap(file); src = bmp; close = () => bmp.close && bmp.close(); } catch (e) {}
+  if (!src) {
+    src = await new Promise(res => { const img = new Image(), url = URL.createObjectURL(file); img.onload = () => { res(img); }; img.onerror = () => res(null); img.src = url; });
+  }
+  if (!src) { logoMsg('⚠ Non riesco a leggere questa immagine (formato non supportato?). Prova con una foto JPG o PNG.'); return; }
+  const w = src.width, h = src.height, m = Math.min(w, h), c = document.createElement('canvas'); c.width = c.height = 192;
+  c.getContext('2d').drawImage(src, (w - m) / 2, (h - m) / 2, m, m, 0, 0, 192, 192); if (close) close();
+  const data = c.toDataURL('image/jpeg', .85);
+  DB.logo = data; try { localStorage.setItem(LOGO_KEY, data); } catch (e) {}
+  save(); applyLogo(); logoMsg('✓ Icona cambiata: la vedi in alto a sinistra');
 }
 applyLogo();
 function settings() {
+  setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
-   <div class="card"><h2>Icona dell'app</h2><p>Scegli una tua foto da usare come icona in alto e nella scheda del browser (viene ritagliata al centro in un quadrato). Resta solo su questo dispositivo. Per averla anche sulla schermata Home del telefono, ricrea il collegamento “Aggiungi a Home” dopo averla scelta.</p>
+   <div class="card"><h2>Icona dell'app</h2><p>Scegli una tua foto da usare come icona in alto e nella scheda del browser (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati (anche nel backup). Attenzione: se usi l’app dalla schermata Home del telefono, scegli la foto DENTRO quell’app (su iPhone la Home e Safari hanno dati separati). L’icona sulla schermata Home cambia solo se ricrei il collegamento dopo averla scelta.</p>
+   <div id="logoprev" class="logoprev"></div><p id="logost" class="vnote"></p>
    <p><button class="ghost" data-act="logopick">🖼 Scegli una foto</button> <button class="ghost" data-act="logoreset">↺ Icona originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
@@ -417,13 +429,13 @@ document.addEventListener('click', e => {
   else if (a === 'vrefall') { DB.hideRef = false; DB.hiddenRef = {}; save(); flash('Video di riferimento ripristinati'); settings(); }
   else if (a === 'vref') { DB.hideRef = !DB.hideRef; save(); flash(DB.hideRef ? 'Video di riferimento nascosti' : 'Video di riferimento visibili'); settings(); }
   else if (a === 'logopick') { const f = $('#logofile'); f.onchange = () => setLogo(f.files[0]); f.click(); }
-  else if (a === 'logoreset') { try { localStorage.removeItem(LOGO_KEY); } catch (e) {} applyLogo(); flash('Icona originale ripristinata'); }
+  else if (a === 'logoreset') { delete DB.logo; try { localStorage.removeItem(LOGO_KEY); } catch (e) {} save(); applyLogo(); logoMsg('Icona originale ripristinata'); }
   else if (a === 'report') reportView();
   else if (a === 'rprint') reportPrint();
   else if (a === 'rshare') reportShare(false);
   else if (a === 'rcopy') reportShare(true);
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, v: 3}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', async e => {
