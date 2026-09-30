@@ -349,23 +349,7 @@ function curLogo() { let d = DB.logo || null; if (!d) { try { d = localStorage.g
 function applyLogo() {
   const d = curLogo();
   if (logoEl) { logoEl.style.backgroundImage = d ? `url("${d}")` : ''; logoEl.classList.toggle('ph', !!d); logoEl.innerHTML = d ? '' : LOGO_SVG; }
-  document.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]').forEach(l => { if (!l.dataset.o) l.dataset.o = l.getAttribute('href'); l.setAttribute('href', d || l.dataset.o); if (d) l.removeAttribute('type'); });
-  appIcon();
-  const pv = document.getElementById('logoprev'); if (pv) pv.innerHTML = d ? `<img src="${d}" alt="" width="64" height="64" style="border-radius:14px;object-fit:cover"> <span>Icona personalizzata attiva</span>` : '<span>Icona originale (manubrio)</span>';
-}
-/* icona dell'app (schermata Home): usa la stessa foto per l'icona "apple-touch" e per un manifest generato al volo.
-   Vale solo per i collegamenti creati DOPO aver scelto la foto; alcuni browser potrebbero ignorarla. */
-let manUrl = null;
-async function appIcon() {
-  let big = null, apple = null; try { big = localStorage.getItem(LOGO_KEY + '_512'); apple = localStorage.getItem(LOGO_KEY + '_180'); } catch (e) {}
-  const ap = document.querySelector('link[rel=apple-touch-icon]'); if (ap && apple) { ap.setAttribute('href', apple); ap.setAttribute('sizes', '180x180'); }
-  const mf = document.querySelector('link[rel=manifest]'); if (!mf || !big || !location.protocol.startsWith('http')) return;
-  try {
-    if (!mf.dataset.o) mf.dataset.o = mf.getAttribute('href');
-    const base = await (await fetch(mf.dataset.o)).json(), abs = new URL('.', location.href).href;
-    base.start_url = abs; base.scope = abs; base.icons = [{src: big, sizes: '512x512', type: 'image/png', purpose: 'any'}, {src: apple || big, sizes: '180x180', type: 'image/png'}];
-    if (manUrl) URL.revokeObjectURL(manUrl); manUrl = URL.createObjectURL(new Blob([JSON.stringify(base)], {type: 'application/manifest+json'})); mf.setAttribute('href', manUrl);
-  } catch (e) {}
+  const pv = document.getElementById('logoprev'); if (pv) pv.innerHTML = d ? `<img src="${d}" alt="" width="64" height="64" style="border-radius:14px;object-fit:cover"> <span>Foto profilo personalizzata attiva</span>` : '<span>Foto originale (manubrio)</span>';
 }
 function logoMsg(t) { const m = document.getElementById('logost'); if (m) m.textContent = t; flash(t); }
 async function setLogo(file) {
@@ -380,9 +364,8 @@ async function setLogo(file) {
   c.getContext('2d').drawImage(src, (w - m) / 2, (h - m) / 2, m, m, 0, 0, 192, 192);
   const data = c.toDataURL('image/jpeg', .85);
   DB.logo = data; try { localStorage.setItem(LOGO_KEY, data); } catch (e) {}
-  try { [[512, '_512'], [180, '_180']].forEach(([n, k]) => { const cc = document.createElement('canvas'); cc.width = cc.height = n; cc.getContext('2d').drawImage(src, (w - m) / 2, (h - m) / 2, m, m, 0, 0, n, n); localStorage.setItem(LOGO_KEY + k, cc.toDataURL('image/png')); }); } catch (e) {}
   if (close) close();
-  save(); applyLogo(); logoMsg('✓ Icona cambiata: la vedi in alto a sinistra');
+  save(); applyLogo(); logoMsg('✓ Foto profilo cambiata: la vedi in alto a sinistra');
 }
 applyLogo();
 function settings() {
@@ -391,9 +374,9 @@ function settings() {
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
-   <div class="card"><h2>Icona dell'app</h2><p>Scegli una tua foto da usare come icona in alto e nella scheda del browser (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati (anche nel backup). Attenzione: se usi l’app dalla schermata Home del telefono, scegli la foto DENTRO quell’app (su iPhone la Home e Safari hanno dati separati). Per l’icona sulla schermata Home: dopo aver scelto la foto, elimina il collegamento e ricrealo (“Aggiungi a Home” / “Installa app”). Non tutti i telefoni lo permettono: se resta il manubrio, mandami il file della foto e la inserisco io nell’app.</p>
+   <div class="card"><h2>Foto profilo</h2><p>Scegli una foto da mostrare in alto a sinistra nell'app (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati e nel backup. L'icona dell'app sulla schermata Home non cambia.</p>
    <div id="logoprev" class="logoprev"></div><p id="logost" class="vnote"></p>
-   <p><button class="ghost" data-act="logopick">🖼 Scegli una foto</button> <button class="ghost" data-act="logoreset">↺ Icona originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
+   <p><button class="ghost" data-act="logopick">🖼 Scegli la foto profilo</button> <button class="ghost" data-act="logoreset">↺ Foto originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
@@ -446,7 +429,7 @@ document.addEventListener('click', e => {
   else if (a === 'vrefall') { DB.hideRef = false; DB.hiddenRef = {}; save(); flash('Video di riferimento ripristinati'); settings(); }
   else if (a === 'vref') { DB.hideRef = !DB.hideRef; save(); flash(DB.hideRef ? 'Video di riferimento nascosti' : 'Video di riferimento visibili'); settings(); }
   else if (a === 'logopick') { const f = $('#logofile'); f.onchange = () => setLogo(f.files[0]); f.click(); }
-  else if (a === 'logoreset') { delete DB.logo; try { ['', '_512', '_180'].forEach(k => localStorage.removeItem(LOGO_KEY + k)); } catch (e) {} save(); applyLogo(); logoMsg('Icona originale ripristinata'); }
+  else if (a === 'logoreset') { delete DB.logo; try { localStorage.removeItem(LOGO_KEY); } catch (e) {} save(); applyLogo(); logoMsg('Foto originale ripristinata'); }
   else if (a === 'report') reportView();
   else if (a === 'rprint') reportPrint();
   else if (a === 'rshare') reportShare(false);
