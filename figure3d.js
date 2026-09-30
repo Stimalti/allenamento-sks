@@ -10,7 +10,7 @@ const FIG3 = (() => {
     stand:{h:[150,118],t:180,th:0,sh:0}, hinge:{h:[130,120],t:115,th:18,sh:-8},
     seat:{h:[120,172],t:180,th:90,sh:0,bench:'seat'}, lie:{h:[215,178],t:-90,th:100,sh:2,bench:'flat'},
     inc:{h:[190,170],t:225,th:95,sh:2,bench:'inc'}, kneel:{h:[150,162],t:180,th:0,sh:-90,bench:'kneel'},
-    hang:{h:[150,150],t:180,th:10,sh:-70}
+    hang:{h:[150,150],t:180,th:6,sh:-28}
   };
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
@@ -165,14 +165,15 @@ const FIG3 = (() => {
     return perp.length() < 0.05 ? fb : perp.normalize();
   }
   const fw2 = a => { const d = dir(a); return [d[0], -d[1], 0]; };
-  const tzSide = (an, sg) => an[1] < 60 ? 0 : 62 * sg;
+  const tzSide = (an, sg) => an[1] < 60 ? 0 : 80 * sg;
   function geoSide(ex, p, rig) {
     const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(W, 14, p.fa + p.hd) : W;
-    const GZ = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : 30) : (ex.eq === 'bar' ? 27 : 21)), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
+    const GZ = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
+    if (ex.eq === 'hb') { W = [150, 20]; E = ik(S, W, UA, FA); grip = W; }
     const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
@@ -228,7 +229,7 @@ const FIG3 = (() => {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
     const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
-    if (rig && tilt > 10 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
+    if (rig && tilt > 14 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
       const GZ2 = 48, ORG = '#ff6b35'; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, 180), GZ2), .8, ORG));
       P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
       let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
@@ -442,11 +443,11 @@ const FIG3 = (() => {
       const r = o.ct[2], cx = o.ct[0], cy = o.ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
     }
-    const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0]}[ex.st] || [0,.98,4.05];
+    const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0]}[ex.st] || [0,1.0,4.3];
     const over = ex.fr.some(f => f[0] > 125);
     o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
-    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : -.22;
+    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : -.22);
     o.az = o.base;
     cap.textContent = 'Carico il modello 3D…';
     (async () => {
@@ -493,5 +494,15 @@ const FIG3 = (() => {
     }
     return hits;
   }
-  return {mount, path, cableCheck};
+  // angoli (gradi) di una posa, per il confronto con i video: busto da verticale, spalla, gomito, anca, ginocchio
+  const wrap = a => ((a + 540) % 360) - 180;
+  function feat(ex) {
+    rigMode(true);
+    return [0, 1].map(i => {
+      const p = resolve(ex, ex.fr[i]);
+      return {lean: Math.abs(wrap(p.t - 180)), S: Math.abs(wrap(p.ua - (p.t + 180))), E: 180 - Math.abs(wrap(p.fa - p.ua)), H: Math.abs(wrap(p.th - p.t)), K: 180 - Math.abs(wrap(p.sh - p.th)),
+        sgn: {t: Math.sign(wrap(p.t - 180)) || 1, S: Math.sign(wrap(p.ua - (p.t + 180))) || 1, E: Math.sign(wrap(p.fa - p.ua)) || 1, H: Math.sign(wrap(p.th - p.t)) || 1, K: Math.sign(wrap(p.sh - p.th)) || 1}};
+    });
+  }
+  return {mount, path, cableCheck, feat};
 })();

@@ -12,3 +12,5 @@ Prova locale: `cd allenamento && python3 -m http.server 8000`.
 
 ## Crediti
 Modello 3D "Male base muscular anatomy" di Harshit Prajapati, licenza CC BY 4.0 (https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66). Foto di copertina generate con Canva.
+
+I link "Guarda il video originale" rimandano ai contenuti dei rispettivi autori, che non sono inclusi nell'app. I video che aggiungi tu restano solo sul tuo dispositivo.

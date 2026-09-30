@@ -124,7 +124,7 @@ E({id:'s-facepull', n:'Face pull ai cavi', g:'spalle', a:'Cavi', m:'Deltoide pos
  err:['Peso troppo alto e tirare indietro con la schiena','Gomiti bassi','Tirare con le braccia invece che con le scapole']});
 
 E({id:'s-posteriori', n:'Alzate posteriori ai cavi incrociati', g:'spalle', a:'Cavi', m:'Deltoide posteriore, romboidi',
- tzf:75, hz:[0,55], st:'stand', v:'f', cross:true, an:[[25,30],[275,30]], eq:'cable', fr:[[30,-30],[95,95]], cap:['Braccia in avanti, cavi incrociati','Braccia aperte ai lati'],
+ tzf:75, hz:[0,55], st:'stand', v:'f', cross:true, an:[[25,30],[275,30]], eq:'cable', fr:[[55,-110],[95,95]], cap:['Braccia in avanti, cavi incrociati','Braccia aperte ai lati'],
  set:'Due cavi ALTI (o medi), maniglie incrociate: la mano destra prende il cavo sinistro e viceversa. Busto leggermente inclinato in avanti.',
  pos:'Piedi alla larghezza delle spalle, petto alto, gomiti leggermente piegati.',
  ese:['Parti con le braccia davanti al petto, cavi incrociati.','Apri le braccia lateralmente come una croce, portando i gomiti dietro.','Stringi le scapole un secondo e ritorna lentamente.'],
