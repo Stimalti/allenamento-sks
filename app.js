@@ -46,7 +46,7 @@ const FIN = {forza: 'Forza', massa: 'Massa', tonificare: 'Tonificare'};
 const PRESC = {
   comp: {forza: {s: 4, sr: '4-5', r: '3-5', rec: '3 min', pct: '85-90%', p: .87, rir: '1-2'}, massa: {s: 4, sr: '3-4', r: '6-10', rec: '90-120 s', pct: '70-80%', p: .75, rir: '1-2'}, tonificare: {s: 3, sr: '2-3', r: '12-15', rec: '60 s', pct: '55-65%', p: .6, rir: '2-3'}},
   semi: {massa: {s: 3, sr: '3-4', r: '8-12', rec: '90 s', pct: '65-75%', p: .7, rir: '1-2'}, tonificare: {s: 3, sr: '2-3', r: '12-15', rec: '45-60 s', pct: '50-60%', p: .55, rir: '2-3'}},
-  iso: {massa: {s: 3, sr: '3-4', r: '10-15', rec: '60-90 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '2-3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
+  iso: {forza: {s: 4, sr: '3-4', r: '5-8', rec: '2-3 min', pct: '80-85%', p: .82, rir: '1-2'}, massa: {s: 3, sr: '3-4', r: '10-15', rec: '60-90 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '2-3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
   pol: {massa: {s: 4, sr: '4', r: '10-15', rec: '60 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
   core: {tonificare: {s: 3, sr: '3', r: '12-20', rec: '30-45 s', pct: 'solo corpo libero o carico leggero', p: 0, rir: '2-3'}, massa: {s: 3, sr: '3-4', r: '8-12', rec: '60-90 s', pct: 'carico medio', p: 0, rir: '1-2'}}
 };

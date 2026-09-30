@@ -169,15 +169,31 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     why:'Lavoro unilaterale per dorsali e romboidi con carico guidato: corregge gli squilibri tra i due lati.'}));
 })();
 
+/* ===== trazioni a presa supina (chin-up) per i bicipiti ===== */
+(() => {
+  const b = JSON.parse(JSON.stringify(EX.find(e => e.id === 'b-trazioni')));
+  EX.push(Object.assign(b, {id:'c-chinup', n:'Trazioni a presa supina (chin-up)', g:'bicipiti', m:'Bicipiti, gran dorsale, avambracci, core',
+    trj:'Il corpo sale in verticale verso la sbarra: i gomiti vanno in basso e leggermente avanti, il mento supera la sbarra.',
+    set:'Sbarra del powerrack. Presa supina (palmi verso di te) alla larghezza delle spalle. Se non riesci a completare le ripetizioni, usa un elastico o un appoggio per i piedi.',
+    pos:'Corpo teso, gambe leggermente piegate dietro, core contratto, spalle “attive” (non rilassate del tutto).',
+    ese:['Parti sospeso a braccia quasi distese, spalle attive.','Tira i gomiti in basso verso le costole portando il petto alla sbarra.','Mento sopra la sbarra, contrai i bicipiti.','Scendi in 2-3 secondi fino a braccia quasi distese.'],
+    cue:'Petto alla sbarra e gomiti verso le tasche: spingi il corpo giù, non tirare col collo.',
+    why:'È il miglior esercizio di forza per i bicipiti: usa il peso del corpo, si può caricare con una cintura e allena anche dorsali e avambracci.',
+    err:['Dondolare (kipping)','Non scendere completamente','Mento avanti “a beccare” la sbarra','Spalle alle orecchie']}));
+})();
+
 /* ===== finalità: tipo di esercizio (per le indicazioni di serie, ripetizioni e carico) ===== */
 (() => {
-  const COMP = new Set('p-panca sm-panca sm-incl p-incl-db s-military sm-military s-press-db b-rackpull b-row-bar sm-row b-trazioni t-panca-stretta sm-panca-stretta g-squat sm-squat g-front-squat sm-front-squat g-rdl sm-rdl g-hip-thrust sm-hip-thrust g-bulgaro g-split g-sumo p-jammer-press j-incl j-shoulder2 s-jammer-press b-row-jammer j-row-singolo b-lat-larga b-lat-neutra b-lat-supina p-jammer-press'.split(' '));
+  const COMP = new Set('p-panca sm-panca sm-incl p-incl-db s-military sm-military s-press-db b-rackpull b-row-bar sm-row b-trazioni t-panca-stretta sm-panca-stretta g-squat sm-squat g-front-squat sm-front-squat g-rdl sm-rdl g-hip-thrust sm-hip-thrust g-bulgaro g-split g-sumo p-jammer-press j-incl j-shoulder2 s-jammer-press b-row-jammer j-row-singolo b-lat-larga b-lat-neutra b-lat-supina p-jammer-press c-chinup'.split(' '));
   const SEMI = new Set('p-press-cavi p-press-cavo-singolo p-panca-cavi p-incl-cavi s-press-cavo b-row-cavo b-lat-ginocchio b-row-singolo b-row-busto-cavi g-squat-cavo g-rdl-cavo g-pullthrough s-upright t-french-cavo t-overhead-corda t-overhead-singolo p-croci-panca'.split(' '));
   const POL = new Set(['g-calf', 'sm-calf']);
+  // isolamento che si può allenare anche per la forza (serie pesanti a poche ripetizioni)
+  const FORZAISO = new Set('c-curl-bar c-curl-cavo c-hammer c-incl t-push-barra t-push-corda t-over-db w-reverse-curl'.split(' '));
   const NOTON = new Set('b-rackpull p-panca sm-panca t-panca-stretta sm-panca-stretta s-military sm-military'.split(' '));
   EX.forEach(e => {
     e.tipo = COMP.has(e.id) ? 'comp' : SEMI.has(e.id) ? 'semi' : POL.has(e.id) ? 'pol' : e.g === 'addome' ? 'core' : 'iso';
     e.fin = e.tipo === 'comp' ? ['forza', 'massa', 'tonificare'] : e.tipo === 'core' ? ['tonificare'] : ['massa', 'tonificare'];
     if (NOTON.has(e.id)) e.fin = ['forza', 'massa'];
+    if (FORZAISO.has(e.id)) e.fin = ['forza', 'massa', 'tonificare'];
   });
 })();
