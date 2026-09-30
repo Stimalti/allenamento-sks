@@ -6,8 +6,9 @@ const byId = Object.fromEntries(EX.map(e => [e.id, e]));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-let DB = {cur: {}, hist: {}};
+let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
+if (!Array.isArray(DB.mia)) DB.mia = [];
 let saveTimer;
 let remote = null, cloudTimer;
 function save() {
@@ -27,7 +28,7 @@ async function initCloud() {
     const snap = await ref.get();
     if (snap.exists) {
       const r = JSON.parse(snap.data().json || 'null');
-      if (r && r.cur && r.hist && (r.ts || 0) > (DB.ts || 0)) { DB = r; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} if ($('#modal').hidden) render(true); }
+      if (r && r.cur && r.hist && (r.ts || 0) > (DB.ts || 0)) { DB = r; if (!Array.isArray(DB.mia)) DB.mia = []; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} if ($('#modal').hidden) render(true); }
     }
     remote = ref;
     if ((DB.ts || 0) > 0 && !snap.exists) pushCloud();
@@ -43,9 +44,17 @@ const TABS = [
   {id:'g2', a:['Schiena','Bicipiti','Avambracci'], b:'2', full:'Giorno 2: schiena, bicipiti e avambracci'},
   {id:'g3', a:['Spalle','Bicipiti','Tricipiti','Avambracci'], b:'3', full:'Giorno 3: spalle, bicipiti, tricipiti e avambracci'},
   {id:'g4', a:['Gambe','Glutei','Addome'], b:'4', full:'Giorno 4: gambe, glutei e addominali'},
-  {id:'giulia', a:['Giulia','Gambe','Glutei'], b:'G', full:'Giulia: gambe, glutei e addominali'}
+  {id:'giulia', a:['Giulia','Gambe','Glutei'], b:'G', full:'Giulia: gambe, glutei e addominali'},
+  {id:'mia', a:['La mia','routine'], b:'★', full:'La mia routine: esercizi scelti da te'}
 ];
-const planOf = id => PLAN.find(p => p.id === id);
+const miaPlan = () => ({id: 'mia', profilo: 'mia', nome: 'La mia routine', sotto: 'Scegli tu gli esercizi', obiettivo: 'Aggiungi o togli esercizi dalla Libreria con il tasto + e riordinali qui sotto.',
+  ex: DB.mia.filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))});
+const planOf = id => id === 'mia' ? miaPlan() : PLAN.find(p => p.id === id);
+const inMia = id => DB.mia.some(x => x.e === id);
+function toggleMia(id) {
+  if (inMia(id)) DB.mia = DB.mia.filter(x => x.e !== id); else DB.mia.push({e: id, s: 3, r: '8-12', rec: '90 s'});
+  save();
+}
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
 let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: ''};
@@ -130,7 +139,7 @@ function exCard(x, idx, prof) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s);
   const done = c.sets.filter(s => s.done).length;
   return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
-   ${cov(ex.id, 'cover')}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
+   ${cov(ex.id, 'cover')}${prof === 'mia' ? `<div class="mctl"><button data-act="mup" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-id="${ex.id}">Togli</button></div>` : ''}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
     <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div></div></div>
    <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>
    <div class="role">${esc(x.ruolo)}</div>
@@ -144,10 +153,11 @@ function planView(p, prof) {
   let tot = 0, dn = 0, mins = 0;
   p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); });
   const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
-  return `<section class="hero"><div class="eyebrow">${prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
+  return `<section class="hero"><div class="eyebrow">${prof === 'giulia' ? 'Giulia' : prof === 'mia' ? 'Creata da te' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
    <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate</div></section>
    ${p.ex.map((x, i) => exCard(x, i, prof)).join('')}
+   ${prof === 'mia' ? '<button class="ghost addmore" data-act="tab" data-id="lib">+ Aggiungi altri esercizi dalla Libreria</button>' : ''}
    <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
 }
 
@@ -164,7 +174,7 @@ function libView() {
   <div class="chips">${chip('g', '', 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo')}${atts.map(a => chip('a', a, a)).join('')}</div>
   <div class="count">${list.length} di ${EX.length} esercizi</div>
-  <div id="list">${list.map(e => `<button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
+  <div id="list">${list.map(e => `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${inMia(e.id) ? 'on' : ''}" data-act="mtog" data-id="${e.id}" aria-label="${inMia(e.id) ? 'Togli dalla mia routine' : 'Aggiungi alla mia routine'}">${inMia(e.id) ? '✓' : '+'}</button></div>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
 }
 const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`;
 
@@ -172,12 +182,14 @@ const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" styl
 function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
-  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
+  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : tab === 'giulia' ? 'Giulia<small>Gambe e glutei · ai cavi</small>' : tab === 'mia' ? 'La mia routine<small>' + DB.mia.length + ' esercizi scelti da te</small>' : esc(planOf(tab).nome) + '<small>' + esc(planOf(tab).sotto) + '</small>';
   $('#nav').innerHTML = TABS.map(x => `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${x.full}"><i>${x.b}</i><span>${x.a.map(esc).join('<br>')}</span></button>`).join('');
   let h;
   if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
     h = `<div class="pills">${['gA', 'gB'].map(id => `<button class="${giuliaSub === id ? 'on' : ''}" data-act="sub" data-id="${id}">${planOf(id).nome}<br><small>${planOf(id).sotto}</small></button>`).join('')}</div>` + planView(planOf(giuliaSub), 'giulia');
+  } else if (tab === 'mia') {
+    h = DB.mia.length ? planView(planOf('mia'), 'mia') : `<section class="hero"><div class="eyebrow">Creata da te</div><h2>La mia routine</h2><p>Qui costruisci l'allenamento che vuoi. Apri la Libreria e tocca il <b>+</b> accanto agli esercizi che vuoi fare (tocca ✓ per toglierli). Poi torna qui: li trovi con serie, pesi e tecnica 3D.</p></section><button class="primary" data-act="tab" data-id="lib">Scegli gli esercizi</button>`;
   } else h = planView(planOf(tab), 'io');
   $('#main').innerHTML = h;
   if (keep) window.scrollTo(0, y);
@@ -200,6 +212,7 @@ function openEx(id) {
   const ex = byId[id], k = pk('io', id);
   modal(`<h2 style="padding-right:44px">${esc(ex.n)}</h2><p style="color:var(--mut);margin:0 0 8px">${esc(GRUPPI[ex.g])} · ${esc(ex.a)}</p>
    <div class="card" style="padding:8px">${techHtml(ex)}</div>
+   <div class="card"><button class="ghost" data-act="mtog" data-id="${ex.id}" data-m="1">${inMia(id) ? '✓ Nella mia routine · tocca per togliere' : '＋ Aggiungi alla mia routine'}</button></div>
    <div class="card"><h2>I tuoi pesi</h2>${setsHtml(k, 3, '')}${lastLine(k)}</div>`);
   const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, ex, FIG.mount);
   loadMine($('#mbody'));
@@ -228,6 +241,11 @@ document.addEventListener('click', e => {
   if (a === 'tab') go(b.dataset.id);
   else if (a === 'sub') { giuliaSub = b.dataset.id; render(); }
   else if (a === 'open') openEx(b.dataset.id);
+  else if (a === 'mtog') { const id = b.dataset.id; toggleMia(id); const on = inMia(id); flash(on ? '✓ Aggiunto alla tua routine' : 'Tolto dalla tua routine');
+    if (b.dataset.m) b.textContent = on ? '✓ Nella mia routine · tocca per togliere' : '＋ Aggiungi alla mia routine';
+    else { b.classList.toggle('on', on); b.textContent = on ? '✓' : '+'; } }
+  else if (a === 'mrm') { const id = b.dataset.id; ask('Togliere “' + byId[id].n + '” dalla tua routine? I pesi già salvati restano nello storico.', 'Togli', () => { DB.mia = DB.mia.filter(x => x.e !== id); save(); render(true); }); }
+  else if (a === 'mup' || a === 'mdn') { const j = DB.mia.findIndex(x => x.e === b.dataset.id), d = a === 'mup' ? -1 : 1; if (j >= 0 && DB.mia[j + d]) { [DB.mia[j], DB.mia[j + d]] = [DB.mia[j + d], DB.mia[j]]; save(); render(true); } }
   else if (a === 'chip') { lib[b.dataset.t] = b.dataset.v; render(true); }
   else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress(); }
   else if (a === 'addset' || a === 'delset') {
@@ -244,7 +262,7 @@ document.addEventListener('click', e => {
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData();
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = {cur: {}, hist: {}}; save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = {cur: {}, hist: {}, mia: DB.mia || []}; save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', async e => {
@@ -265,7 +283,7 @@ document.addEventListener('toggle', e => {
   loadMine(d);
 }, true);
 
-function planFind(k) { const [prof, id] = k.split(':'); const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
+function planFind(k) { const [prof, id] = k.split(':'); if (prof === 'mia') return DB.mia.find(x => x.e === id) || null; const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
 function refreshProgress() {
   const p = tab === 'giulia' ? planOf(giuliaSub) : planOf(tab); if (!p) return;
   const prof = p.profilo || 'io'; let tot = 0, dn = 0;
@@ -296,7 +314,7 @@ async function exportData() {
 }
 function importData(f) {
   if (!f) return; const r = new FileReader();
-  r.onload = () => { try { const d = JSON.parse(r.result); if (!d.cur || !d.hist) throw 0; const go2 = () => { DB = d; save(); render(); }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
+  r.onload = () => { try { const d = JSON.parse(r.result); if (!d.cur || !d.hist) throw 0; if (!Array.isArray(d.mia)) d.mia = []; const go2 = () => { DB = d; save(); render(); }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
   r.readAsText(f);
 }
 

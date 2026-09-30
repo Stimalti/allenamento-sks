@@ -123,3 +123,11 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .vnote,.vnone{font-size:13px;color:var(--mut);margin:6px 0 0}
 
 .figbtns.views button{padding:6px 2px;font-size:12.5px}
+
+.lw{display:flex;gap:8px;align-items:stretch;margin:0 0 9px}.lw .li{margin:0;flex:1;min-width:0}
+.add{flex:0 0 48px;border:1px solid var(--line);background:var(--in);border-radius:14px;font-size:24px;font-weight:700;color:var(--mut)}
+.add.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.mctl{display:flex;gap:8px;justify-content:flex-end;padding:10px 14px 0}
+.mctl button{border:1px solid var(--line);background:var(--in);border-radius:10px;padding:6px 14px;font-size:15px;font-weight:700}
+.mctl button:disabled{opacity:.35}.mctl .rm{color:#d33}
+.addmore{width:100%;margin:4px 0 12px}
