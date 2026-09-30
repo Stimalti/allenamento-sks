@@ -470,6 +470,7 @@ const VIDEOS = {
 "v": "20"
 }
 ],
+"g-kickback-diag": [{"u":"https://www.facebook.com/share/r/1DzLK7aUH2/","n":"kickback in diagonale, circa 0:19-0:21 e 0:25-0:28","v":"40"}],
 "g-kickback-flesso": [{"u":"https://www.facebook.com/share/r/17cMz1FN58/","n":"kickback a ginocchio flesso, circa 0:03-0:05","v":"41"},{"u":"https://www.facebook.com/share/r/1DzLK7aUH2/","n":"circa 0:03-0:05 e 0:11-0:12","v":"40"}],
 "g-kickback": [
 {

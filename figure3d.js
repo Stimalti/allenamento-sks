@@ -282,8 +282,9 @@ const FIG3 = (() => {
       rAnk = [cx + 26, FLOOR - 2];
     } else if (ex.legs) {
       const hip = [cx + 10, hy], a = add(hip, rig ? 94 : 104, p.ab), km = [(hip[0] + a[0]) / 2, (hip[1] + a[1]) / 2];
+      const lz = -(ex.lb || 0) * Math.min(1, Math.abs(p.ab) / 35);
       leg(B, [cx - 10, hy, 0], [cx - 12, hy + 52, 0], [cx - 14, FLOOR - 2, 0], [cx - 14, FLOOR - 2, 17], SK, SHO, 0);
-      leg(B, [hip[0], hip[1], 0], [km[0], km[1], 0], [a[0], a[1], 0], [a[0], a[1], 17], SK, SHO, 0); rAnk = a;
+      leg(B, [hip[0], hip[1], 0], [km[0], km[1], lz * .45], [a[0], a[1], lz], [a[0], a[1], lz + 17], SK, SHO, 0); rAnk = [a[0], a[1], lz];
     } else {
       leg(B, [cx - 10, hy, 0], [cx - 18, hy + 52, 0], [cx - 26, FLOOR - 2, 0], [cx - 26, FLOOR - 2, 17], SK, SHO, 0);
       leg(B, [cx + 10, hy, 0], [cx + 18, hy + 52, 0], [cx + 26, FLOOR - 2, 0], [cx + 26, FLOOR - 2, 17], SK, SHO, 0);
@@ -301,7 +302,7 @@ const FIG3 = (() => {
       P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, (wl[2] + wr[2]) / 2]; cableTo(P, m, an[0], 78);
       if (seatF) { P.push(cyl([cx - 34, hy - 8, 20], [cx + 34, hy - 8, 20], 7.5, BLK)); P.push(cyl([cx - 30, hy - 8, 20], [cx - 30, hy + 7, 4], 2.5, TW), cyl([cx + 30, hy - 8, 20], [cx + 30, hy + 7, 4], 2.5, TW)); }
     } else if (ex.eq === 'cable') {
-      const rg = ex.cp === 'ankle' ? pt3(rAnk, 0) : wr;
+      const rg = ex.cp === 'ankle' ? (rAnk.length > 2 ? rAnk : pt3(rAnk, 0)) : wr;
       if (an.length === 1) cableTo(P, rg, an[0], ex.tzf ?? (Math.abs(an[0][0] - 150) < 40 ? 78 : 0));
       else if (ex.cross) { cableTo(P, wr, an[0], ex.tzf ?? 0); cableTo(P, wl, an[1], ex.tzf ?? 0); }
       else { cableTo(P, wl, an[0], 0); cableTo(P, wr, an[1], 0); }
@@ -313,7 +314,7 @@ const FIG3 = (() => {
       let hipL, hipR, knL, knR, anL, anR, tL, tR;
       hipL = [cx + HW, hy, 0]; hipR = [cx - HW, hy, 0];
       if (seatF) { knL = [cx + 18, hy, 46]; knR = [cx - 18, hy, 46]; anL = [cx + 22, hy + SH, 46]; anR = [cx - 22, hy + SH, 46]; }
-      else if (ex.legs) { anL = add(hipL, TH + SH, p.ab).concat(0); knL = [(hipL[0] + anL[0]) / 2, (hipL[1] + anL[1]) / 2, 0]; knR = [cx - 19, hy + TH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
+      else if (ex.legs) { const lz2 = -(ex.lb || 0) * Math.min(1, Math.abs(p.ab) / 35); anL = add(hipL, TH + SH, p.ab).concat(lz2); knL = [(hipL[0] + anL[0]) / 2, (hipL[1] + anL[1]) / 2, lz2 * .45]; knR = [cx - 19, hy + TH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
       else { knL = [cx + 19, hy + TH, 0]; knR = [cx - 19, hy + TH, 0]; anL = [cx + 26, hy + TH + SH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
       if (!anL[2] && anL[2] !== 0) anL[2] = 0;
       const J = {H: p3(cx, hy, 0), S: p3(cx, sy + 4, 0), up: up0, front: Fz,
@@ -447,7 +448,7 @@ const FIG3 = (() => {
     const over = ex.fr.some(f => f[0] > 125);
     o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
-    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : -.22);
+    o.base = ex.az ?? (ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : -.22));
     o.az = o.base;
     cap.textContent = 'Carico il modello 3D…';
     (async () => {

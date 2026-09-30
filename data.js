@@ -670,6 +670,15 @@ E({id:'g-kickback-flesso', n:'Kickback glutei al cavo, ginocchio flesso', g:'gam
  why:'Con il ginocchio flesso i femorali lavorano meno e il gluteo grande fa quasi tutto il lavoro: è una delle varianti più usate per isolare il gluteo con un carico moderato.',
  err:['Inarcare la schiena per salire di più','Ruotare il bacino verso l’esterno','Usare lo slancio','Tirare indietro solo il piede senza muovere la coscia']});
 
+E({id:'g-kickback-diag', n:'Kickback glutei al cavo in diagonale (gamba tesa)', g:'gambe', a:'Cavi', m:'Gluteo grande e medio',
+ st:'stand', v:'f', one:true, legs:true, lb:34, az:2.6, cp:'ankle', an:[[25,212]], tzf:38, eq:'cable', fr:[[5,5,{ab:2}],[5,5,{ab:36}]], cap:['Gamba accanto all’altra, cavo che tira in avanti','Gamba indietro e leggermente di lato, a ginocchio teso'],
+ set:'Cavo BASSO con cavigliera sulla caviglia della gamba di lavoro. Stai davanti alla torre, di fianco al cavo, con una mano appoggiata al rack e l’altra sul fianco.',
+ pos:'Gamba di appoggio morbida, busto leggermente inclinato in avanti e fermo, bacino in linea e non ruotato. La gamba che lavora resta quasi tesa.',
+ ese:['Parti con la gamba vicino all’altra, cavo in tensione.','Porta la gamba indietro e leggermente di lato, in diagonale, a ginocchio teso.','Fermati appena senti il gluteo contrarsi al massimo, senza inarcare la schiena, e contrai 1 secondo.','Ritorna lentamente senza far appoggiare il peso.'],
+ cue:'Porta il tallone indietro e fuori, come se volessi disegnare una diagonale: il bacino non ruota e la schiena non si inarca.',
+ why:'La diagonale porta lavoro anche sul gluteo medio, oltre al gluteo grande: utile per dare forma al gluteo e stabilizzare il bacino.',
+ err:['Ruotare il bacino per portare la gamba più in alto','Inarcare la schiena','Usare lo slancio','Aprire troppo la gamba e perdere l’estensione dell’anca']});
+
 /* ============================== PIANI DI ALLENAMENTO ============================== */
 const GRUPPI = {petto:'Petto', spalle:'Spalle', schiena:'Schiena', bicipiti:'Bicipiti', tricipiti:'Tricipiti', avambracci:'Avambracci', gambe:'Gambe', addome:'Addome'};
 
@@ -736,6 +745,7 @@ const PLAN = [
    {e:'g-split', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Forza e stabilità monolaterale, forte stimolo al gluteo.'},
    {e:'g-abd-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Gluteo medio al cavo: forma e stabilità del bacino.'},
    {e:'g-kickback-flesso', s:3, r:'12-15 per lato', rec:'60 s', ruolo:'Gluteo grande isolato al cavo, con il ginocchio piegato come nel video di riferimento.'},
+   {e:'g-kickback-diag', s:3, r:'12-15 per lato', rec:'60 s', ruolo:'Variante in diagonale del video di riferimento: gluteo grande e medio.', opt:true},
    {e:'g-leg-ext', s:3, r:'12-15', rec:'75 s', ruolo:'Quadricipiti, isolamento.'},
    {e:'g-calf', s:3, r:'15', rec:'60 s', ruolo:'Polpacci.', opt:true},
    {e:'a-crunch-cavo', s:3, r:'12-15', rec:'60 s', ruolo:'Addominali al cavo.'},
