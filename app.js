@@ -101,13 +101,14 @@ function setsHtml(k, n, target) {
     <button data-act="hist" data-k="${k}">Storico</button></div>`;
 }
 
+const cov = (id, cls) => (typeof COVERS !== 'undefined' && COVERS[id]) ? `<img class="${cls}" src="${COVERS[id]}" alt="" loading="lazy">` : '';
 const cab = ex => ex.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(ex.a)}</span>`;
 const gtag = ex => `<span class="tag" style="background:color-mix(in srgb,${GCOL[ex.g]} 16%,transparent);color:${GCOL[ex.g]}">${esc(GRUPPI[ex.g])}</span>`;
 function exCard(x, idx, prof) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s);
   const done = c.sets.filter(s => s.done).length;
   return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
-   <div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
+   ${cov(ex.id, 'cover')}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
     <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div></div></div>
    <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>
    <div class="role">${esc(x.ruolo)}</div>
@@ -141,7 +142,7 @@ function libView() {
   <div class="chips">${chip('g', '', 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo')}${atts.map(a => chip('a', a, a)).join('')}</div>
   <div class="count">${list.length} di ${EX.length} esercizi</div>
-  <div id="list">${list.map(e => `<button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}"><span class="dot">${esc(GRUPPI[e.g][0])}</span><span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
+  <div id="list">${list.map(e => `<button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button>`).join('') || '<p class="count">Nessun risultato.</p>'}</div>`;
 }
 const chip = (t, v, l) => `<button class="chip ${lib[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`;
 
