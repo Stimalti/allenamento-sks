@@ -268,11 +268,52 @@ function histView(k) {
    <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
    <div class="card hist">${h.map(e => `<div><b>${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}`).join(' · ')}</div>`).join('')}</div>`);
 }
+/* ---------- storico: stampa / PDF / condivisione ---------- */
+function reportData() {
+  const by = {};
+  Object.entries(DB.hist).forEach(([k, arr]) => { const id = k.split(':')[1]; if (!byId[id]) return; (by[id] = by[id] || []).push(...arr.filter(h => h.sets && h.sets.length)); });
+  return Object.entries(by).map(([id, arr]) => ({ex: byId[id], h: arr.sort((a, b) => a.d < b.d ? -1 : 1)})).filter(x => x.h.length)
+    .sort((a, b) => (Object.keys(GRUPPI).indexOf(a.ex.g) - Object.keys(GRUPPI).indexOf(b.ex.g)) || a.ex.n.localeCompare(b.ex.n));
+}
+const fmtFull = d => d.split('-').reverse().join('/');
+function reportText(data) {
+  let t = 'STORICO ALLENAMENTI · ' + fmtFull(today()) + '\n';
+  data.forEach(({ex, h}) => { t += '\n' + ex.n + ' (' + GRUPPI[ex.g] + ')\n'; h.forEach(e => { t += '  ' + fmtFull(e.d) + ': ' + e.sets.map(s => (s.kg || '–') + ' kg × ' + (s.reps || '–')).join(' · ') + '\n'; }); });
+  return t;
+}
+function reportHtml(data) {
+  if (!data.length) return '<p>Nessun allenamento archiviato: usa “Fine allenamento” per salvarlo nello storico.</p>';
+  return data.map(({ex, h}) => { const best = Math.max(0, ...h.flatMap(e => e.sets.map(s => num(s.kg))));
+    return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3><table>${h.map(e => `<tr><td>${fmtFull(e.d)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
+}
+function reportView() {
+  const data = reportData();
+  modal(`<h2 style="padding-right:44px">Storico da stampare o condividere</h2>
+   <div class="sbar" style="padding:0 0 10px"><button class="ghost" data-act="rprint">🖨 Stampa / Salva PDF</button><button class="ghost" data-act="rshare">📤 Condividi</button><button class="ghost" data-act="rcopy">Copia testo</button></div>
+   <p class="vnote" style="margin:0 0 10px">“Stampa / Salva PDF”: nella finestra che si apre scegli <b>Salva come PDF</b> (su telefono: Condividi → Salva in File) e poi invialo a chi vuoi.</p>
+   <div class="rpbox">${reportHtml(data)}</div>`);
+}
+function reportPrint() {
+  const pa = document.createElement('div'); pa.id = 'printarea';
+  pa.innerHTML = `<h1>Storico allenamenti</h1><p>Aggiornato al ${fmtFull(today())}</p>` + reportHtml(reportData());
+  document.body.appendChild(pa); document.body.classList.add('printing');
+  const done = () => { document.body.classList.remove('printing'); pa.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  try { window.print(); } catch (e) { done(); flash('⚠ Stampa non disponibile qui: usa Condividi o Copia testo'); return; }
+  setTimeout(() => { if (document.getElementById('printarea') && !document.hidden) { /* alcuni browser non emettono afterprint */ } }, 1500);
+}
+async function reportShare(copyOnly) {
+  const text = reportText(reportData());
+  if (!copyOnly && navigator.share) { try { await navigator.share({title: 'Storico allenamenti', text}); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text); flash('✓ Testo copiato: incollalo in un messaggio'); }
+  catch (e) { modal(`<h2 style="padding-right:44px">Copia il testo</h2><textarea id="bk" readonly style="width:100%;height:50vh;font:12px monospace">${esc(text)}</textarea>`); $('#bk').select(); }
+}
 function settings() {
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <input type="file" id="imp" accept="application/json" hidden></div>
+   <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
    <div class="card"><h2>Attrezzatura prevista</h2><p>Powerrack Atletica SKS con safety, bilanciere e dischi, manubri, panca regolabile con attacco leg extension, jammer arms, doppia puleggia (cavi alto/basso) con corda, barra dritta/V, maniglie singole e cavigliera, sbarra per trazioni. Se manca qualcosa, nella Libreria filtra per attrezzo e sostituisci.</p></div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Foto di copertina generate con Canva.</p></div>
    <div class="card"><button class="ghost danger" data-act="wipe">Cancella tutti i pesi</button></div>`);
@@ -314,6 +355,10 @@ document.addEventListener('click', e => {
   else if (a === 'hist') histView(k);
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData();
+  else if (a === 'report') reportView();
+  else if (a === 'rprint') reportPrint();
+  else if (a === 'rshare') reportShare(false);
+  else if (a === 'rcopy') reportShare(true);
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
   else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, v: 3}); save(); render(); })
 });

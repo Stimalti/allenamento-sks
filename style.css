@@ -141,3 +141,14 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .vmine h3{margin:14px 0 8px}.vitem{margin:0 0 10px}.vitem .vlink{margin-bottom:6px}.vcap{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}.vcap span{font-size:13px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vurl{display:flex;gap:8px;margin-top:10px}.vurlin{flex:1;min-width:0;border:1px solid var(--line);background:var(--in);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;color:var(--tx)}.vurl .ghost{white-space:nowrap}
 .vitem:has(>.vlink){display:flex;gap:8px;align-items:stretch}.vitem>.vlink{flex:1;margin:0;min-width:0}
+
+.rpbox{max-height:48vh;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 12px;background:var(--card)}
+.rp h3{margin:14px 0 6px;font-size:16px}.rp h3 small{font-weight:600;color:var(--mut);font-size:12.5px}.rp table{width:100%;border-collapse:collapse;font-size:14px}.rp td{padding:5px 0;border-bottom:1px solid var(--line);vertical-align:top}.rp td:first-child{width:84px;color:var(--mut)}
+#printarea{display:none}
+@media print{
+  body.printing > *:not(#printarea){display:none !important}
+  body.printing #printarea{display:block !important;padding:0;color:#000;background:#fff;font:12pt/1.35 system-ui,sans-serif}
+  body.printing{background:#fff !important}
+  #printarea h1{font-size:20pt;margin:0 0 4pt}#printarea p{margin:0 0 10pt;color:#444}
+  #printarea .rp{break-inside:avoid}#printarea .rp h3{font-size:13pt;border-bottom:1.5pt solid #000;padding-bottom:2pt}#printarea .rp td{border-bottom:.5pt solid #bbb;color:#000}
+}
