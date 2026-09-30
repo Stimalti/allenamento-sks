@@ -1228,5 +1228,26 @@ const VIDEOS = {
 "n": "circa 0:08-0:13",
 "v": "05"
 }
+],
+"b-rope-lat-terra": [
+{
+"u": "https://www.facebook.com/share/r/1YmuzqE61B/",
+"n": "tre varianti alla corda seduto a terra: prima parte (dorsali), circa 0:00-0:07",
+"v": "42"
+}
+],
+"b-rope-row-terra": [
+{
+"u": "https://www.facebook.com/share/r/1YmuzqE61B/",
+"n": "seconda parte (romboidi), circa 0:07-0:12",
+"v": "42"
+}
+],
+"b-rope-facepull-terra": [
+{
+"u": "https://www.facebook.com/share/r/1YmuzqE61B/",
+"n": "terza parte (deltoidi posteriori), circa 0:14-0:19",
+"v": "42"
+}
 ]
 };

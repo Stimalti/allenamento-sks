@@ -262,3 +262,40 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   };
   EX.forEach(e => { if (HS[e.id]) e.hs = HS[e.id]; });
 })();
+
+/* ===== tre esercizi alla corda seduti a terra (cavo alto), uno per ogni zona della schiena ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const add = o => EX.push(o);
+  const SET = 'Cavo ALTO con la corda. Siediti su un tappetino a terra davanti alla torre, ginocchia leggermente piegate, piedi appoggiati contro la base della torre o una pedana.';
+  add(cl('b-lat-ginocchio', {id:'b-rope-lat-terra', n:'Pulldown alla corda seduto a terra (dorsali)', m:'Gran dorsale (parte bassa), grande rotondo, bicipiti',
+    st:'floor', an:[210,12], gz:22, fr:[[172,176,{t:184}],[8,150,{t:190}]],
+    trj:'Le mani scendono in linea quasi retta dalla puleggia verso il petto alto; i gomiti restano vicini ai fianchi.',
+    cap:['Seduto a terra, braccia distese verso la corda, busto dritto','Corda al petto alto, gomiti in basso lungo i fianchi'],
+    set:SET + ' Afferra le due estremità della corda con presa neutra.',
+    pos:'Busto dritto o appena inclinato indietro, petto alto, scapole basse. I gomiti scendono vicini al corpo, non si aprono.',
+    ese:['Parti con le braccia distese verso l’alto e le scapole “allungate”.','Tira i gomiti in basso verso i fianchi portando la corda al petto alto.','Contrai i dorsali 1 secondo.','Risali lentamente fino a braccia distese.'],
+    cue:'Gomiti verso le tasche: tira con i dorsali, le mani seguono.',
+    why:'Prima parte del video: con il busto dritto e i gomiti che scendono lungo i fianchi il lavoro va sul gran dorsale, la parte larga e bassa della schiena.',
+    err:['Inclinarsi indietro per fare leva','Gomiti che si aprono di lato','Tirare con le braccia invece che con i gomiti','Non distendere del tutto in alto']}));
+  add(cl('b-rope-lat-terra', {id:'b-rope-row-terra', n:'Rematore alto alla corda seduto a terra, busto indietro (romboidi)', m:'Romboidi, trapezio medio, deltoidi posteriori',
+    lat:1.7, fr:[[140,150,{t:214}],[-45,55,{t:214}]],
+    trj:'Con il busto inclinato indietro la corda arriva al petto in linea quasi retta e i gomiti vanno indietro e leggermente in fuori, come in un rematore.',
+    cap:['Busto inclinato indietro, braccia distese verso la corda','Corda al petto, gomiti indietro, scapole strette'],
+    set:SET + ' Inclina il busto indietro di circa 35-45° e tienilo fermo per tutta la serie.',
+    pos:'Busto inclinato indietro e fermo, addominali contratti, petto alto. I gomiti vanno indietro e un po’ in fuori, non lungo i fianchi.',
+    ese:['Parti con il busto inclinato indietro e le braccia distese verso la puleggia.','Tira la corda verso il petto portando i gomiti indietro e stringendo le scapole.','Contrai 1 secondo tra le scapole.','Torna lentamente a braccia distese senza cambiare l’inclinazione del busto.'],
+    cue:'Stringi le scapole come per tenere una matita tra loro; il busto resta fermo.',
+    why:'Seconda parte del video: l’inclinazione indietro trasforma la trazione in un rematore alto e sposta il lavoro sulla parte centrale della schiena, tra le scapole.',
+    err:['Busto che dondola avanti e indietro','Gomiti che restano lungo i fianchi (torna un lavoro di dorsali)','Spalle che salgono verso le orecchie','Carico che impedisce di tenere il busto fermo']}));
+  add(cl('b-rope-lat-terra', {id:'b-rope-facepull-terra', n:'Pulldown alla corda a gomiti larghi seduto a terra (deltoidi posteriori)', m:'Deltoidi posteriori, grande rotondo, trapezio basso',
+    lat:3.0, gz:24, fr:[[172,176,{t:184}],[92,182,{t:184}]],
+    trj:'Le mani scendono verso i lati della testa mentre i gomiti si aprono di lato all’altezza delle spalle; a fine movimento i polsi ruotano leggermente verso l’esterno.',
+    cap:['Busto dritto, braccia distese verso la corda','Mani ai lati della testa, gomiti larghi all’altezza delle spalle'],
+    set:SET + ' Busto dritto. Presa neutra sulla corda, pollici verso l’alto.',
+    pos:'Busto dritto e fermo, petto alto. I gomiti si aprono di lato e restano all’altezza delle spalle; a fine tirata ruota i polsi in fuori (come per mostrare i bicipiti).',
+    ese:['Parti con le braccia distese verso l’alto.','Tira la corda verso il viso aprendo i gomiti di lato, fino ad avere le mani ai lati della testa.','A fine tirata ruota i polsi verso l’esterno e contrai 1 secondo.','Risali lentamente a braccia distese.'],
+    cue:'Gomiti larghi e alti come a “tirare la corda in due”: il lavoro è dietro le spalle.',
+    why:'Terza parte del video: con i gomiti aperti e la rotazione esterna il carico va ai deltoidi posteriori e al grande rotondo, la parte alta ed esterna della schiena.',
+    err:['Gomiti che scendono lungo i fianchi','Busto che si inclina indietro','Spalle alle orecchie','Carico troppo alto che toglie la rotazione finale']}));
+})();
