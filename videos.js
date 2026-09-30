@@ -484,4 +484,16 @@ const VIDEOS = {
 "v": "41"
 }
 ],
+"g-hip-thrust": [{"u": "https://www.youtube.com/watch?v=5iuec3LyO3M", "n": "Hip thrust con bilanciere: tecnica e errori comuni", "s": 1}, {"u": "https://www.youtube.com/watch?v=4VEnWmh-i_c", "n": "Hip thrust con bilanciere in palestra", "s": 1}],
+"g-sumo": [{"u": "https://www.youtube.com/watch?v=K83o38NDzOo", "n": "Goblet sumo squat", "s": 1}, {"u": "https://www.youtube.com/watch?v=PTcMDXYvOYc", "n": "Come fare il goblet sumo squat", "s": 1}],
+"g-squat-cavo": [{"u": "https://www.youtube.com/watch?v=_C5hMlDZQ6M", "n": "Cable goblet squat: come farlo bene", "s": 1}, {"u": "https://www.youtube.com/watch?v=QJ4T1pUJ_zw", "n": "Cable goblet squat, dimostrazione", "s": 1}],
+"g-split": [{"u": "https://www.youtube.com/watch?v=5tt4istKO4s", "n": "Split squat (affondo statico)", "s": 1}, {"u": "https://www.youtube.com/watch?v=HQ7gPd1R4K8", "n": "Affondi sul posto (split squat)", "s": 1}],
+"g-bulgaro": [{"u": "https://www.youtube.com/watch?v=QfUOjm2LmJk", "n": "Tutorial completo affondo bulgaro", "s": 1}, {"u": "https://www.youtube.com/watch?v=xD9KgArg8JE", "n": "Affondo bulgaro con focus sui glutei", "s": 1}],
+"g-pullthrough": [{"u": "https://www.youtube.com/watch?v=yXopOhzEoeo", "n": "Come fare bene il cable pull-through", "s": 1}, {"u": "https://www.youtube.com/watch?v=OkcryKUZTZs", "n": "Cable pull-through per glutei e femorali", "s": 1}],
+"g-leg-ext": [{"u": "https://www.youtube.com/watch?v=gfrotHBLZjQ", "n": "Tutorial leg extension", "s": 1}, {"u": "https://www.youtube.com/watch?v=wRSr98kKUsg", "n": "Leg extension: esecuzione", "s": 1}],
+"g-leg-curl": [{"u": "https://www.youtube.com/watch?v=hQOu7Qwv298", "n": "Leg curl in piedi al cavo", "s": 1}, {"u": "https://www.youtube.com/watch?v=vkWCfRpZNk8", "n": "Leg curl in piedi al cavo, dimostrazione", "s": 1}],
+"g-calf": [{"u": "https://www.youtube.com/watch?v=zfDcdL06LxI", "n": "Calf raise: tecnica ed errori", "s": 1}, {"u": "https://www.youtube.com/watch?v=TSWcyXFxdvo", "n": "Calf in piedi, tutorial", "s": 1}],
+"g-rdl-cavo": [{"u": "https://www.youtube.com/watch?v=kMdsruYbF9k", "n": "Stacco rumeno al cavo", "s": 1}, {"u": "https://www.youtube.com/watch?v=1eu-x_DpoVI", "n": "Stacco rumeno al cavo a due gambe", "s": 1}],
+"g-add-cavo": [{"u": "https://www.youtube.com/watch?v=SIQrpq6YnT8", "n": "Adduzione d’anca al cavo in piedi", "s": 1}, {"u": "https://www.youtube.com/watch?v=P1pLE1jmnI0", "n": "Adduzione d’anca al cavo", "s": 1}],
+"a-woodchop": [{"u": "https://www.youtube.com/watch?v=WKFHw415Vdw", "n": "Woodchop al cavo dall’alto al basso", "s": 1}, {"u": "https://www.youtube.com/watch?v=he4IhLc1d5k", "n": "Woodchop al cavo in piedi", "s": 1}],
 };

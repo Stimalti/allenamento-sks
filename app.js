@@ -75,7 +75,7 @@ const VDB = {
 };
 function videoBlock(ex) {
   const l = (typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || [];
-  const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${i ? 'Altro video' : 'Guarda il video originale'}<small>${esc(x.n)}</small></a>`).join('')}</div>` : '<p class="vnone">Per questo esercizio non c’è un video di riferimento.</p>';
+  const links = l.length ? `<div class="vlinks">${l.map((x, i) => `<a class="vlink" href="${esc(x.u)}" target="_blank" rel="noopener noreferrer">▶ ${x.s ? 'Video trovato online' : (i ? 'Altro video' : 'Guarda il video originale')}<small>${esc(x.n)}${x.s ? ' · scelto dal titolo, non verificato' : ''}</small></a>`).join('')}</div>` : '<p class="vnone">Per questo esercizio non c’è un video di riferimento.</p>';
   return `<div class="vbox" data-vid="${ex.id}"><h3>Video</h3>${links}
    <div class="vmine"><div class="vplay"></div><div class="vbtns"><label class="ghost vadd">⬆ Aggiungi il tuo video<input type="file" accept="video/*" hidden data-vfile="${ex.id}"></label><button class="ghost danger" data-act="vdel" data-id="${ex.id}" hidden>Rimuovi</button></div>
    <p class="vnote">Il video che aggiungi resta solo su questo dispositivo: non viene caricato online e non lo vede nessun altro.</p></div></div>`;
