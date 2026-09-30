@@ -358,7 +358,7 @@ const FIG3 = (() => {
       const cv = document.createElement('canvas');
       renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
     } catch (e) { return fallback(el, ex); }
-    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button><button data-k="t" class="on tbtn">↗ Traiettoria</button></div><div class="legend3d"></div>';
+    el.innerHTML = '<div class="stage"><span class="hint3d">trascina per ruotare</span></div><div class="figcap"></div><div class="figbtns"><button data-k="0">1 Partenza</button><button data-k="1">2 Arrivo</button><button data-k="a" class="on">▶ Animazione</button></div><div class="figbtns"><button data-k="m" class="on mbtn">● Muscoli in rosso</button><button data-k="t" class="on tbtn">↗ Traiettoria</button></div><div class="figbtns views"><button data-w="s" class="on">Di lato</button><button data-w="f">Di fronte</button><button data-w="q">3/4</button><button data-w="r">⟳ Ruota</button></div><div class="legend3d"></div>';
     const stage = el.querySelector('.stage'); stage.prepend(renderer.domElement);
     const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, .1, 50);
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -383,6 +383,7 @@ const FIG3 = (() => {
         const k = i / N, pp = lerp(pose[0], pose[1], k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k);
         const P = geo(ex, pp, !!rigInst); if (P.gp) lines[0].push(P.gp); if (P.gp2) lines[1].push(P.gp2);
       }
+      if (lines[0].length > 1) { const p0 = V(lines[0][0]), pl = new THREE.Mesh(gCylR(1), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: .75, depthTest: false})); pl.position.set(p0.x, 1.1, p0.z); pl.scale.set(.55 / S3, 2.4, .55 / S3); pl.renderOrder = 18; trail.add(pl); }
       lines.forEach(L => { if (L.length < 2) return;
         for (let i = 0; i < L.length; i++) { const m = new THREE.Mesh(gSph, i === 0 ? sMat : i === L.length - 1 ? eMat : tMat); m.position.copy(V(L[i])); m.scale.setScalar((i === 0 || i === L.length - 1 ? 3.4 : 1.7) / S3 * 1.0); m.renderOrder = 20; trail.add(m); }
         for (let i = 0; i < L.length - 1; i++) { const a = V(L[i]), b = V(L[i + 1]), d = b.clone().sub(a), len = d.length(); if (len < 1e-4) continue; const c = new THREE.Mesh(gCylR(1), tMat); c.position.copy(a).add(b).multiplyScalar(.5); c.quaternion.setFromUnitVectors(up, d.normalize()); c.scale.set(.9 / S3, len, .9 / S3); c.renderOrder = 20; trail.add(c); }
@@ -400,8 +401,8 @@ const FIG3 = (() => {
       const ua = Math.hypot(ea[0] - Er[0], ea[1] - Er[1]) <= Math.hypot(eb[0] - Er[0], eb[1] - Er[1]) ? base + A : base - A, E = add(S, UA, ua);
       pp.ua = ua; pp.fa = Math.atan2(Wt[0] - E[0], Wt[1] - E[1]) / R;
     }
-    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m]):not([data-k=t])'), mb = el.querySelector('.mbtn'), tb = el.querySelector('.tbtn'), leg = el.querySelector('.legend3d');
-    const legTxt = 'In rosso i muscoli che lavorano: ' + ex.m + '. Linea azzurra: percorso della mano, della barra o del piede (verde = partenza, arancione = arrivo).';
+    const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m]):not([data-k=t])'), mb = el.querySelector('.mbtn'), tb = el.querySelector('.tbtn'), vbtn = el.querySelectorAll('.views button'), leg = el.querySelector('.legend3d');
+    const legTxt = 'In rosso i muscoli che lavorano: ' + ex.m + '. Linea azzurra: percorso della mano, della barra o del piede (verde = partenza, arancione = arrivo). Linea bianca: verticale di riferimento, per capire se il movimento è dritto, in diagonale o ad arco.';
     leg.textContent = legTxt;
     const o = {el, renderer, showM: true, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
     active = o;
@@ -448,7 +449,7 @@ const FIG3 = (() => {
       resize();
       let k;
       if (o.hold !== null) k = o.hold;
-      else { const ph = ((t - o.t0) / 1000) % 4; k = ph < .6 ? 0 : ph < 2 ? (ph - .6) / 1.4 : ph < 2.6 ? 1 : 1 - (ph - 2.6) / 1.4; k = k*k*(3-2*k); }
+      else { const ph = ((t - o.t0) / 1000) % 4.6; k = ph < .5 ? 0 : ph < 1.9 ? (ph - .5) / 1.4 : ph < 2.4 ? 1 : 1 - (ph - 2.4) / 2.2; k = k*k*(3-2*k); }
       if (k !== lastK) {
         lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
         if (rigInst && prims.J) {
@@ -459,7 +460,7 @@ const FIG3 = (() => {
         cap.textContent = (k < .5 ? ex.cap[0] : ex.cap[1]) + (prims.tilt ? '  ·  busto inclinato di circa ' + prims.tilt + '° dalla verticale' : '');
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
-      if (!o.drag && t - o.idle > 2500) o.az = (ex.v === 'f' ? .75 : .4) * Math.sin(t / 2600) + o.base;
+      if (o.spin && !o.drag) o.az += .006;
       const r = o.ct[2], cx = o.ct[0], cy = o.ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
     }
@@ -467,7 +468,10 @@ const FIG3 = (() => {
     const over = ex.fr.some(f => f[0] > 125);
     o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
-    o.base = ex.az ?? (ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : -.22));
+    o.base = ex.az ?? (ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : 0));
+    const sideAz = ex.v === 'f' ? 1.5708 : 0, frontAz = ex.v === 'f' ? 0 : 1.5708;
+    o.spin = false;
+    vbtn.forEach(b => b.onclick = () => { vbtn.forEach(x => x.classList.remove('on')); b.classList.add('on'); const w = b.dataset.w; o.spin = w === 'r'; if (w === 's') o.az = o.tgt = sideAz; else if (w === 'f') o.az = o.tgt = frontAz; else if (w === 'q') o.az = o.tgt = (sideAz + frontAz) / 2 + (ex.v === 'f' ? 0 : .15); o.el2 = .22; o.idle = performance.now(); });
     o.az = o.base;
     cap.textContent = 'Carico il modello 3D…';
     (async () => {
