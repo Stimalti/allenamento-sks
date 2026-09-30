@@ -263,6 +263,14 @@ const FIG3 = (() => {
     const Ls = [cx - SW, sy + 4], Rs = [cx + SW, sy + 4];
     const armF = (S, sg, ua, fa) => { const E = [S[0] + sg*UA*Math.sin(ua*R), S[1] + UA*Math.cos(ua*R)]; return {E, W: [E[0] + sg*FA*Math.sin(fa*R), E[1] + FA*Math.cos(fa*R)]}; };
     const rA = armF(Rs, 1, p.ua, p.fa), lA = ex.one ? armF(Ls, -1, 5, 5) : armF(Ls, -1, p.ua, p.fa);
+    // mani con profondità reale (croci, alzate posteriori, upright row, lat): il gomito si piega con IK 3D e le mani passano DAVANTI al corpo
+    const hz = ex.hz || [0, 0];
+    const hand3 = (A, S, sg) => {
+      const xh = Math.abs(A.W[0] - cx), t = Math.max(0, Math.min(1, (SW + 12 - xh) / (SW + 12))), z = hz[0] + hz[1] * t;
+      const Wp = [A.W[0], A.W[1], z]; return {E: ik3([S[0], S[1], 0], Wp, UA, FA, [sg, .55, -.25]), W: Wp};
+    };
+    const R3 = ex.hz && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
+    const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : (ex.hz && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
     let rAnk = [cx + 14, hy + 104];
     const frontLeg = (hip, knee, ank, toe, col) => { leg(P, hip, knee, ank, toe, col, SHO, 0); };
     if (seatF) {
@@ -287,9 +295,9 @@ const FIG3 = (() => {
     B.push(sph([cx, sy - 21, 1], 10.8, SK), sph([cx, sy - 24, -2.5], 11.7, HAIR));
     arm(B, [Ls[0], Ls[1], 0], [lA.E[0], lA.E[1], 0], [lA.W[0], lA.W[1], 0], ex.one ? SKF : SK);
     arm(B, [Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0], SK);
-    const an = ex.an || [], wr = pt3(rA.W, 0), wl = pt3(lA.W, 0);
+    const an = ex.an || [], wr = R3.W, wl = L3.W;
     if (ex.bar) {
-      P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, 0]; cableTo(P, m, an[0], 78);
+      P.push(cyl(wl, wr, 2.8, STEEL)); const m = [(wl[0] + wr[0]) / 2, (wl[1] + wr[1]) / 2, (wl[2] + wr[2]) / 2]; cableTo(P, m, an[0], 78);
       if (seatF) { P.push(cyl([cx - 34, hy - 8, 20], [cx + 34, hy - 8, 20], 7.5, BLK)); P.push(cyl([cx - 30, hy - 8, 20], [cx - 30, hy + 7, 4], 2.5, TW), cyl([cx + 30, hy - 8, 20], [cx + 30, hy + 7, 4], 2.5, TW)); }
     } else if (ex.eq === 'cable') {
       const rg = ex.cp === 'ankle' ? pt3(rAnk, 0) : wr;
@@ -308,8 +316,8 @@ const FIG3 = (() => {
       else { knL = [cx + 19, hy + TH, 0]; knR = [cx - 19, hy + TH, 0]; anL = [cx + 26, hy + TH + SH, 0]; anR = [cx - 26, hy + TH + SH, 0]; }
       if (!anL[2] && anL[2] !== 0) anL[2] = 0;
       const J = {H: p3(cx, hy, 0), S: p3(cx, sy + 4, 0), up: up0, front: Fz,
-        sh: {L: p3(Rs[0], Rs[1], 0), R: p3(Ls[0], Ls[1], 0)}, el: {L: p3(rA.E[0], rA.E[1], 0), R: p3(lA.E[0], lA.E[1], 0)}, wr: {L: p3(rA.W[0], rA.W[1], 0), R: p3(lA.W[0], lA.W[1], 0)},
-        armF: {L: fa([Rs[0], Rs[1], 0], [rA.E[0], rA.E[1], 0], [rA.W[0], rA.W[1], 0]), R: fa([Ls[0], Ls[1], 0], [lA.E[0], lA.E[1], 0], [lA.W[0], lA.W[1], 0])},
+        sh: {L: p3(Rs[0], Rs[1], 0), R: p3(Ls[0], Ls[1], 0)}, el: {L: p3(...R3.E), R: p3(...L3.E)}, wr: {L: p3(...R3.W), R: p3(...L3.W)},
+        armF: {L: fa([Rs[0], Rs[1], 0], R3.E, R3.W), R: fa([Ls[0], Ls[1], 0], L3.E, L3.W)},
         hip: {L: p3(...hipL), R: p3(...hipR)}, kn: {L: p3(...knL), R: p3(...knR)}, an: {L: p3(...anL), R: p3(...anR)},
         toe: {L: toe(anL, 25), R: toe(anR, 25)}, legF: {L: Fz, R: Fz}, footUp: {L: up0, R: up0}};
       if (seatF) { J.legF = {L: Wv(0, 1, 0), R: Wv(0, 1, 0)}; }
