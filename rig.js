@@ -176,10 +176,19 @@ const RIG = (() => {
       ['L', 'R'].forEach(s => {
         const sh = J.sh[s], el = J.el[s], wr = J.wr[s], u = wr.clone().sub(el).normalize();
         const wrist = el.clone().lerp(wr, 2.6 / 3.6), tip = wrist.clone().addScaledVector(u, 1.95 * K);
-        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.armF[s]); setBone('hand' + s, wrist, tip, J.armF[s]);
+        // presa: la direzione del pollice (asse z dell'osso mano) decide come e' girato il palmo.
+        // prona = pollici verso l'interno, supina = pollici verso l'esterno, neutra = palmi che si guardano
+        let hf = J.armF[s];
+        if (J.presa) { const mid = J.sh.L.clone().add(J.sh.R).multiplyScalar(.5), lat = J.sh[s].clone().sub(mid).normalize();
+          if (J.presa === 'pro') hf = lat.clone().negate(); else if (J.presa === 'sup') hf = lat.clone();
+          else { const med = lat.clone().negate(); hf = s === 'L' ? med.clone().cross(u) : u.clone().cross(med); }
+          hf.addScaledVector(u, -hf.dot(u));
+          if (hf.length() < .35) { hf = J.front.clone().multiplyScalar(J.presa === 'sup' ? -1 : 1); hf.addScaledVector(u, -hf.dot(u)); } // braccio aperto di lato: palmo in giù (pollice avanti), supina = palmo in su
+          if (hf.lengthSq() < 1e-6) hf = J.armF[s]; else hf.normalize(); }
+        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.armF[s]); setBone('hand' + s, wrist, tip, hf);
         { const hbI = IDX['hand' + s], hb = bones[hbI]; hb.updateMatrix();
           const Mm = hb.matrix.clone().multiply(inv[hbI]), obj = J.obj && J.obj[s], target = obj || J.H;
-          const hd = tip.clone().sub(wrist).normalize(), ax = J.armF[s].clone().addScaledVector(hd, -J.armF[s].dot(hd)).normalize();
+          const hd = tip.clone().sub(wrist).normalize(), ax = hf.clone().addScaledVector(hd, -hf.dot(hd)).normalize();
           const mapP = q => V3(s === 'L' ? q : [-q[0], q[1], q[2]]).applyMatrix4(Mm);
           const CURL = obj ? {fi: [58, 88, 52], fm: [64, 95, 55], fr: [70, 100, 55], fp: [76, 100, 58], ft: [38, 46]} : {fi: [10, 16, 10], fm: [13, 18, 12], fr: [16, 20, 12], fp: [20, 22, 14], ft: [8, 10]};
           const chain = (F, sg) => { const ang = CURL[F.n], pts = F.q.map(mapP), out = [pts[0]]; let cum = 0, dir = null;
@@ -188,7 +197,7 @@ const RIG = (() => {
             return out; };
           const mid = FING[1], ps = chain(mid, 1), ms = chain(mid, -1);
           const sg = ps[3].distanceTo(target) <= ms[3].distanceTo(target) ? 1 : -1;
-          FING.forEach(F => { const o = chain(F, sg); for (let k = 0; k < o.length - 1; k++) setBone(F.n + s + k, o[k], o[k + 1], J.armF[s]); }); }
+          FING.forEach(F => { const o = chain(F, sg); for (let k = 0; k < o.length - 1; k++) setBone(F.n + s + k, o[k], o[k + 1], hf); }); }
         setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], J.legF[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
       });
       root.updateMatrixWorld(true);

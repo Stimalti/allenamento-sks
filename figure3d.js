@@ -1,7 +1,7 @@
 /* Figure 3D (three.js): stessa logica di posa di figure.js, ma il manichino è un vero modello 3D
    che si può ruotare col dito/mouse. Se three.js non è disponibile, si usa la figura 2D. */
 const FIG3 = (() => {
-  const R = Math.PI / 180, FLOOR = 222;
+  const R = Math.PI / 180, FLOOR = 222, esc3 = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   let UA = 36, FA = 38, TH = 52, SH = 52;
   const dir = a => [Math.sin(a * R), Math.cos(a * R)];
   const add = (p, l, a) => { const d = dir(a); return [p[0] + l * d[0], p[1] + l * d[1]]; };
@@ -237,12 +237,13 @@ const FIG3 = (() => {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
     const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
-    if (rig && !window.FIG3_ICON && tilt > 14 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
+    if (rig && !window.FIG3_ICON && tilt > 5 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
       const GZ2 = 48, ORG = '#ff6b35'; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, 180), GZ2), .8, ORG));
       P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
       let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
       P.tilt = Math.round(tilt);
     }
+    P.tiltAll = Math.round(tilt); P.st = ex.st;
     P.gp = ex.cp === 'ankle' ? pt3(A, LN) : (ex.one ? g3n : [g3n[0], g3n[1], 0]);
     if (rig) {
       const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, 0)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
@@ -253,6 +254,7 @@ const FIG3 = (() => {
       const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, 0)), up, front: fT,
         sh: {R: W3(pt3(S, ZN)), L: W3(pt3(S, ZF))}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
         armF: {R: fS(pt3(S, ZN), E3n, W3n, fwd(p.ua)), L: fS(pt3(S, ZF), E3f, W3f, fwd(sFar))},
+        presa: ex.presa,
         hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz)), L: W3(pt3(K2, (ex.rl || ex.sup) ? LF : LF - kz0))}, an: {R: W3(pt3(A, LN + kz * .6)), L: W3(pt3(A2, (ex.rl || ex.sup) ? LF : LF - kz0 * .6))},
         toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
@@ -338,6 +340,7 @@ const FIG3 = (() => {
       const J = {H: p3(cx, hy, 0), S: p3(cx, sy + 4, 0), up: up0, front: Fz,
         sh: {L: p3(Rs[0], Rs[1], 0), R: p3(Ls[0], Ls[1], 0)}, el: {L: p3(...R3.E), R: p3(...L3.E)}, wr: {L: p3(...R3.W), R: p3(...L3.W)},
         armF: {L: fa([Rs[0], Rs[1], 0], R3.E, R3.W), R: fa([Ls[0], Ls[1], 0], L3.E, L3.W)},
+        presa: ex.presa,
         hip: {L: p3(...hipL), R: p3(...hipR)}, kn: {L: p3(...knL), R: p3(...knR)}, an: {L: p3(...anL), R: p3(...anR)},
         toe: {L: toe(anL, 25), R: toe(anR, 25)}, legF: {L: Fz, R: Fz}, footUp: {L: up0, R: up0}};
       if (seatF) { J.legF = {L: Wv(0, 1, 0), R: Wv(0, 1, 0)}; }
@@ -474,7 +477,9 @@ const FIG3 = (() => {
           const act = {}; if (o.showM) musOf(ex).forEach(g => { act[g] = .35 + .65 * k; }); rigInst.setMuscles(act);
         }
         while (pool.length > prims.length) group.remove(pool.pop());
-        cap.textContent = (k < .5 ? ex.cap[0] : ex.cap[1]) + (prims.tilt ? '  ·  busto inclinato di circa ' + prims.tilt + '° dalla verticale' : '');
+        const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.presa];
+        const back = ['lie', 'inc'].includes(ex.st) ? 'schiena appoggiata alla panca' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
+        cap.innerHTML = '<b>' + esc3(k < .5 ? ex.cap[0] : ex.cap[1]) + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
       if (o.spin && !o.drag) o.az += .006;

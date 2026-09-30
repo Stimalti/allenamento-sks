@@ -299,3 +299,13 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     why:'Terza parte del video: con i gomiti aperti e la rotazione esterna il carico va ai deltoidi posteriori e al grande rotondo, la parte alta ed esterna della schiena.',
     err:['Gomiti che scendono lungo i fianchi','Busto che si inclina indietro','Spalle alle orecchie','Carico troppo alto che toglie la rotazione finale']}));
 })();
+
+/* ===== presa (come e' girato il palmo): prona, supina, neutra ===== */
+(() => {
+  const P = {
+    pro: 'p-panca p-incl-db p-press-cavi s-military s-press-db s-laterali s-laterali-doppio s-frontali s-frontali-singolo s-upright b-rackpull b-row-bar b-lat-larga b-pulldown-braccia-tese b-trazioni b-scrollate w-wrist-ext w-reverse-curl t-push-barra t-french-cavo t-panca-stretta g-squat g-rdl g-hip-thrust g-calf a-rollout p-panca-cavi p-incl-cavi sm-panca sm-incl sm-panca-stretta sm-military sm-row sm-scrollate sm-squat sm-rdl sm-hip-thrust sm-calf b-shrug-cavo t-push-prono-singolo',
+    sup: 'c-curl-bar c-curl-cavo c-curl-alti c-incl c-concentrato c-curl-singolo w-wrist-curl t-push-inverso g-front-squat sm-front-squat c-curl-panca-cavo c-curl-alti-singolo b-lat-supina c-chinup',
+    neu: 'p-croci-alte p-croci-basse p-croci-petto p-croci-panca p-croci-singolo p-jammer-press j-incl j-shoulder2 j-row-singolo s-facepull s-posteriori s-posteriori-singolo s-jammer-press s-rot-est s-frontali-corda s-press-cavo s-press-cavo-singolo b-lat-neutra b-row-cavo b-row-cavo-singolo b-lat-ginocchio b-lat-singolo b-row-singolo b-row-jammer b-row-busto-cavi b-row-terra b-row-terra-singolo b-rope-lat-terra b-rope-row-terra b-rope-facepull-terra c-hammer c-hammer-singolo t-push-corda t-overhead-corda t-overhead-singolo t-kickback t-over-db g-bulgaro g-pullthrough g-sumo g-split g-squat-cavo g-rdl-cavo a-crunch-cavo a-pallof a-woodchop a-woodchop-basso p-press-cavo-singolo'
+  };
+  Object.entries(P).forEach(([k, ids]) => ids.split(' ').forEach(id => { const e = EX.find(x => x.id === id); if (e) e.presa = k; }));
+})();
