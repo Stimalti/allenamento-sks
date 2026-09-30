@@ -227,6 +227,13 @@ const FIG3 = (() => {
     } else if (ex.eq === 'pad') {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
+    const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
+    if (rig && tilt > 10 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
+      const GZ2 = 48, ORG = '#ff6b35'; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, 180), GZ2), .8, ORG));
+      P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
+      let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
+      P.tilt = Math.round(tilt);
+    }
     if (rig) {
       const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, 0)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
       const fS = (Sx, Ex, Wx, fb) => bendFront(W3(Sx), W3(Ex), W3(Wx), fb);
@@ -286,8 +293,8 @@ const FIG3 = (() => {
       if (seatF) { P.push(cyl([cx - 34, hy - 8, 20], [cx + 34, hy - 8, 20], 7.5, BLK)); P.push(cyl([cx - 30, hy - 8, 20], [cx - 30, hy + 7, 4], 2.5, TW), cyl([cx + 30, hy - 8, 20], [cx + 30, hy + 7, 4], 2.5, TW)); }
     } else if (ex.eq === 'cable') {
       const rg = ex.cp === 'ankle' ? pt3(rAnk, 0) : wr;
-      if (an.length === 1) cableTo(P, rg, an[0], Math.abs(an[0][0] - 150) < 40 ? 78 : 0);
-      else if (ex.cross) { cableTo(P, wr, an[0], 0); cableTo(P, wl, an[1], 0); }
+      if (an.length === 1) cableTo(P, rg, an[0], ex.tzf ?? (Math.abs(an[0][0] - 150) < 40 ? 78 : 0));
+      else if (ex.cross) { cableTo(P, wr, an[0], ex.tzf ?? 0); cableTo(P, wl, an[1], ex.tzf ?? 0); }
       else { cableTo(P, wl, an[0], 0); cableTo(P, wr, an[1], 0); }
     }
     if (rig) {
@@ -354,6 +361,18 @@ const FIG3 = (() => {
     const gSph = new THREE.SphereGeometry(1, 16, 12), gBox = new THREE.BoxGeometry(1, 1, 1);
     const group = new THREE.Group(); scene.add(group); const pool = [];
     let pose = null, rigInst = null;
+    // traiettoria della mano in linea retta (panca, military...): la posizione del polso si interpola in linea
+    // e le braccia si adattano con un IK piano, così il bilanciere non disegna un arco
+    const sOf = p => ex.v === 'f' ? [175, (ex.st === 'seat' ? 107 : 62) + 4] : add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
+    const handOf = p => { const S = sOf(p), E = add(S, UA, p.ua); return {S, E, W: add(E, FA, p.fa)}; };
+    function linearize(pp, k) {
+      const S = sOf(pp), W0 = o.lw[0].W, W1 = o.lw[1].W, Wt = [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k];
+      const dx = Wt[0] - S[0], dy = Wt[1] - S[1]; let d = Math.min(Math.hypot(dx, dy), UA + FA - .5); d = Math.max(d, Math.abs(UA - FA) + .5);
+      const base = Math.atan2(dx, dy) / R, cosA = Math.max(-1, Math.min(1, (UA * UA + d * d - FA * FA) / (2 * UA * d))), A = Math.acos(cosA) / R;
+      const Er = add(S, UA, pp.ua), ea = add(S, UA, base + A), eb = add(S, UA, base - A);
+      const ua = Math.hypot(ea[0] - Er[0], ea[1] - Er[1]) <= Math.hypot(eb[0] - Er[0], eb[1] - Er[1]) ? base + A : base - A, E = add(S, UA, ua);
+      pp.ua = ua; pp.fa = Math.atan2(Wt[0] - E[0], Wt[1] - E[1]) / R;
+    }
     const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m])'), mb = el.querySelector('.mbtn'), leg = el.querySelector('.legend3d');
     leg.textContent = 'In rosso i muscoli che lavorano: ' + ex.m + '.';
     const o = {el, renderer, showM: true, hold: null, t0: performance.now(), az: 0, el2: .22, drag: false, idle: 0, dead: false, lastW: 0};
@@ -402,16 +421,16 @@ const FIG3 = (() => {
       if (o.hold !== null) k = o.hold;
       else { const ph = ((t - o.t0) / 1000) % 4; k = ph < .6 ? 0 : ph < 2 ? (ph - .6) / 1.4 : ph < 2.6 ? 1 : 1 - (ph - 2.6) / 1.4; k = k*k*(3-2*k); }
       if (k !== lastK) {
-        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
+        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
         if (rigInst && prims.J) {
           rigInst.pose(prims.J);
           const act = {}; if (o.showM) musOf(ex).forEach(g => { act[g] = .35 + .65 * k; }); rigInst.setMuscles(act);
         }
         while (pool.length > prims.length) group.remove(pool.pop());
-        cap.textContent = k < .5 ? ex.cap[0] : ex.cap[1];
+        cap.textContent = (k < .5 ? ex.cap[0] : ex.cap[1]) + (prims.tilt ? '  ·  busto inclinato di circa ' + prims.tilt + '° dalla verticale' : '');
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
-      if (!o.drag && t - o.idle > 2500) o.az = .75 * Math.sin(t / 2600) + o.base;
+      if (!o.drag && t - o.idle > 2500) o.az = (ex.v === 'f' ? .75 : .4) * Math.sin(t / 2600) + o.base;
       const r = o.ct[2], cx = o.ct[0], cy = o.ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
     }
@@ -419,17 +438,52 @@ const FIG3 = (() => {
     const over = ex.fr.some(f => f[0] > 125);
     o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
-    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : -.35;
+    o.base = ex.v === 'f' ? (towerFront ? .9 : 0) : -.22;
     o.az = o.base;
     cap.textContent = 'Carico il modello 3D…';
     (async () => {
       if (typeof RIG !== 'undefined' && THREE.GLTFLoader) { try { rigInst = await RIG.create(); } catch (e) { rigInst = null; } }
       if (o.dead) { if (rigInst) rigInst.dispose(); return; }
-      rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])];
+      rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])]; if (ex.lin) o.lw = pose.map(handOf);
       if (rigInst) { scene.add(rigInst.root); rigInst.meshes.forEach(m => { m.castShadow = true; }); o.rig = rigInst; }
       o.raf = requestAnimationFrame(frame);
     })();
     return o;
   }
-  return {mount};
+  // analisi della traiettoria della mano (px): scostamento massimo dalla retta / lunghezza della retta
+  function path(ex) {
+    rigMode(true);
+    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], pts = [];
+    const sOf = p => add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
+    const hand = p => { const S = sOf(p), E = add(S, UA, p.ua); return add(E, FA, p.fa); };
+    const W0 = hand(pose[0]), W1 = hand(pose[1]);
+    for (let i = 0; i <= 10; i++) { const k = i / 10; pts.push(ex.lin ? [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k] : hand(lerp(pose[0], pose[1], k))); }
+    const ch = Math.hypot(W1[0] - W0[0], W1[1] - W0[1]); let dev = 0;
+    pts.forEach(p => { const d = Math.abs((W1[0] - W0[0]) * (W0[1] - p[1]) - (W0[0] - p[0]) * (W1[1] - W0[1])) / (ch || 1); dev = Math.max(dev, d); });
+    return {chord: ch, dev, ratio: ch ? dev / ch : 0, W0, W1};
+  }
+  // controllo geometrico: il cavo attraversa il corpo?
+  function cableCheck(ex) {
+    rigMode(true);
+    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], hits = [];
+    const toPx = v => [v.x * 100 + 150, 222 - v.y * 100, v.z * 100];
+    const dseg = (p, a, b) => { const ab = vs(b, a), ap = vs(p, a), t = Math.max(0, Math.min(1, vd(ap, ab) / (vd(ab, ab) || 1))); return vl(vs(ap, vm(ab, t))); };
+    for (let i = 0; i <= 10; i++) {
+      const k = i / 10, pp = lerp(pose[0], pose[1], k); pp.showM = false;
+      const P = geo(ex, pp, true), J = P.J; if (!J) continue;
+      const H = toPx(J.H), S = toPx(J.S), up = vs(S, H);
+      const caps = [['torso', H, S, 14], ['testa', va(S, vm(up, .3)), va(S, vm(up, .55)), 11]];
+      ['L', 'R'].forEach(sd => caps.push(['braccio' + sd, toPx(J.sh[sd]), toPx(J.el[sd]), 6], ['gamba' + sd, toPx(J.hip[sd]), toPx(J.kn[sd]), 9], ['stinco' + sd, toPx(J.kn[sd]), toPx(J.an[sd]), 6.5]));
+      P.filter(p => p.k === 'c' && p.rx === 1.2 && p.col === STEEL).forEach(c => {
+        const L = vl(vs(c.b, c.a)); let worst = null;
+        for (let t = 0; t <= 1; t += .04) {
+          if (t * L < 16) continue; const pt = va(c.a, vm(vs(c.b, c.a), t));
+          caps.forEach(cp => { const dd = dseg(pt, cp[1], cp[2]) - cp[3]; if (dd < -1 && (!worst || dd < worst.d)) worst = {part: cp[0], d: Math.round(dd)}; });
+        }
+        if (worst) hits.push({k, part: worst.part, pen: -worst.d});
+      });
+    }
+    return hits;
+  }
+  return {mount, path, cableCheck};
 })();

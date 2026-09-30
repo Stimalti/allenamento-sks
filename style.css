@@ -111,3 +111,5 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .figbtns button.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .figbtns .mbtn{background:rgba(225,29,46,.12);border-color:rgba(225,29,46,.4);color:#9f1321}.figbtns .mbtn.on{background:#e11d2e;border-color:#e11d2e;color:#fff}
 .legend3d{color:#a3202c}
+
+.warn{font-size:13px;background:#fff4d6;color:#6b4b00;border-radius:12px;padding:9px 12px;margin:8px 0}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{background:#3a2f10;color:#ffd98a}}:root[data-theme="dark"] .warn{background:#3a2f10;color:#ffd98a}

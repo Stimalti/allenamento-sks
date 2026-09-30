@@ -69,7 +69,9 @@ function curFor(k, n) {
 function techHtml(ex) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
   return `<div class="fig" data-fig="${ex.id}"></div>
+  <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
+  ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   <h3>Muscoli</h3><p>${esc(ex.m)}</p>
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>

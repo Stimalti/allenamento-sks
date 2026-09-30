@@ -6,7 +6,7 @@ const E = o => EX.push(o);
 
 /* ============================== PETTO ============================== */
 E({id:'p-panca', n:'Panca piana con bilanciere', g:'petto', a:'Bilanciere', m:'Pettorali, tricipiti, deltoidi anteriori',
- st:'lie', eq:'bar', fr:[[180,180],[80,180]], cap:['Bilanciere sopra il petto, braccia distese','Bilanciere sfiora il petto, avambracci verticali'],
+ lin:true, trj:'Non è una linea verticale perfetta: il bilanciere parte dalla parte bassa dello sterno, sale in una leggera diagonale verso la testa e arriva sopra le spalle (a braccia tese). Scende lungo lo stesso percorso. Gli avambracci restano sempre verticali.', st:'lie', eq:'bar', fr:[[180,180],[80,180]], cap:['Bilanciere sopra il petto, braccia distese','Bilanciere sfiora il petto, avambracci verticali'],
  set:'Rack con i safety a altezza petto. Panca piana sotto il bilanciere, occhi sotto la barra. Presa poco più larga delle spalle.',
  pos:'Scapole addotte e depresse (come se le infilassi nelle tasche posteriori), petto alto, piedi ben piantati a terra sotto le ginocchia, leggero arco lombare naturale.',
  ese:['Stacca il bilanciere e portalo sopra le spalle a braccia tese.','Scendi controllato in 2 secondi verso la parte bassa dello sterno, gomiti a ~45-60° dal busto (non a 90°).','Fai un breve stop sul petto senza rimbalzare.','Spingi "spingendo te stesso via dalla panca" e porta la barra in leggera diagonale fino sopra le spalle.'],
@@ -15,7 +15,7 @@ E({id:'p-panca', n:'Panca piana con bilanciere', g:'petto', a:'Bilanciere', m:'P
  err:['Gomiti a 90° rispetto al busto (stress sulla spalla)','Sedere che si stacca dalla panca','Rimbalzo sul petto','Polsi piegati indietro']});
 
 E({id:'p-incl-db', n:'Panca inclinata con manubri', g:'petto', a:'Manubri', m:'Petto alto (clavicolare), deltoidi anteriori, tricipiti',
- st:'inc', eq:'db', fr:[[178,180],[55,180]], cap:['Manubri sopra le spalle, braccia distese','Gomiti sotto il livello del busto, manubri ai lati del petto'],
+ lin:true, trj:'I manubri salgono quasi in verticale, leggermente verso l’interno, fino a incontrarsi sopra le spalle; scendono lungo lo stesso percorso ai lati del petto alto.', st:'inc', eq:'db', fr:[[178,180],[55,180]], cap:['Manubri sopra le spalle, braccia distese','Gomiti sotto il livello del busto, manubri ai lati del petto'],
  set:'Panca inclinata a 30° (non oltre: a 45-60° lavora quasi solo la spalla). Manubri sulle cosce, poi "calciali" in posizione.',
  pos:'Schiena e scapole ben appoggiate allo schienale, petto alto, piedi a terra. Polsi dritti, palmi in avanti o leggermente neutri.',
  ese:['Parti con i manubri sopra le spalle, braccia quasi tese.','Scendi lentamente allargando i gomiti a ~45° dal busto fino a sentire lo stiramento del petto.','Spingi verso l’alto e leggermente verso l’interno, senza far battere i manubri in cima.'],
@@ -51,7 +51,7 @@ E({id:'p-croci-petto', n:'Croci ai cavi all’altezza del petto', g:'petto', a:'
  err:['Braccia troppo distese (stress sul bicipite/spalla)','Spalle che vanno in avanti','Peso troppo alto che fa perdere l’arco']});
 
 E({id:'p-press-cavi', n:'Chest press ai cavi in piedi', g:'petto', a:'Cavi', m:'Pettorali, tricipiti, deltoidi anteriori',
- st:'stand', eq:'cable', an:[45,62], fr:[[-70,70,{t:170}],[88,90,{t:170}]], cap:['Gomiti indietro, mani ai lati del petto','Braccia distese davanti al petto'],
+ lin:true, trj:'Le mani vanno dal petto in avanti in linea retta, all’altezza dello sterno, e tornano sulla stessa linea.', st:'stand', eq:'cable', an:[45,62], fr:[[-70,70,{t:170}],[88,90,{t:170}]], cap:['Gomiti indietro, mani ai lati del petto','Braccia distese davanti al petto'],
  set:'Due cavi all’altezza del petto, stai di schiena alle torri con un piede avanti. Maniglie singole o doppie.',
  pos:'Busto inclinato leggermente in avanti, core contratto, stabile sul piede avanti. Gomiti a ~45° dal busto.',
  ese:['Parti con le mani vicino al petto, gomiti indietro.','Spingi le mani in avanti fino a braccia quasi tese, avvicinando i pugni.','Ritorna lentamente senza far appoggiare il peso.'],
@@ -79,7 +79,7 @@ E({id:'p-jammer-press', n:'Chest press con Jammer Arms su panca', g:'petto', a:'
 
 /* ============================== SPALLE ============================== */
 E({id:'s-military', n:'Military press con bilanciere', g:'spalle', a:'Bilanciere', m:'Deltoidi anteriori e laterali, tricipiti, core',
- st:'stand', eq:'bar', fr:[[15,175],[180,180]], cap:['Bilanciere sulle clavicole','Braccia distese sopra la testa'],
+ lin:true, trj:'Il bilanciere sale in linea quasi verticale: sposta la testa indietro per farlo passare, poi riportala sotto il bilanciere quando è sopra. Nessun arco in avanti.', st:'stand', eq:'bar', fr:[[15,175],[180,180]], cap:['Bilanciere sulle clavicole','Braccia distese sopra la testa'],
  set:'Bilanciere nel rack all’altezza poco sotto le spalle. Presa di poco più larga delle spalle, barra appoggiata sulle clavicole e sui deltoidi anteriori.',
  pos:'Piedi alla larghezza delle spalle, glutei e addome contratti, gomiti appena davanti alla barra. Testa neutra.',
  ese:['Stacca la barra dal rack e fai un passo indietro.','Spingi la barra verticalmente, spostando la testa indietro per farla passare.','Quando la barra è sopra la testa, spingi la testa "attraverso le braccia" e blocca sopra le spalle.','Scendi controllato fino alle clavicole.'],
@@ -88,7 +88,7 @@ E({id:'s-military', n:'Military press con bilanciere', g:'spalle', a:'Bilanciere
  err:['Schiena troppo inarcata','Gomiti troppo larghi','Barra che va in avanti','Non bloccare sopra la testa']});
 
 E({id:'s-press-db', n:'Shoulder press con manubri su panca', g:'spalle', a:'Manubri', m:'Deltoidi, tricipiti',
- st:'seat', eq:'db', fr:[[15,175],[178,180]], cap:['Manubri all’altezza delle spalle','Braccia distese sopra la testa'],
+ lin:true, st:'seat', eq:'db', fr:[[15,175],[178,180]], cap:['Manubri all’altezza delle spalle','Braccia distese sopra la testa'],
  set:'Panca regolata quasi verticale (80-85°), schiena ben appoggiata. Manubri portati sulle spalle.',
  pos:'Piedi ben piantati, glutei e schiena appoggiati, core contratto. Polsi sopra i gomiti.',
  ese:['Parti con i gomiti poco davanti al piano delle spalle e i manubri sopra di esse.','Spingi verticalmente fino a braccia quasi tese.','Scendi lentamente fino a che i manubri sono all’altezza delle orecchie/spalle.'],
@@ -97,7 +97,7 @@ E({id:'s-press-db', n:'Shoulder press con manubri su panca', g:'spalle', a:'Manu
  err:['Schiena inarcata','Lasciare cadere i manubri in avanti','Non usare l’intero range']});
 
 E({id:'s-laterali', n:'Alzate laterali al cavo basso', g:'spalle', a:'Cavi', m:'Deltoide laterale (mediale)',
- st:'stand', v:'f', one:true, an:[[25,212]], eq:'cable', fr:[[10,10],[92,92]], cap:['Braccio lungo il fianco','Braccio all’altezza della spalla'],
+ tzf:38, st:'stand', v:'f', one:true, an:[[25,212]], eq:'cable', fr:[[10,10],[92,92]], cap:['Braccio lungo il fianco','Braccio all’altezza della spalla'],
  set:'Cavo BASSO, maniglia singola. Stai di lato alla torre; la mano lontana dal cavo lavora, cavo che passa davanti al corpo.',
  pos:'Busto leggermente inclinato verso il lato opposto a quello che lavora, gomito leggermente piegato, mano in presa neutra.',
  ese:['Parti con il braccio lungo il fianco (leggermente davanti).','Solleva il braccio lateralmente fino all’altezza delle spalle, il gomito guida il movimento.','Fermati a 90°: oltre entra il trapezio.','Scendi lentamente (3 secondi).'],
@@ -115,7 +115,7 @@ E({id:'s-frontali', n:'Alzate frontali al cavo basso', g:'spalle', a:'Cavi', m:'
  err:['Dondolare indietro','Andare oltre la spalla','Gomiti troppo piegati']});
 
 E({id:'s-facepull', n:'Face pull ai cavi', g:'spalle', a:'Cavi', m:'Deltoide posteriore, cuffia dei rotatori, trapezio medio',
- st:'stand', eq:'cable', an:[250,38], fr:[[88,90,{t:176}],[-80,150,{t:184}]], cap:['Braccia distese davanti, corda all’altezza del viso','Mani ai lati del viso, gomiti alti e larghi'],
+ lin:true, trj:'La corda viene verso il viso in linea retta, all’altezza degli occhi, aprendosi ai lati delle orecchie a fine corsa.', st:'stand', eq:'cable', an:[250,38], fr:[[88,90,{t:176}],[-80,150,{t:184}]], cap:['Braccia distese davanti, corda all’altezza del viso','Mani ai lati del viso, gomiti alti e larghi'],
  set:'Cavo ALTO (all’altezza del viso o poco sopra), corda. Afferrala con le mani palmo-a-palmo (pollici verso di te). Fai 2 passi indietro.',
  pos:'Piedi alla larghezza delle spalle, leggermente indietro con il peso, petto alto, scapole ben appoggiate.',
  ese:['Parti con le braccia distese davanti a te.','Tira la corda verso il viso aprendo le mani ai lati delle orecchie e portando i gomiti alti e dietro.','Alla fine le mani sono ai lati del viso, pollici verso di te, gomiti all’altezza delle spalle.','Ritorna lentamente.'],
@@ -124,7 +124,7 @@ E({id:'s-facepull', n:'Face pull ai cavi', g:'spalle', a:'Cavi', m:'Deltoide pos
  err:['Peso troppo alto e tirare indietro con la schiena','Gomiti bassi','Tirare con le braccia invece che con le scapole']});
 
 E({id:'s-posteriori', n:'Alzate posteriori ai cavi incrociati', g:'spalle', a:'Cavi', m:'Deltoide posteriore, romboidi',
- st:'stand', v:'f', cross:true, an:[[25,30],[275,30]], eq:'cable', fr:[[30,-30],[95,95]], cap:['Braccia in avanti, cavi incrociati','Braccia aperte ai lati'],
+ tzf:75, st:'stand', v:'f', cross:true, an:[[25,30],[275,30]], eq:'cable', fr:[[30,-30],[95,95]], cap:['Braccia in avanti, cavi incrociati','Braccia aperte ai lati'],
  set:'Due cavi ALTI (o medi), maniglie incrociate: la mano destra prende il cavo sinistro e viceversa. Busto leggermente inclinato in avanti.',
  pos:'Piedi alla larghezza delle spalle, petto alto, gomiti leggermente piegati.',
  ese:['Parti con le braccia davanti al petto, cavi incrociati.','Apri le braccia lateralmente come una croce, portando i gomiti dietro.','Stringi le scapole un secondo e ritorna lentamente.'],
@@ -142,7 +142,7 @@ E({id:'s-jammer-press', n:'Shoulder press con Jammer Arms (un braccio)', g:'spal
  err:['Inarcare la schiena','Ruotare il busto','Spingere con le gambe']});
 
 E({id:'s-upright', n:'Upright row al cavo basso', g:'spalle', a:'Cavi', m:'Deltoidi laterali, trapezio',
- st:'stand', v:'f', bar:true, an:[[150,215]], eq:'cable', fr:[[15,-10],[70,-70]], cap:['Barra davanti alle cosce, braccia distese','Barra sotto il mento, gomiti alti'],
+ lin:true, st:'stand', v:'f', bar:true, an:[[150,215]], eq:'cable', fr:[[15,-10],[70,-70]], cap:['Barra davanti alle cosce, braccia distese','Barra sotto il mento, gomiti alti'],
  set:'Cavo BASSO con barra dritta o corda. Presa larga poco più delle spalle.',
  pos:'Busto eretto, petto alto, peso sui talloni.',
  ese:['Parti con la barra davanti alle cosce.','Solleva la barra verticalmente facendo guidare i gomiti verso l’alto.','Fermati quando i gomiti sono all’altezza delle spalle (barra a metà petto).','Scendi lentamente.'],
@@ -151,7 +151,7 @@ E({id:'s-upright', n:'Upright row al cavo basso', g:'spalle', a:'Cavi', m:'Delto
  err:['Tirare troppo in alto (sopra le spalle)','Presa troppo stretta','Dondolare con il busto']});
 
 E({id:'s-rot-est', n:'Rotazione esterna al cavo (cuffia)', g:'spalle', a:'Cavi', m:'Cuffia dei rotatori (sottospinato, piccolo rotondo)',
- st:'stand', v:'f', one:true, an:[[25,105]], eq:'cable', fr:[[5,-90],[5,75]], cap:['Gomito al fianco, avambraccio verso l’addome','Avambraccio ruotato verso l’esterno'],
+ tzf:55, st:'stand', v:'f', one:true, an:[[25,105]], eq:'cable', fr:[[5,-90],[5,75]], cap:['Gomito al fianco, avambraccio verso l’addome','Avambraccio ruotato verso l’esterno'],
  set:'Cavo MEDIO (all’altezza dell’ombelico), maniglia. Stai di lato alla torre, la mano lontana dal cavo lavora.',
  pos:'Gomito piegato a 90° e appoggiato al fianco (puoi mettere un asciugamano sotto). Polso neutro.',
  ese:['Parti con l’avambraccio davanti all’addome.','Ruota l’avambraccio verso l’esterno, il gomito resta fermo.','Ritorna lentamente.'],
@@ -161,7 +161,7 @@ E({id:'s-rot-est', n:'Rotazione esterna al cavo (cuffia)', g:'spalle', a:'Cavi',
 
 /* ============================== SCHIENA ============================== */
 E({id:'b-rackpull', n:'Rack pull (stacco dai pin)', g:'schiena', a:'Bilanciere', m:'Dorsali, trapezio, erettori spinali, glutei, femorali',
- st:'hinge', eq:'bar', fr:[[0,0,{t:140,h:[132,120],th:18,sh:-8}],[0,0,{t:178,h:[148,118],th:0,sh:0}]], cap:['Bilanciere sui pin all’altezza delle ginocchia','Posizione eretta, bilanciere in vita'],
+ trj:'La barra sale in linea verticale, appoggiata alle cosce e alle ginocchia, e non si allontana dal corpo.', st:'hinge', eq:'bar', fr:[[0,0,{t:140,h:[132,120],th:18,sh:-8}],[0,0,{t:178,h:[148,118],th:0,sh:0}]], cap:['Bilanciere sui pin all’altezza delle ginocchia','Posizione eretta, bilanciere in vita'],
  set:'Regola i pin del rack così che la barra parta appena sotto le ginocchia. Presa alla larghezza delle spalle (prona o mista).',
  pos:'Piedi alla larghezza del bacino sotto la barra, schiena neutra, petto alto, dorsali "bloccati" (come se spremessi un’arancia sotto le ascelle).',
  ese:['Prendi la barra, tendi il corpo e spingi i piedi nel pavimento.','Alza la barra sfilando i glutei e il petto insieme, la barra scorre vicina alle cosce.','Blocca in alto con glutei contratti, senza iperestendere.','Riporta la barra sui pin controllando.'],
@@ -170,7 +170,7 @@ E({id:'b-rackpull', n:'Rack pull (stacco dai pin)', g:'schiena', a:'Bilanciere',
  err:['Schiena arrotondata','Barra lontana dal corpo','Iperestensione in alto','Usare i lombari al posto di glutei e gambe']});
 
 E({id:'b-row-bar', n:'Rematore con bilanciere', g:'schiena', a:'Bilanciere', m:'Dorsali, romboidi, trapezio, bicipiti',
- st:'hinge', eq:'bar', fr:[[0,0,{t:108,th:14,sh:-6}],[-70,10,{t:108,th:14,sh:-6}]], cap:['Bilanciere appeso a braccia distese','Bilanciere al basso addome/ombelico'],
+ trj:'La barra sale in linea diagonale dal basso verso l’ombelico e ritorna sulla stessa linea, vicina al corpo.', lin:true, st:'hinge', eq:'bar', fr:[[0,0,{t:108,th:14,sh:-6}],[-70,10,{t:108,th:14,sh:-6}]], cap:['Bilanciere appeso a braccia distese','Bilanciere al basso addome/ombelico'],
  set:'Bilanciere da terra o dai pin bassi. Presa prona poco più larga delle spalle (o supina per maggiore bicipite).',
  pos:'Busto inclinato a ~60-70° rispetto alla verticale, ginocchia leggermente flesse, schiena neutra, sguardo a terra poco davanti.',
  ese:['Parti con la barra appesa a braccia distese.','Tira la barra verso l’addome portando i gomiti indietro e vicino al corpo.','Contrai le scapole per 1 secondo.','Scendi in modo controllato.'],
@@ -179,7 +179,7 @@ E({id:'b-row-bar', n:'Rematore con bilanciere', g:'schiena', a:'Bilanciere', m:'
  err:['Busto che si alza ad ogni ripetizione','Tirare con i bicipiti','Schiena arrotondata','Slancio eccessivo']});
 
 E({id:'b-lat-larga', n:'Lat machine ai cavi, presa larga', g:'schiena', a:'Cavi', m:'Gran dorsale, romboidi, bicipiti',
- st:'seat', v:'f', seatF:true, bar:true, an:[[150,14]], eq:'cable', fr:[[150,160],[35,172]], cap:['Braccia distese sopra la testa','Barra all’altezza delle clavicole, gomiti in basso'],
+ lin:true, trj:'La barra scende quasi in verticale davanti al viso fino alle clavicole, poi risale sulla stessa linea. Il movimento non disegna un arco: i gomiti vanno verso il basso e leggermente indietro.', st:'seat', v:'f', seatF:true, bar:true, an:[[150,14]], eq:'cable', fr:[[150,160],[35,172]], cap:['Braccia distese sopra la testa','Barra all’altezza delle clavicole, gomiti in basso'],
  set:'Cavo ALTO con barra lat. Presa pronata, circa 1,5 volte la larghezza delle spalle. Siediti bloccando le cosce (sotto il bilanciere o in una panca con imbottitura).',
  pos:'Siediti DI FRONTE alla macchina, con la faccia rivolta verso il cavo (non di schiena). Cosce bloccate sotto i rulli, piedi a terra, petto alto, leggera inclinazione indietro (~10°), scapole basse.',
  ese:['Parti con le braccia distese e le scapole leggermente alzate (stretching del dorsale).','Abbassa prima le scapole, poi tira la barra verso le clavicole.','Porta i gomiti verso i fianchi e verso il basso.','Risali lentamente fino alla posizione iniziale.'],
@@ -188,7 +188,7 @@ E({id:'b-lat-larga', n:'Lat machine ai cavi, presa larga', g:'schiena', a:'Cavi'
  err:['Dondolare indietro con il busto','Tirare la barra dietro la nuca','Spalle che salgono verso le orecchie']});
 
 E({id:'b-lat-neutra', n:'Lat machine, presa neutra stretta', g:'schiena', a:'Cavi', m:'Gran dorsale (parte bassa), romboidi, bicipiti',
- st:'seat', eq:'cable', an:[205,14], fr:[[170,175,{t:184}],[15,155,{t:196}]], cap:['Braccia distese, triangolo sopra la testa','Triangolo al petto, gomiti lungo i fianchi'],
+ lin:true, st:'seat', eq:'cable', an:[205,14], fr:[[170,175,{t:184}],[15,155,{t:196}]], cap:['Braccia distese, triangolo sopra la testa','Triangolo al petto, gomiti lungo i fianchi'],
  set:'Cavo ALTO con maniglia triangolo (o V). Presa neutra (palmi che si guardano). Cosce bloccate.',
  pos:'Siediti di fronte alla macchina, con la faccia rivolta verso il cavo e i piedi a terra, cosce bloccate. Busto leggermente inclinato indietro, petto alto, scapole basse.',
  ese:['Parti a braccia distese.','Tira il triangolo verso lo sterno, portando i gomiti in basso e indietro.','Contrai 1 secondo.','Risali lentamente.'],
@@ -197,7 +197,7 @@ E({id:'b-lat-neutra', n:'Lat machine, presa neutra stretta', g:'schiena', a:'Cav
  err:['Busto che oscilla','Tirare con le braccia','Non completare il range']});
 
 E({id:'b-row-cavo', n:'Rematore al cavo basso seduto', g:'schiena', a:'Cavi', m:'Romboidi, trapezio medio, dorsali, bicipiti',
- st:'seat', eq:'cable', an:[258,205], fr:[[90,90,{t:168}],[-35,88,{t:186}]], cap:['Braccia distese, busto leggermente avanti','Maniglia all’addome, gomiti indietro'],
+ lin:true, trj:'Le mani tornano verso l’addome in linea quasi orizzontale, all’altezza dell’ombelico, senza alzarsi né abbassarsi. I gomiti passano vicino ai fianchi.', st:'seat', eq:'cable', an:[258,205], fr:[[90,90,{t:168}],[-35,88,{t:186}]], cap:['Braccia distese, busto leggermente avanti','Maniglia all’addome, gomiti indietro'],
  set:'Cavo BASSO con maniglia a V (o barra stretta). Siediti sulla panca con i piedi appoggiati, ginocchia leggermente flesse.',
  pos:'Schiena neutra, busto eretto o leggermente inclinato indietro a fine corsa, petto alto.',
  ese:['Parti con le braccia distese e le scapole in avanti (stretching).','Porta i gomiti indietro vicino ai fianchi e avvicina le scapole.','La maniglia arriva all’addome.','Ritorna lentamente con le scapole che si aprono.'],
@@ -206,7 +206,7 @@ E({id:'b-row-cavo', n:'Rematore al cavo basso seduto', g:'schiena', a:'Cavi', m:
  err:['Dondolare con il busto avanti/indietro','Spalle sollevate','Schiena arrotondata']});
 
 E({id:'b-lat-ginocchio', n:'Lat pulldown in ginocchio a un braccio', g:'schiena', a:'Cavi', m:'Gran dorsale, romboidi, core',
- st:'kneel', one:true, an:[210,12], eq:'cable', fr:[[172,176,{t:186}],[10,155,{t:176}]], cap:['Braccio disteso in alto','Gomito al fianco, maniglia al petto'],
+ lin:true, st:'kneel', one:true, an:[210,12], eq:'cable', fr:[[172,176,{t:186}],[10,155,{t:176}]], cap:['Braccio disteso in alto','Gomito al fianco, maniglia al petto'],
  set:'Cavo ALTO con maniglia singola. Inginocchiati davanti alla torre (tappetino sotto le ginocchia), busto leggermente inclinato indietro.',
  pos:'Core contratto, bacino neutro, petto alto. La mano libera appoggiata al fianco o al rack.',
  ese:['Parti con il braccio disteso verso l’alto (stirando il dorsale).','Tira il gomito verso il fianco, leggermente davanti al corpo.','Contrai il dorsale 1 secondo.','Risali lentamente.'],
@@ -215,7 +215,7 @@ E({id:'b-lat-ginocchio', n:'Lat pulldown in ginocchio a un braccio', g:'schiena'
  err:['Ruotare il busto','Usare lo slancio','Braccia che si piegano troppo presto']});
 
 E({id:'b-row-singolo', n:'Rematore a un braccio al cavo basso', g:'schiena', a:'Cavi', m:'Dorsali, romboidi, trapezio',
- st:'hinge', one:true, an:[245,212], eq:'cable', fr:[[50,55],[-70,-5]], cap:['Braccio disteso verso il cavo','Gomito dietro il busto'],
+ lin:true, st:'hinge', one:true, an:[245,212], eq:'cable', fr:[[50,55],[-70,-5]], cap:['Braccio disteso verso il cavo','Gomito dietro il busto'],
  set:'Cavo BASSO con maniglia singola. Piedi a passo (piede opposto avanti), una mano appoggiata al rack o al ginocchio.',
  pos:'Busto inclinato a ~45-60°, schiena neutra, spalla non ruotata.',
  ese:['Parti con il braccio disteso verso il cavo.','Porta il gomito in alto e dietro, vicino al busto, come se volessi "tirare il gomito alla tasca posteriore".','Contrai 1 secondo.','Ritorna lento.'],
@@ -233,7 +233,7 @@ E({id:'b-pulldown-braccia-tese', n:'Pulldown a braccia tese ai cavi', g:'schiena
  err:['Piegare i gomiti e trasformarlo in un’estensione di tricipiti','Busto che oscilla','Peso troppo alto']});
 
 E({id:'b-row-jammer', n:'Rematore con Jammer Arms (T-bar)', g:'schiena', a:'Jammer', m:'Dorsali, romboidi, trapezio, bicipiti',
- st:'hinge', eq:'jam', an:[250,205], fr:[[20,20,{t:115}],[-55,-10,{t:115}]], cap:['Impugnature davanti alle ginocchia','Gomiti indietro, impugnature al petto basso'],
+ lin:true, st:'hinge', eq:'jam', an:[250,205], fr:[[20,20,{t:115}],[-55,-10,{t:115}]], cap:['Impugnature davanti alle ginocchia','Gomiti indietro, impugnature al petto basso'],
  set:'Jammer arms caricate con dischi, posizionate basse davanti a te. Usa la presa neutra o pronata. Piedi a larghezza delle anche.',
  pos:'Busto inclinato a ~45-60°, schiena neutra, ginocchia morbide.',
  ese:['Parti con le braccia distese.','Tira le impugnature verso il petto basso portando i gomiti indietro.','Contrai le scapole.','Scendi lentamente.'],
@@ -407,7 +407,7 @@ E({id:'t-kickback', n:'Kickback al cavo', g:'tricipiti', a:'Cavi', m:'Tricipiti 
  err:['Gomito che scende','Slancio del busto','Peso troppo alto']});
 
 E({id:'t-panca-stretta', n:'Panca presa stretta con bilanciere', g:'tricipiti', a:'Bilanciere', m:'Tricipiti, petto interno, deltoidi anteriori',
- st:'lie', eq:'bar', fr:[[180,180],[65,180]], cap:['Bilanciere sopra il petto, braccia distese','Bilanciere al petto, gomiti stretti'],
+ lin:true, trj:'Come la panca piana: dallo sterno in leggera diagonale verso le spalle, con i gomiti vicini al busto. Il bilanciere sale e scende sulla stessa linea.', st:'lie', eq:'bar', fr:[[180,180],[65,180]], cap:['Bilanciere sopra il petto, braccia distese','Bilanciere al petto, gomiti stretti'],
  set:'Panca piana con rack e safety. Presa alla larghezza delle spalle (non più stretta, per non stressare i polsi).',
  pos:'Scapole addotte, petto alto, gomiti vicini al busto (~30°).',
  ese:['Stacca il bilanciere e portalo sopra il petto.','Scendi controllato facendo sfiorare la parte bassa del petto, gomiti vicini al busto.','Spingi verso l’alto estendendo completamente i gomiti.'],
@@ -426,7 +426,7 @@ E({id:'t-over-db', n:'Estensioni sopra la testa con manubrio', g:'tricipiti', a:
 
 /* ============================== GAMBE ============================== */
 E({id:'g-squat', n:'Squat con bilanciere (rack)', g:'gambe', a:'Bilanciere', m:'Quadricipiti, glutei, core, adduttori',
- st:'stand', eq:'bar', fr:[[-70,118,{t:176}],[-70,118,{t:140,h:[112,163],th:80,sh:-15}]], cap:['In piedi con il bilanciere sul trapezio','Cosce parallele (o sotto), busto inclinato'],
+ trj:'Il bilanciere scende e sale in linea verticale sopra la metà del piede. Il busto si inclina ma la barra non va avanti né indietro.', st:'stand', eq:'bar', fr:[[-70,118,{t:176}],[-70,118,{t:140,h:[112,163],th:80,sh:-15}]], cap:['In piedi con il bilanciere sul trapezio','Cosce parallele (o sotto), busto inclinato'],
  set:'Rack con safety a altezza appena sotto il fondo dello squat. Barra sul trapezio (high bar) o sui deltoidi posteriori (low bar).',
  pos:'Piedi alla larghezza delle spalle o poco più, punte leggermente aperte. Gomiti bassi, petto alto, core contratto.',
  ese:['Stacca il bilanciere e fai 2 passi indietro.','Inspira, contrai il core e scendi spingendo le ginocchia in fuori e i fianchi indietro.','Scendi fino a cosce parallele o leggermente sotto.','Spingi i piedi nel pavimento e risali con busto fermo.'],
@@ -471,7 +471,7 @@ E({id:'g-bulgaro', n:'Affondi bulgari con bilanciere/manubri', g:'gambe', a:'Man
  err:['Piede troppo vicino','Ginocchio che cade verso l’interno','Busto troppo inclinato']});
 
 E({id:'g-rdl', n:'Stacco rumeno con bilanciere', g:'gambe', a:'Bilanciere', m:'Femorali, glutei, erettori spinali',
- st:'stand', eq:'bar', fr:[[0,0,{t:178}],[0,0,{t:135,h:[115,120],th:25,sh:-5}]], cap:['In piedi, barra davanti alle cosce','Busto inclinato, barra sotto le ginocchia'],
+ trj:'La barra scende e sale in linea verticale vicino alle gambe: sfiora cosce e tibie, senza mai allontanarsi.', st:'stand', eq:'bar', fr:[[0,0,{t:178}],[0,0,{t:135,h:[115,120],th:25,sh:-5}]], cap:['In piedi, barra davanti alle cosce','Busto inclinato, barra sotto le ginocchia'],
  set:'Bilanciere dal rack a altezza anche. Presa pronata alla larghezza delle spalle.',
  pos:'Piedi alla larghezza del bacino, ginocchia leggermente flesse e fisse, schiena neutra.',
  ese:['Spingi i fianchi indietro facendo scendere la barra lungo le cosce.','Scendi fino a sentire lo stiramento dei femorali (barra a metà tibia).','Spingi i fianchi in avanti e torna in piedi.'],
@@ -526,7 +526,7 @@ E({id:'a-crunch-cavo', n:'Crunch al cavo in ginocchio', g:'addome', a:'Cavi', m:
  err:['Muovere i fianchi','Tirare con le braccia','Peso troppo alto']});
 
 E({id:'a-pallof', n:'Pallof press', g:'addome', a:'Cavi', m:'Core (anti-rotazione), obliqui',
- st:'stand', eq:'cable', an:[250,75], fr:[[45,-30,{t:180}],[88,90,{t:180}]], cap:['Mani al petto, cavo laterale','Braccia distese, resistendo alla rotazione'],
+ lin:true, st:'stand', eq:'cable', an:[250,75], fr:[[45,-30,{t:180}],[88,90,{t:180}]], cap:['Mani al petto, cavo laterale','Braccia distese, resistendo alla rotazione'],
  set:'Cavo MEDIO (all’altezza del petto) con maniglia. Stai di lato alla torre.',
  pos:'Piedi alla larghezza delle spalle, ginocchia morbide, bacino neutro.',
  ese:['Parti con le mani al petto.','Spingi le mani in avanti distendendo le braccia resistendo alla rotazione.','Mantieni 2 secondi e ritorna al petto.'],
@@ -581,7 +581,7 @@ E({id:'g-split', n:'Split squat (affondo statico)', g:'gambe', a:'Manubri', m:'G
  err:['Passo troppo corto','Ginocchio davanti oltre le punte con tallone staccato','Busto che oscilla']});
 
 E({id:'g-abd-cavo', n:'Abduzione anca al cavo (cavigliera)', g:'gambe', a:'Cavi', m:'Gluteo medio e piccolo, tensore della fascia lata',
- st:'stand', v:'f', one:true, legs:true, cp:'ankle', an:[[25,212]], eq:'cable', fr:[[5,5,{ab:0}],[5,5,{ab:30}]], cap:['Gamba accanto all’altra, cavo che tira verso l’interno','Gamba aperta lateralmente'],
+ tzf:38, st:'stand', v:'f', one:true, legs:true, cp:'ankle', an:[[25,212]], eq:'cable', fr:[[5,5,{ab:0}],[5,5,{ab:30}]], cap:['Gamba accanto all’altra, cavo che tira verso l’interno','Gamba aperta lateralmente'],
  set:'Cavo BASSO con cavigliera sulla caviglia della gamba di lavoro. Stai di fianco alla torre, gamba di lavoro lontana dal cavo, una mano al rack.',
  pos:'Busto dritto, bacino fermo, punta del piede dritta in avanti.',
  ese:['Parti con la gamba vicina all’altra (il cavo passa davanti al corpo).','Apri la gamba di lato fino a circa 30-40°, senza inclinare il busto.','Contrai il gluteo 1 secondo e ritorna lentamente.'],
@@ -617,7 +617,7 @@ E({id:'g-rdl-cavo', n:'Stacco rumeno al cavo basso', g:'gambe', a:'Cavi', m:'Fem
  err:['Schiena arrotondata','Piegare troppo le ginocchia','Inarcare la schiena in alto']});
 
 E({id:'p-panca-cavi', n:'Panca piana con cavi (chest press su panca)', g:'petto', a:'Cavi', m:'Pettorali, tricipiti, deltoidi anteriori',
- st:'lie', eq:'cable', an:[40,200], fr:[[80,180],[180,180]], cap:['Maniglie ai lati del petto, cavi in tensione','Braccia distese sopra il petto'],
+ lin:true, st:'lie', eq:'cable', an:[40,200], fr:[[80,180],[180,180]], cap:['Maniglie ai lati del petto, cavi in tensione','Braccia distese sopra il petto'],
  set:'Panca piana tra le due torri con la testa verso i cavi, cavi BASSI (puleggia al minimo) con maniglie singole. Prendi le maniglie da seduto, poi sdraiati tenendole al petto.',
  pos:'Scapole addotte e depresse, petto alto, piedi a terra. Gomiti a ~45° dal busto.',
  ese:['Parti con le maniglie ai lati del petto, gomiti sotto i polsi.','Spingi verso l’alto avvicinando le mani sopra il petto.','Contrai il petto 1 secondo in alto.','Scendi lentamente controllando il cavo.'],
@@ -626,7 +626,7 @@ E({id:'p-panca-cavi', n:'Panca piana con cavi (chest press su panca)', g:'petto'
  err:['Gomiti troppo larghi','Schiena inarcata','Peso troppo alto e movimento corto']});
 
 E({id:'p-incl-cavi', n:'Panca inclinata con cavi', g:'petto', a:'Cavi', m:'Petto alto (clavicolare), deltoidi anteriori, tricipiti',
- st:'inc', eq:'cable', an:[40,215], fr:[[55,180],[178,180]], cap:['Maniglie ai lati del petto alto','Braccia distese, mani unite sopra il petto'],
+ lin:true, st:'inc', eq:'cable', an:[40,215], fr:[[55,180],[178,180]], cap:['Maniglie ai lati del petto alto','Braccia distese, mani unite sopra il petto'],
  set:'Panca a 30° tra le torri, cavi BASSI con maniglie singole. Siediti con la schiena ben appoggiata.',
  pos:'Petto alto, scapole indietro e giù, piedi a terra. Polsi dritti.',
  ese:['Parti con le maniglie all’altezza del petto alto.','Spingi in alto e leggermente verso il centro.','Contrai 1 secondo.','Ritorna lentamente.'],
@@ -635,7 +635,7 @@ E({id:'p-incl-cavi', n:'Panca inclinata con cavi', g:'petto', a:'Cavi', m:'Petto
  err:['Panca troppo inclinata','Gomiti svasati','Usare lo slancio']});
 
 E({id:'s-press-cavo', n:'Shoulder press ai cavi (seduto)', g:'spalle', a:'Cavi', m:'Deltoidi, tricipiti',
- st:'seat', eq:'cable', an:[40,215], fr:[[15,175],[178,180]], cap:['Maniglie all’altezza delle spalle','Braccia distese sopra la testa'],
+ lin:true, st:'seat', eq:'cable', an:[40,215], fr:[[15,175],[178,180]], cap:['Maniglie all’altezza delle spalle','Braccia distese sopra la testa'],
  set:'Panca verticale (80-85°) tra le torri, cavi BASSI con maniglie singole. Portale sulle spalle.',
  pos:'Schiena appoggiata, core contratto, polsi sopra i gomiti.',
  ese:['Parti con le maniglie all’altezza delle spalle.','Spingi in alto in linea verticale, avvicinando le mani.','Scendi lentamente fino alle orecchie.'],
@@ -653,7 +653,7 @@ E({id:'c-curl-panca-cavo', n:'Curl su panca inclinata ai cavi', g:'bicipiti', a:
  err:['Gomiti in avanti','Schiena staccata dalla panca','Dondolare']});
 
 E({id:'b-row-busto-cavi', n:'Rematore ai cavi a busto inclinato', g:'schiena', a:'Cavi', m:'Dorsali, romboidi, trapezio, bicipiti',
- st:'hinge', eq:'cable', an:[250,212], fr:[[50,55],[-70,-5]], cap:['Braccia tese verso i cavi','Gomiti dietro al busto, scapole chiuse'],
+ lin:true, st:'hinge', eq:'cable', an:[250,212], fr:[[50,55],[-70,-5]], cap:['Braccia tese verso i cavi','Gomiti dietro al busto, scapole chiuse'],
  set:'Cavi BASSI con maniglie singole, una per mano (o una barra). Stai a un passo dalla torre, busto inclinato di ~45° e schiena neutra, ginocchia morbide.',
  pos:'Piedi alla larghezza delle spalle, sguardo a terra, core contratto.',
  ese:['Parti con le braccia tese e le scapole in avanti.','Porta i gomiti indietro e in alto vicino al busto, avvicinando le scapole.','Contrai 1 secondo.','Ritorna lentamente.'],
