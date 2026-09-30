@@ -661,6 +661,15 @@ E({id:'b-row-busto-cavi', n:'Rematore ai cavi a busto inclinato', g:'schiena', a
  why:'Il rematore con carichi importanti ma senza peso sulla schiena: il cavo non "cade" mai e tiene tensione ovunque.',
  err:['Busto che si alza','Tirare con i bicipiti','Schiena arrotondata']});
 
+E({id:'g-kickback-flesso', n:'Kickback glutei al cavo, ginocchio flesso', g:'gambe', a:'Cavi', m:'Gluteo grande, femorali',
+ st:'stand', sup:true, cp:'ankle', eq:'cable', an:[245,212], fr:[[80,90,{t:168,th:0,sh:-80}],[80,90,{t:168,th:-28,sh:-118}]], cap:['Gamba sotto il corpo, ginocchio a circa 90°','Anca in estensione, tallone verso il soffitto'],
+ set:'Cavo BASSO con cavigliera sulla caviglia della gamba di lavoro. Stai davanti alla torre a un passo di distanza, con le mani appoggiate al rack, e il cavo che tira la gamba in avanti.',
+ pos:'Gamba di appoggio morbida, bacino fermo e in linea, schiena neutra, busto leggermente inclinato in avanti. Il ginocchio della gamba che lavora resta piegato a circa 90° per tutto il movimento.',
+ ese:['Parti con il ginocchio piegato e la coscia sotto il corpo, cavo in tensione.','Porta la coscia indietro spingendo il tallone verso il soffitto: il ginocchio resta piegato.','Fermati quando senti il gluteo contrarsi al massimo, senza inarcare la schiena, e contrai 1 secondo.','Ritorna lentamente senza far appoggiare il peso.'],
+ cue:'Spingi il tallone verso il soffitto con il gluteo: il movimento nasce dall’anca, non dalla schiena.',
+ why:'Con il ginocchio flesso i femorali lavorano meno e il gluteo grande fa quasi tutto il lavoro: è una delle varianti più usate per isolare il gluteo con un carico moderato.',
+ err:['Inarcare la schiena per salire di più','Ruotare il bacino verso l’esterno','Usare lo slancio','Tirare indietro solo il piede senza muovere la coscia']});
+
 /* ============================== PIANI DI ALLENAMENTO ============================== */
 const GRUPPI = {petto:'Petto', spalle:'Spalle', schiena:'Schiena', bicipiti:'Bicipiti', tricipiti:'Tricipiti', avambracci:'Avambracci', gambe:'Gambe', addome:'Addome'};
 
@@ -726,6 +735,7 @@ const PLAN = [
    {e:'g-squat-cavo', s:3, r:'12', rec:'90 s', ruolo:'Squat guidato dal cavo: cosce e glutei con poco carico sulla schiena.'},
    {e:'g-split', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Forza e stabilità monolaterale, forte stimolo al gluteo.'},
    {e:'g-abd-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Gluteo medio al cavo: forma e stabilità del bacino.'},
+   {e:'g-kickback-flesso', s:3, r:'12-15 per lato', rec:'60 s', ruolo:'Gluteo grande isolato al cavo, con il ginocchio piegato come nel video di riferimento.'},
    {e:'g-leg-ext', s:3, r:'12-15', rec:'75 s', ruolo:'Quadricipiti, isolamento.'},
    {e:'g-calf', s:3, r:'15', rec:'60 s', ruolo:'Polpacci.', opt:true},
    {e:'a-crunch-cavo', s:3, r:'12-15', rec:'60 s', ruolo:'Addominali al cavo.'},
