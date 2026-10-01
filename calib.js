@@ -382,3 +382,8 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => { const e = EX.find(x => x.id === 's-facepull'); Object.assign(e, {lat: 3.2, gz: 20, az: 0.7, fr: [[88, 90, {t: 176}], [-60, 146, {t: 184}]],
   cap: ['Braccia distese davanti, corda all’altezza del viso', 'Mani ai lati delle orecchie, gomiti larghi all’altezza delle spalle'],
   trj: 'La corda viene dritta verso il viso; i gomiti si aprono di lato e salgono all’altezza delle spalle, le mani finiscono ai lati delle orecchie con i pollici verso di te.'}); })();
+
+/* ===== upright row: gomiti alti all'altezza delle spalle, barra al petto alto ===== */
+(() => { const e = EX.find(x => x.id === 's-upright'); Object.assign(e, {fr: [[12, -8], [95, -55]], az: 0.55,
+  cap: ['Barra davanti alle cosce, braccia distese', 'Barra al petto alto, gomiti alti e larghi all’altezza delle spalle'],
+  trj: 'La barra sale verticale, aderente al corpo, dalle cosce al petto alto; sono i gomiti a guidare, salgono in fuori e in alto fino all’altezza delle spalle.'}); })();
