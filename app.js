@@ -223,7 +223,7 @@ function planView(p, prof) {
   const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
   return `<section class="hero"><div class="eyebrow">${p.custom ? 'Allenamento' : prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
    <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
-   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate</div></section>
+   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div></section>
    ${p.custom ? custTools(p) : ''}
    ${p.ex.map((x, i) => exCard(x, i, prof, p)).join('')}
    ${p.custom ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : ''}
@@ -443,6 +443,33 @@ function wizAdd() {
   const msg = `<h2 style="padding-right:44px">Fatto</h2><p><b>Aggiunti a ${esc(planOf(WZ.pid).nome)}:</b></p><ul>${added.map(n => `<li>${esc(n)}</li>`).join('') || '<li>nessuno (erano già presenti)</li>'}</ul>${removed.length ? `<p><b>Tolti perché lavorano esattamente gli stessi muscoli:</b></p><ul>${removed.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}<p class="vnote">Serie, ripetizioni e recupero sono impostati per l’obiettivo “${esc(FIN[WZ.fin])}”. Puoi cambiarli nella scheda.</p>`;
   setTimeout(() => modal(msg), 50);
 }
+/* ---------- timer di recupero ---------- */
+const TM = {end: 0, left: 0, total: 90, run: false, iv: null, ac: null, last: 90};
+try { const t = JSON.parse(localStorage.getItem('sks_timer') || 'null'); if (t && t.end > Date.now()) { TM.end = t.end; TM.total = t.total; TM.run = true; } if (t && t.last) TM.last = t.last; } catch (e) {}
+const tmSave = () => { try { localStorage.setItem('sks_timer', JSON.stringify({end: TM.run ? TM.end : 0, total: TM.total, last: TM.last})); } catch (e) {} };
+const tmFmt = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function tmAudio() { try { if (!TM.ac) TM.ac = new (window.AudioContext || window.webkitAudioContext)(); if (TM.ac.state === 'suspended') TM.ac.resume(); } catch (e) {} }
+function tmBeep(n, f) { // n bip da 0.18 s, frequenza f
+  tmAudio(); if (!TM.ac) return; const ac = TM.ac, t0 = ac.currentTime;
+  for (let i = 0; i < n; i++) { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'square'; o.frequency.value = f || 880; g.gain.setValueAtTime(0.0001, t0 + i * .3); g.gain.exponentialRampToValueAtTime(.35, t0 + i * .3 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + i * .3 + .2); o.connect(g); g.connect(ac.destination); o.start(t0 + i * .3); o.stop(t0 + i * .3 + .22); }
+  try { if (navigator.vibrate) navigator.vibrate(n === 1 ? 60 : [200, 100, 200, 100, 400]); } catch (e) {}
+}
+function tmEl() { let el = document.getElementById('timer'); if (el) return el;
+  el = document.createElement('div'); el.id = 'timer'; el.innerHTML = `<div class="tbar"><i></i></div><div class="trow"><button data-act="tmadj" data-d="-30" aria-label="meno 30 secondi">−30</button><b class="tclock">0:00</b><button data-act="tmadj" data-d="30" aria-label="più 30 secondi">+30</button><button class="tplay" data-act="tmplay" aria-label="pausa / riprendi">⏸</button><button data-act="tmclose" aria-label="chiudi timer">✕</button></div><div class="tpre">${[60, 90, 120, 180].map(x => `<button data-act="tmset" data-s="${x}">${tmFmt(x)}</button>`).join('')}<span>recupero</span></div>`;
+  document.body.appendChild(el); return el; }
+function tmStart(sec, label) { tmAudio(); TM.total = Math.max(5, Math.round(sec)); TM.last = TM.total; TM.end = Date.now() + TM.total * 1000; TM.run = true; TM.done = false; tmShow(); tmSave(); if (label) flash('⏱ Recupero ' + tmFmt(TM.total) + (label ? ' · ' + label : '')); }
+function tmShow() { const el = tmEl(); el.hidden = false; document.body.classList.add('has-timer'); if (!TM.iv) TM.iv = setInterval(tmTick, 250); tmTick(); }
+function tmHide() { const el = document.getElementById('timer'); if (el) el.hidden = true; document.body.classList.remove('has-timer'); TM.run = false; if (TM.iv) { clearInterval(TM.iv); TM.iv = null; } tmSave(); }
+function tmTick() {
+  const el = document.getElementById('timer'); if (!el) return;
+  const left = TM.run ? (TM.end - Date.now()) / 1000 : TM.left;
+  el.querySelector('.tclock').textContent = tmFmt(left); el.querySelector('.tbar i').style.width = Math.max(0, Math.min(100, left / TM.total * 100)) + '%';
+  el.querySelector('.tplay').textContent = TM.run ? '⏸' : '▶'; el.classList.toggle('warn', left <= 10 && left > 0); el.classList.toggle('over', left <= 0);
+  if (TM.run && left <= 10.2 && left > 9.8 && !TM.pre) { TM.pre = true; tmBeep(1, 660); }
+  if (TM.run && left <= 0 && !TM.done) { TM.done = true; TM.run = false; TM.left = 0; tmBeep(3, 1046); flash('⏱ Recupero finito: via con la prossima serie!'); tmSave(); setTimeout(() => { if (!TM.run && document.getElementById('timer') && !document.getElementById('timer').hidden && TM.left <= 0) tmHide(); }, 15000); }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) tmTick(); });
+if (TM.run) setTimeout(tmShow, 50);
 function settings() {
   setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
@@ -482,7 +509,13 @@ document.addEventListener('click', e => {
   else if (a === 'ren') renameRt(b.dataset.id);
   else if (a === 'rensave') { const id = b.dataset.id; DB.names[id] = {n: $('#rn-n').value.trim(), m: $('#rn-m').value.trim()}; save(); closeModal(); render(true); }
   else if (a === 'renreset') { const id = b.dataset.id; delete DB.names[id]; save(); closeModal(); render(true); }
-  else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress(); }
+  else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress();
+    if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); } }
+  else if (a === 'tmadj') { const d = +b.dataset.d; if (TM.run) TM.end += d * 1000; else TM.left = Math.max(0, TM.left + d); TM.total = Math.max(TM.total, TM.run ? (TM.end - Date.now()) / 1000 : TM.left); if (TM.run && TM.end - Date.now() > 10500) TM.pre = false; tmTick(); tmSave(); }
+  else if (a === 'tmplay') { tmAudio(); if (TM.run) { TM.left = Math.max(0, (TM.end - Date.now()) / 1000); TM.run = false; } else { if (TM.left <= 0) TM.left = TM.last || 90; TM.end = Date.now() + TM.left * 1000; TM.run = true; TM.done = false; TM.pre = TM.left <= 10; } tmTick(); tmSave(); }
+  else if (a === 'tmset') { TM.pre = false; tmStart(+b.dataset.s); }
+  else if (a === 'tmclose') tmHide();
+  else if (a === 'tmopen') { tmAudio(); TM.pre = false; tmStart(TM.last || 90); }
   else if (a === 'addset' || a === 'delset') {
     const c = DB.cur[k], n = Math.max(1, c.sets.length + (a === 'addset' ? 1 : -1));
     if (a === 'delset') c.sets.length = n; else curFor(k, n);

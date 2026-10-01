@@ -161,3 +161,12 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .logoprev{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:14px;color:var(--mut)}
 .chips.wrap{flex-wrap:wrap;overflow:visible;margin:0;padding-inline:0}
 .wzrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--in);border-radius:14px;padding:8px 10px;margin:0 0 8px;cursor:pointer}.wzrow.on{border-color:var(--acc);background:var(--accbg)}.wzrow input{width:22px;height:22px;flex:none}.wzrow .t{flex:1;min-width:0}.wzrow .t b{display:block;font-weight:600;line-height:1.25}.wzrow .t small{color:var(--mut);font-size:12.5px}.wzrow .thumb{width:60px;height:45px}
+
+#timer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));width:min(720px,calc(100% - 20px));z-index:7;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);padding:8px 12px 8px;color:var(--tx)}
+#timer[hidden]{display:none}body.has-timer main{padding-bottom:150px}
+#timer .tbar{height:5px;border-radius:3px;background:var(--in);overflow:hidden}#timer .tbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .25s linear}
+#timer .trow{display:flex;align-items:center;gap:8px;margin-top:6px}#timer .tclock{flex:1;text-align:center;font:800 34px/1 var(--disp);letter-spacing:.02em}
+#timer .trow button{border:1px solid var(--line);background:var(--in);border-radius:12px;min-width:52px;height:40px;font-size:16px;font-weight:700;color:var(--tx)}#timer .tplay{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:0}
+#timer .tpre{display:flex;gap:6px;align-items:center;margin-top:6px}#timer .tpre button{border:1px solid var(--line);background:none;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700;color:var(--mut)}#timer .tpre span{margin-left:auto;font-size:12px;color:var(--mut)}
+#timer.warn .tclock{color:var(--acc)}#timer.over{border-color:var(--ok)}#timer.over .tclock{color:var(--ok)}#timer.over .tbar i{background:var(--ok)}
+.tlink{border:0;background:none;color:var(--acc2);font-weight:700;font-size:inherit;padding:0;text-decoration:underline}
