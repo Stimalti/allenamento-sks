@@ -251,14 +251,14 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 /* ===== traiettorie a braccio quasi teso: la mano percorre un arco attorno alla spalla (gomito a flessione costante) ===== */
 (() => {
   const HS = {
-    'p-croci-basse': {a: [19, 64, -6], b: [-22, -10, 66], r: 71},
-    'p-croci-alte': {a: [70, -17, -12], b: [-20, 47, 50], r: 71},
-    'p-croci-petto': {a: [70, 0, -14], b: [-22, 8, 66], r: 71},
-    'p-croci-singolo': {a: [70, 0, -14], b: [-22, 8, 66], r: 71},
-    's-laterali': {a: [-8, 70, 6], b: [68, -4, 22], r: 71},
-    's-laterali-doppio': {a: [-8, 70, 6], b: [68, -4, 22], r: 71},
-    's-posteriori': {a: [-37, 8, 60], b: [71, 0, -6], r: 71},
-    's-posteriori-singolo': {a: [-37, 8, 60], b: [71, 0, -6], r: 71}
+    'p-croci-basse': {a: [19, 64, -6], b: [-22, -10, 66], r: 66},
+    'p-croci-alte': {a: [70, -17, -12], b: [-20, 47, 50], r: 66},
+    'p-croci-petto': {a: [70, 0, -14], b: [-22, 8, 66], r: 66},
+    'p-croci-singolo': {a: [70, 0, -14], b: [-22, 8, 66], r: 66},
+    's-laterali': {a: [-8, 70, 6], b: [68, -4, 22], r: 66},
+    's-laterali-doppio': {a: [-8, 70, 6], b: [68, -4, 22], r: 66},
+    's-posteriori': {a: [-37, 8, 60], b: [71, 0, -6], r: 66},
+    's-posteriori-singolo': {a: [-37, 8, 60], b: [71, 0, -6], r: 66}
   };
   EX.forEach(e => { if (HS[e.id]) e.hs = HS[e.id]; });
 })();
@@ -387,3 +387,47 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => { const e = EX.find(x => x.id === 's-upright'); Object.assign(e, {fr: [[12, -8], [95, -55]], az: 0.55,
   cap: ['Barra davanti alle cosce, braccia distese', 'Barra al petto alto, gomiti alti e larghi all’altezza delle spalle'],
   trj: 'La barra sale verticale, aderente al corpo, dalle cosce al petto alto; sono i gomiti a guidare, salgono in fuori e in alto fino all’altezza delle spalle.'}); })();
+
+/* ===== alternative a UN cavo e una maniglia per gli esercizi che ne usano due ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const add = o => EX.push(o);
+  const UNO = 'Basta un solo cavo e una maniglia: lavori un lato alla volta e poi cambi braccio. Il busto non deve ruotare né inclinarsi verso il cavo.';
+  add(cl('p-croci-singolo', {id: 'p-croci-basse-singolo', n: 'Croci dal basso verso l’alto a un braccio al cavo', an: [[275, 210]], hs: {a: [19, 64, -6], b: [-22, -10, 66], r: 66}, fr: [[25, 15], [75, -100, {t: 176}]], m: 'Petto alto (clavicolare), deltoide anteriore',
+    cap: ['Mano al lato della coscia, braccio quasi disteso', 'Mano davanti al viso, all’altezza del mento'],
+    set: 'Un cavo BASSO con maniglia singola. Stai di lato alla torre, piede opposto avanti, busto leggermente in avanti. ' + UNO,
+    ese: ['Parti con la mano lungo la coscia, gomito appena piegato.', 'Solleva il braccio in arco verso l’alto e verso il centro, fino a portare la mano davanti al viso.', 'Contrai il petto alto 1 secondo.', 'Torna lentamente controllando lo stiramento.'],
+    why: 'Versione a un cavo delle croci dal basso: lavora la parte alta del petto con una sola maniglia, senza bisogno di due torri.'}));
+  add(cl('p-croci-singolo', {id: 'p-croci-alte-singolo', n: 'Croci dall’alto verso il basso a un braccio al cavo', an: [[275, 25]], hs: {a: [70, -17, -12], b: [-20, 47, 50], r: 66}, fr: [[85, 117, {}], [26, -6, {t: 176}]], m: 'Pettorali (porzione sternale/bassa)',
+    cap: ['Braccio aperto, poco sopra l’orizzontale', 'Mano davanti al basso ventre, gomito appena piegato'],
+    set: 'Un cavo ALTO con maniglia singola. Stai di lato alla torre, un passo avanti, piede opposto avanti, busto inclinato di ~15°. ' + UNO,
+    ese: ['Parti con il braccio aperto e il petto stirato.', 'Porta la mano in arco verso il basso e il centro, davanti all’addome.', 'Stringi il petto 1 secondo.', 'Risali lentamente.'],
+    why: 'Versione a un cavo delle croci dall’alto: isola la parte bassa del petto con una sola maniglia.'}));
+  add(cl('b-lat-ginocchio', {id: 'b-lat-ginocchio-singolo', n: 'Lat pulldown in ginocchio a un braccio', one: true, m: 'Gran dorsale, romboidi, core',
+    cap: ['Braccio disteso in alto', 'Gomito al fianco, maniglia al petto'],
+    set: 'Un cavo ALTO con maniglia singola. Inginocchiati davanti alla torre (tappetino sotto le ginocchia), busto leggermente inclinato indietro; la mano libera al fianco o al rack. ' + UNO,
+    ese: ['Parti con il braccio disteso verso l’alto, stirando il dorsale.', 'Tira il gomito verso il fianco, leggermente davanti al corpo.', 'Contrai il dorsale 1 secondo.', 'Risali lentamente.'],
+    cue: 'Gomito in basso e verso la tasca; il busto resta fermo.', why: 'Lavoro unilaterale del dorsale con un range più ampio e un solo cavo.',
+    err: ['Ruotare il busto', 'Usare lo slancio', 'Piegare il braccio troppo presto']}));
+  add(cl('p-panca-cavi', {id: 'p-panca-cavo-singolo', n: 'Chest press su panca a un braccio al cavo', one: true, presa: 'neu',
+    cap: ['Maniglia al lato del petto, gomito a 45°', 'Braccio disteso sopra il petto'],
+    set: 'Panca piana con la testa verso una torre, un cavo BASSO con maniglia singola. Sdraiati e porta la maniglia al lato del petto; l’altra mano sulla panca. ' + UNO,
+    ese: ['Parti con la maniglia al lato del petto.', 'Spingi verso l’alto e leggermente verso il centro fino a braccio disteso.', 'Contrai 1 secondo.', 'Scendi lentamente.'],
+    why: 'Spinta orizzontale unilaterale con tensione costante del cavo e un solo attacco.'}));
+  add(cl('p-incl-cavi', {id: 'p-incl-cavo-singolo', n: 'Panca inclinata a un braccio al cavo', one: true, presa: 'neu',
+    set: 'Panca a 30° davanti a una torre, un cavo BASSO con maniglia singola; schiena appoggiata, altra mano sulla panca. ' + UNO,
+    why: 'Versione a un cavo della panca inclinata ai cavi: parte alta del petto, un lato alla volta.'}));
+  add(cl('c-curl-panca-cavo', {id: 'c-curl-panca-cavo-singolo', n: 'Curl su panca inclinata a un braccio al cavo', one: true,
+    set: 'Panca inclinata a 45-60° davanti a una torre, un cavo BASSO con maniglia singola, braccio che pende dietro la linea del busto. ' + UNO,
+    why: 'Versione a un cavo: bicipite in massimo allungamento con un solo attacco.'}));
+  const ALT = {'p-croci-alte': 'p-croci-alte-singolo', 'p-croci-basse': 'p-croci-basse-singolo', 'p-croci-petto': 'p-croci-singolo', 'c-curl-alti': 'c-curl-alti-singolo', 's-posteriori': 's-posteriori-singolo',
+    'b-lat-ginocchio': 'b-lat-ginocchio-singolo', 's-laterali-doppio': 's-laterali', 't-kickback-doppio': 't-kickback', 'p-press-cavi': 'p-press-cavo-singolo', 'p-panca-cavi': 'p-panca-cavo-singolo',
+    'p-incl-cavi': 'p-incl-cavo-singolo', 'c-curl-panca-cavo': 'c-curl-panca-cavo-singolo', 's-press-cavo': 's-press-cavo-singolo', 'b-row-busto-cavi': 'b-row-singolo'};
+  Object.entries(ALT).forEach(([a, b]) => { const e = EX.find(x => x.id === a); if (e) { e.alt = b; e.due = true; } });
+  EX.forEach(e => { if (e.eq === 'cable' && !e.due && !(e.an && Array.isArray(e.an[0]) && e.an.length > 1)) e.unCavo = true; });
+})();
+
+// Estensioni per tricipiti sopra la testa / french press: gomiti stretti (niente apertura laterale da "pressa")
+['t-french-cavo', 't-over-db', 't-overhead-corda', 't-overhead-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (e && e.lat === undefined) e.lat = 0.7; });
+// Military press: alla partenza la mano sta sulle clavicole, davanti alla spalla (non sopra l'articolazione): gomiti un po' avanti, niente oscillazione brusca del gomito al primo centimetro
+['s-military', 'sm-military'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.fr[0] = [32, e.fr[0][1] - 8, ...(e.fr[0].slice(2))]; });

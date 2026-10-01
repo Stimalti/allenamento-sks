@@ -50,11 +50,17 @@ const FIG3 = (() => {
   const vs = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]], va = (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]], vm = (a, k) => [a[0]*k, a[1]*k, a[2]*k];
   const vl = a => Math.hypot(a[0], a[1], a[2]), vn = a => { const l = vl(a) || 1; return [a[0]/l, a[1]/l, a[2]/l]; };
   const vd = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2], vc = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
-  function ik3(S, W, l1, l2, pole) {
-    const dv = vs(W, S); let d = vl(dv); const dc = Math.min(d, l1 + l2 - .5), u = vn(dv);
+  // memoria del gomito per lato: il polo dell'IK viene miscelato con la posizione precedente, così il gomito non "salta" di lato
+  let EL = {};
+  const ikReset = () => { EL = {}; };
+  function ik3(S, W, l1, l2, pole, key, hint) {   // hint: gomito 2D già coerente; usato quando la mano passa vicinissima alla spalla (direzione S->W instabile)
+    const dv = vs(W, S); let d = vl(dv); const dc = Math.min(d, l1 + l2 - .5), u = d > 1e-6 ? vn(dv) : [0, -1, 0];
     const a = (l1*l1 - l2*l2 + dc*dc) / (2*dc), h = Math.sqrt(Math.max(0, l1*l1 - a*a));
-    let pv = vs(pole, vm(u, vd(pole, u))); pv = vn(pv);
-    const E = va(va(S, vm(u, a)), vm(pv, h));
+    let pv = vs(pole, vm(u, vd(pole, u))); const pl = vl(pv); pv = pl > 1e-6 ? vm(pv, 1 / pl) : [0, -1, 0];
+    if (key && EL[key]) { const pe = vs(EL[key], S), pp = vs(pe, vm(u, vd(pe, u))), ppl = vl(pp); if (ppl > 1e-3) { const mix = va(pv, vm(pp, 1.4 / ppl)); const ml = vl(mix); if (ml > 1e-6) pv = vm(mix, 1 / ml); } }
+    const Ei = va(va(S, vm(u, a)), vm(pv, h)); let E = Ei;
+    if (hint && d < 30) { const w = Math.min(1, (30 - d) / 16); E = va(vm(Ei, 1 - w), vm(hint, w)); }
+    if (key) EL[key] = Ei;   // la memoria segue la soluzione IK pura, cosi' il suggerimento non la perturba
     return E;
   }
 
@@ -161,9 +167,12 @@ const FIG3 = (() => {
 
   const W3 = p => new THREE.Vector3((p[0] - 150) / 100, (FLOOR - p[1]) / 100, (p[2] || 0) / 100);
   const Wv = (x, y, z) => new THREE.Vector3(x, y, z);
-  function bendFront(S, E, Wr, fb) {   // lato verso cui si piega l'avambraccio (= lato del bicipite)
+  function bendFront(S, E, Wr, fb) {   // lato verso cui si piega l'avambraccio (= lato del bicipite); a braccio quasi teso sfuma verso fb senza scatti
     const u = E.clone().sub(S).normalize(), w = Wr.clone().sub(S), perp = w.sub(u.clone().multiplyScalar(w.dot(u)));
-    return perp.length() < 0.05 ? fb : perp.normalize();
+    const L = perp.length(), k = Math.max(0, Math.min(1, (L - .02) / .06));
+    let f2 = fb.clone().sub(u.clone().multiplyScalar(fb.dot(u))); if (f2.lengthSq() < 1e-8) f2 = new THREE.Vector3(0, 0, 1); f2.normalize();
+    if (k <= 0) return f2; const pn = perp.clone().normalize(); if (f2.dot(pn) < 0) f2.negate();
+    const out = pn.multiplyScalar(k).add(f2.multiplyScalar(1 - k)); return out.lengthSq() < 1e-8 ? pn : out.normalize();
   }
   const fw2 = a => { const d = dir(a); return [d[0], -d[1], 0]; };
   const tzSide = (an, sg) => an[1] < 60 ? 0 : 80 * sg;
@@ -186,9 +195,9 @@ const FIG3 = (() => {
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
     else {
-      W3n = [W[0], W[1], GZ]; E3n = ik3(pt3(S, ZN), W3n, UA, FA, [pe[0], pe[1], latW]); g3n = [grip[0], grip[1], GZ];
+      W3n = [W[0], W[1], GZ]; E3n = ik3(pt3(S, ZN), W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1], GZ];
       if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF); W3f = pt3(Wf, ZF); g3f = g3n; }
-      else { W3f = [W[0], W[1], -GZ]; E3f = ik3(pt3(S, ZF), W3f, UA, FA, [pe[0], pe[1], -latW]); g3f = [grip[0], grip[1], -GZ]; }
+      else { W3f = [W[0], W[1], -GZ]; E3f = ik3(pt3(S, ZF), W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1], -GZ]; }
     }
     benchPrims(P, ex);
     // gamba lontana
@@ -263,7 +272,7 @@ const FIG3 = (() => {
         armF: {R: fS(pt3(S, ZN), E3n, W3n, fwd(p.ua)), L: fS(pt3(S, ZF), E3f, W3f, fwd(sFar))},
         presa: ex.presa,
         hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz)), L: W3(pt3(K2, (ex.rl || ex.sup) ? LF : LF - kz0))}, an: {R: W3(pt3(A, LN + kz * .6)), L: W3(pt3(A2, (ex.rl || ex.sup) ? LF : LF - kz0 * .6))},
-        toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF},
+        toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
       const holds = ['bar', 'db', 'jam', 'hb'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
       if (holds) { J.obj = {R: W3(W3n)}; if (!ex.one) J.obj.L = W3(W3f); }
@@ -297,7 +306,7 @@ const FIG3 = (() => {
     const hz = ex.hz || [0, 0];
     const hand3 = (A, S, sg) => {
       const xh = Math.abs(A.W[0] - cx), t = Math.max(0, Math.min(1, (SW + 12 - xh) / (SW + 12))), z = hsp ? hsp.R[2] : hz[0] + hz[1] * t;
-      const Wp = [A.W[0], A.W[1], z]; return {E: ik3([S[0], S[1], 0], Wp, UA, FA, [sg, .55, -.25]), W: Wp};
+      const Wp = [A.W[0], A.W[1], z]; return {E: ik3([S[0], S[1], 0], Wp, UA, FA, [sg, .55, -.25], 'F' + sg, [A.E[0], A.E[1], z * .5 - 6]), W: Wp};
     };
     const R3 = hep ? hep.R : (ex.hz || hsp) && rig ? hand3(rA, Rs, 1) : {E: [rA.E[0], rA.E[1], 0], W: [rA.W[0], rA.W[1], 0]};
     const L3 = ex.one ? {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]} : hep ? hep.L : ((ex.hz || hsp) && rig ? hand3(lA, Ls, -1) : {E: [lA.E[0], lA.E[1], 0], W: [lA.W[0], lA.W[1], 0]});
@@ -381,6 +390,7 @@ const FIG3 = (() => {
   const mat = col => mats[col] || (mats[col] = new THREE.MeshStandardMaterial({color: col, roughness: .55, metalness: .08}));
 
   function mount(el, ex, fallback) {
+    ikReset();
     if (!window.THREE) return fallback(el, ex);
     destroy(active);
     let renderer;
@@ -415,6 +425,7 @@ const FIG3 = (() => {
         const P = geo(ex, pp, !!rigInst); if (P.gp) lines[0].push(P.gp); if (P.gp2) lines[1].push(P.gp2);
       }
       if (lines[0].length > 1) { const p0 = V(lines[0][0]), pl = new THREE.Mesh(gCylR(1), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: .75, depthTest: false})); pl.position.set(p0.x, 1.1, p0.z); pl.scale.set(.55 / S3, 2.4, .55 / S3); pl.renderOrder = 18; trail.add(pl); }
+      ikReset(); o.lastUa = undefined;   // la memoria del gomito non deve passare dalla traiettoria al primo fotogramma
       lines.forEach(L => { if (L.length < 2) return;
         for (let i = 0; i < L.length; i++) { const m = new THREE.Mesh(gSph, i === 0 ? sMat : i === L.length - 1 ? eMat : tMat); m.position.copy(V(L[i])); m.scale.setScalar((i === 0 || i === L.length - 1 ? 3.4 : 1.7) / S3 * 1.0); m.renderOrder = 20; trail.add(m); }
         for (let i = 0; i < L.length - 1; i++) { const a = V(L[i]), b = V(L[i + 1]), d = b.clone().sub(a), len = d.length(); if (len < 1e-4) continue; const c = new THREE.Mesh(gCylR(1), tMat); c.position.copy(a).add(b).multiplyScalar(.5); c.quaternion.setFromUnitVectors(up, d.normalize()); c.scale.set(.9 / S3, len, .9 / S3); c.renderOrder = 20; trail.add(c); }
@@ -428,9 +439,9 @@ const FIG3 = (() => {
       const S = sOf(pp), W0 = o.lw[0].W, W1 = o.lw[1].W, Wt = [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k];
       const dx = Wt[0] - S[0], dy = Wt[1] - S[1]; let d = Math.min(Math.hypot(dx, dy), UA + FA - .5); d = Math.max(d, Math.abs(UA - FA) + .5);
       const base = Math.atan2(dx, dy) / R, cosA = Math.max(-1, Math.min(1, (UA * UA + d * d - FA * FA) / (2 * UA * d))), A = Math.acos(cosA) / R;
-      const Er = add(S, UA, pp.ua), ea = add(S, UA, base + A), eb = add(S, UA, base - A);
+      const Er = o.lastUa === undefined ? add(S, UA, pp.ua) : add(S, UA, o.lastUa), ea = add(S, UA, base + A), eb = add(S, UA, base - A);   // il gomito resta sul ramo del fotogramma precedente: niente salti
       const ua = Math.hypot(ea[0] - Er[0], ea[1] - Er[1]) <= Math.hypot(eb[0] - Er[0], eb[1] - Er[1]) ? base + A : base - A, E = add(S, UA, ua);
-      pp.ua = ua; pp.fa = Math.atan2(Wt[0] - E[0], Wt[1] - E[1]) / R;
+      o.lastUa = ua; pp.ua = ua; pp.fa = Math.atan2(Wt[0] - E[0], Wt[1] - E[1]) / R;
     }
     const cap = el.querySelector('.figcap'), btns = el.querySelectorAll('.figbtns button[data-k]:not([data-k=m]):not([data-k=t])'), mb = el.querySelector('.mbtn'), tb = el.querySelector('.tbtn'), vbtn = el.querySelectorAll('.views button'), leg = el.querySelector('.legend3d');
     const legTxt = 'In rosso i muscoli che lavorano: ' + ex.m + '. Linea azzurra: percorso della mano, della barra o del piede (verde = partenza, arancione = arrivo). Linea bianca: verticale di riferimento, per capire se il movimento è dritto, in diagonale o ad arco.';
@@ -482,6 +493,7 @@ const FIG3 = (() => {
       if (o.hold !== null) k = o.hold;
       else { const ph = ((t - o.t0) / 1000) % 4.6; k = ph < .5 ? 0 : ph < 1.9 ? (ph - .5) / 1.4 : ph < 2.4 ? 1 : 1 - (ph - 2.4) / 2.2; k = k*k*(3-2*k); }
       if (k !== lastK) {
+        if (lastK >= 0 && Math.abs(k - lastK) > .25) { ikReset(); o.lastUa = undefined; }   // salto (pulsanti Partenza/Arrivo): si riparte da una soluzione pulita
         lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
         if (rigInst && prims.J) {
           rigInst.pose(prims.J);
@@ -519,7 +531,7 @@ const FIG3 = (() => {
   }
   // analisi della traiettoria della mano (px): scostamento massimo dalla retta / lunghezza della retta
   function path(ex) {
-    rigMode(true);
+    rigMode(true); ikReset();
     const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], pts = [];
     const sOf = p => add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
     const hand = p => { const S = sOf(p), E = add(S, UA, p.ua); return add(E, FA, p.fa); };
@@ -531,7 +543,7 @@ const FIG3 = (() => {
   }
   // controllo geometrico: il cavo attraversa il corpo?
   function cableCheck(ex) {
-    rigMode(true);
+    rigMode(true); ikReset();
     const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], hits = [];
     const toPx = v => [v.x * 100 + 150, 222 - v.y * 100, v.z * 100];
     const dseg = (p, a, b) => { const ab = vs(b, a), ap = vs(p, a), t = Math.max(0, Math.min(1, vd(ap, ab) / (vd(ab, ab) || 1))); return vl(vs(ap, vm(ab, t))); };

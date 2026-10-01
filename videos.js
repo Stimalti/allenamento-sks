@@ -73,27 +73,10 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1ByAoD4y79/",
 "n": "tecnica e errori",
 "v": "08"
-},
-{
-"u": "https://www.facebook.com/share/r/19PkTgYkfL/",
-"n": "circa 0:00-0:05",
-"v": "21"
 }
 ],
-"p-press-cavi": [
-{
-"u": "https://www.facebook.com/share/r/1JLMQ9Hkgq/",
-"n": "circa 0:00-0:02",
-"v": "32"
-}
-],
-"p-croci-panca": [
-{
-"u": "https://www.facebook.com/share/r/19fnxqneT2/",
-"n": "circa 0:27-0:32",
-"v": "14"
-}
-],
+"p-press-cavi": [],
+"p-croci-panca": [],
 "s-laterali": [
 {
 "u": "https://www.facebook.com/share/r/1CYqELgiKD/",
@@ -153,7 +136,7 @@ const VIDEOS = {
 },
 {
 "u": "https://www.facebook.com/share/r/1atxq8gxQV/",
-"n": "circa 0:08-0:12",
+"n": "busto piegato in avanti, tirata della corda verso il viso (deltoide posteriore), circa 0:08-0:12",
 "v": "36"
 },
 {
@@ -172,7 +155,7 @@ const VIDEOS = {
 "s-upright": [
 {
 "u": "https://www.facebook.com/share/r/1DbV2dfbcr/",
-"n": "circa 0:05-0:08",
+"n": "circa 0:05-0:07",
 "v": "28"
 }
 ],
@@ -196,7 +179,7 @@ const VIDEOS = {
 },
 {
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
-"n": "circa 0:09-0:13",
+"n": "lat machine con barra larga, circa 0:09-0:11",
 "v": "34"
 },
 {
@@ -213,7 +196,7 @@ const VIDEOS = {
 "b-lat-neutra": [
 {
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
-"n": "circa 0:09-0:13",
+"n": "lat machine con triangolo (presa neutra stretta), circa 0:11-0:13",
 "v": "34"
 },
 {
@@ -248,17 +231,12 @@ const VIDEOS = {
 ],
 "b-row-singolo": [
 {
-"u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
-"n": "rematore a un braccio: con manubrio su panca (0:21) e alla macchina (0:22-0:25)",
-"v": "34"
+"u": "https://www.facebook.com/share/r/18DuKVjMkf/",
+"n": "rematore a un braccio in ginocchio al cavo basso, una maniglia, presa supinata, circa 0:02-0:07",
+"v": "35"
 }
 ],
 "b-row-busto-cavi": [
-{
-"u": "https://www.facebook.com/share/r/18DuKVjMkf/",
-"n": "rematore ai cavi a busto inclinato, circa 0:03-0:08",
-"v": "35"
-},
 {
 "u": "https://www.facebook.com/share/r/1F37JDqoEr/",
 "n": "circa 0:07-0:20",
@@ -308,11 +286,6 @@ const VIDEOS = {
 "v": "03"
 },
 {
-"u": "https://www.facebook.com/share/v/1Lq7xpuUUN/",
-"n": "circa 0:00-0:06",
-"v": "12"
-},
-{
 "u": "https://www.youtube.com/watch?v=IZMJ7v2aJdo",
 "n": "Bicipiti ai cavi alti · IronManager & Lorenzo Pansini",
 "s": 1
@@ -321,12 +294,12 @@ const VIDEOS = {
 "c-incl": [
 {
 "u": "https://www.facebook.com/share/v/1Lq7xpuUUN/",
-"n": "circa 0:10-0:16",
+"n": "curl su panca inclinata con manubri, circa 0:16-0:20",
 "v": "12"
 },
 {
 "u": "https://www.facebook.com/share/r/1SMgnQdi7V/",
-"n": "curl con manubri",
+"n": "curl con manubri (seconda parte), circa 0:19-0:26",
 "v": "33"
 }
 ],
@@ -337,7 +310,13 @@ const VIDEOS = {
 "v": "15"
 }
 ],
-"c-curl-singolo": [],
+"c-curl-singolo": [
+{
+"u": "https://www.facebook.com/share/v/1Lq7xpuUUN/",
+"n": "curl a un braccio al cavo con maniglia, anche dietro il corpo, circa 0:10-0:16",
+"v": "12"
+}
+],
 "w-wrist-curl": [
 {
 "u": "https://www.facebook.com/share/r/1CM5Tfz4yH/",
@@ -411,7 +390,7 @@ const VIDEOS = {
 },
 {
 "u": "https://www.facebook.com/share/r/18R4yJzLH9/",
-"n": "circa 0:16-0:24",
+"n": "circa 0:16-0:22",
 "v": "04"
 },
 {
@@ -421,11 +400,6 @@ const VIDEOS = {
 }
 ],
 "t-french-cavo": [
-{
-"u": "https://www.facebook.com/share/r/1C3oWFfsjq/",
-"n": "French press ai cavi, circa 0:13-0:40",
-"v": "06"
-},
 {
 "u": "https://www.facebook.com/share/r/1DAghFFovF/",
 "n": "circa 0:13-0:25",
@@ -869,6 +843,11 @@ const VIDEOS = {
 ],
 "t-over-db": [
 {
+"u": "https://www.facebook.com/share/r/19fnxqneT2/",
+"n": "French press su panca inclinata (variante sdraiato), circa 0:27-0:32",
+"v": "14"
+},
+{
 "u": "https://www.youtube.com/watch?v=YbX7Wd8jQ-Q",
 "n": "Estensione tricipiti sopra la testa, seduto",
 "s": 1
@@ -1081,6 +1060,11 @@ const VIDEOS = {
 ],
 "p-press-cavo-singolo": [
 {
+"u": "https://www.facebook.com/share/r/1JLMQ9Hkgq/",
+"n": "pressa a un braccio con maniglia singola, in piedi, circa 0:00-0:02",
+"v": "32"
+},
+{
 "u": "https://www.youtube.com/watch?v=D9e8ZBlFPBw",
 "n": "How to do the Single Arm Cable Chest Press · YouTube",
 "s": 1
@@ -1140,6 +1124,16 @@ const VIDEOS = {
 }
 ],
 "t-overhead-singolo": [
+{
+"u": "https://www.facebook.com/share/r/18HKsoGYh7/",
+"n": "estensione sopra la testa a un braccio (tricipiti testa unilaterale), circa 0:22-0:25",
+"v": "02"
+},
+{
+"u": "https://www.facebook.com/share/r/1C3oWFfsjq/",
+"n": "estensione sopra la testa a un braccio al cavo, spiegazione tecnica, circa 0:13-0:35",
+"v": "06"
+},
 {
 "u": "https://www.youtube.com/watch?v=w3iAESGWK6M",
 "n": "Exercise Tutorial: Single Arm Cable Overhead Tricep Extension · YouTube",

@@ -170,3 +170,4 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 #timer .tpre{display:flex;gap:6px;align-items:center;margin-top:6px}#timer .tpre button{border:1px solid var(--line);background:none;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700;color:var(--mut)}#timer .tpre span{margin-left:auto;font-size:12px;color:var(--mut)}
 #timer.warn .tclock{color:var(--acc)}#timer.over{border-color:var(--ok)}#timer.over .tclock{color:var(--ok)}#timer.over .tbar i{background:var(--ok)}
 .tlink{border:0;background:none;color:var(--acc2);font-weight:700;font-size:inherit;padding:0;text-decoration:underline}
+.altc{background:var(--accbg);border-radius:12px;padding:8px 12px;font-size:14px}

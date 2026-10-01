@@ -161,11 +161,18 @@ const RIG = (() => {
       const m = new THREE.SkinnedMesh(p.g, mat); m.frustumCulled = false; m.bind(skel, new THREE.Matrix4()); root.add(m); meshes.push(m);
     });
     root.add(skel.bones[0]);
-    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), lastSg = {}, lastHf = {}, sgnHf = {};
+    const lastZ = {}, sgnZ = {};
     function setBone(name, a, b, front) {
       const i = IDX[name], bn = bones[i];
       tmpA.copy(a); tmpB.copy(b); const dv = tmpB.clone().sub(tmpA), len = Math.max(dv.length(), 1e-5);
-      const Mt = basis(dv, front); const sy = len / rest[i].len, lat = Math.sqrt(K * sy);
+      // se il "fronte" e' quasi parallelo all'osso (es. tibia orizzontale), si tiene l'orientamento del fotogramma precedente: niente rotazioni a scatto
+      const y = dv.clone().normalize(); let fz = front.clone().addScaledVector(y, -front.dot(y)).multiplyScalar(sgnZ[name] || 1); const L = fz.length();
+      if (lastZ[name]) { const pz = lastZ[name].clone().addScaledVector(y, -lastZ[name].dot(y));
+        if (pz.lengthSq() > 1e-6) { if (L < .6 && fz.dot(pz) < 0) { sgnZ[name] = -(sgnZ[name] || 1); fz.negate(); }   // attraversando la configurazione degenere il verso si conserva
+          const w = Math.min(1, L / .35); fz = pz.normalize().multiplyScalar(1 - w).add(fz.normalize().multiplyScalar(w)); } }
+      if (fz.lengthSq() < 1e-8) fz = front.clone();
+      const Mt = basis(dv, fz); lastZ[name] = new THREE.Vector3(0, 0, 1).applyMatrix4(Mt).normalize(); const sy = len / rest[i].len, lat = Math.sqrt(K * sy);
       bn.position.copy(a); bn.quaternion.setFromRotationMatrix(Mt); bn.scale.set(lat, sy, lat);
     }
     // J: {H,S,up,front, sh:{L,R}, el, wr(palma), armF, hip, kn, an, toe, legF, footUp}
@@ -183,9 +190,13 @@ const RIG = (() => {
           if (J.presa === 'pro') hf = lat.clone().negate(); else if (J.presa === 'sup') hf = lat.clone();
           else { const med = lat.clone().negate(); hf = s === 'L' ? med.clone().cross(u) : u.clone().cross(med); }
           hf.addScaledVector(u, -hf.dot(u));
-          if (hf.length() < .35) { hf = J.front.clone().multiplyScalar(J.presa === 'sup' ? -1 : 1); hf.addScaledVector(u, -hf.dot(u)); } // braccio aperto di lato: palmo in giù (pollice avanti), supina = palmo in su
-          if (hf.lengthSq() < 1e-6) hf = J.armF[s]; else hf.normalize(); }
-        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.armF[s]); setBone('hand' + s, wrist, tip, hf);
+          { // braccio aperto di lato: la direzione laterale coincide con l'avambraccio e non dice piu' nulla -> si sfuma verso "pollice avanti" (palmo in giu'; supina = palmo in su), senza scatti
+            const w = Math.min(1, Math.max(0, (hf.length() - .2) / .35)), alt = J.front.clone().multiplyScalar(J.presa === 'sup' ? -1 : 1); alt.addScaledVector(u, -alt.dot(u));
+            if (alt.lengthSq() > 1e-6) { alt.normalize(); hf.multiplyScalar(sgnHf[s] || 1); const ref = lastHf[s] || alt; if (w < 1 && hf.dot(ref) < 0) { sgnHf[s] = -(sgnHf[s] || 1); hf.negate(); } if (w < 1 && alt.dot(ref) < 0) alt.negate();   // nella zona ambigua il verso del pollice resta quello del fotogramma precedente (e si conserva anche dopo)
+              hf = hf.lengthSq() > 1e-6 ? hf.normalize().multiplyScalar(w).add(alt.multiplyScalar(1 - w)) : alt; } }
+          if (hf.lengthSq() < 1e-6) hf = lastHf[s] || J.armF[s]; else hf.normalize(); }
+        lastHf[s] = hf.clone();
+        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.presa ? hf : J.armF[s]); setBone('hand' + s, wrist, tip, hf); // l'avambraccio ruota con la presa (prono-supinazione)
         { const hbI = IDX['hand' + s], hb = bones[hbI]; hb.updateMatrix();
           const Mm = hb.matrix.clone().multiply(inv[hbI]), obj = J.obj && J.obj[s], target = obj || J.H;
           const hd = tip.clone().sub(wrist).normalize(), ax = hf.clone().addScaledVector(hd, -hf.dot(hd)).normalize();
@@ -196,9 +207,9 @@ const RIG = (() => {
               cum += ang[k] * Math.PI / 180 * sg; const d = d0.normalize().applyAxisAngle(ax, cum); out.push(out[k].clone().addScaledVector(d, L)); }
             return out; };
           const mid = FING[1], ps = chain(mid, 1), ms = chain(mid, -1);
-          const sg = ps[3].distanceTo(target) <= ms[3].distanceTo(target) ? 1 : -1;
+          const d1 = ps[3].distanceTo(target), d2 = ms[3].distanceTo(target); let sg = d1 <= d2 ? 1 : -1; if (lastSg[s] && Math.min(d1, d2) > .8 * Math.max(d1, d2)) sg = lastSg[s]; lastSg[s] = sg; // isteresi: le dita non cambiano verso di chiusura per differenze minime
           FING.forEach(F => { const o = chain(F, sg); for (let k = 0; k < o.length - 1; k++) setBone(F.n + s + k, o[k], o[k + 1], hf); }); }
-        setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], J.legF[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
+        setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], (J.legFL || J.legF)[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
       });
       root.updateMatrixWorld(true);
     }

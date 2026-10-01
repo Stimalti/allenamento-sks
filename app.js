@@ -168,6 +168,7 @@ function techHtml(ex) {
   return `<div class="fig" data-fig="${ex.id}"></div>
   <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
+  ${ex.alt && byId[ex.alt] ? `<p class="altc">🔁 Serve una sola torre? <button class="tlink" data-act="open" data-id="${ex.alt}">${esc(byId[ex.alt].n)}</button> (un cavo e una maniglia)</p>` : ''}
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   ${videoBlock(ex)}
   <h3>Muscoli</h3><p>${esc(ex.m)}</p>${ex.mm && ex.mm !== ex.m ? `<p class="vnote">Nel dettaglio: ${esc(ex.mm)}.</p>` : ''}
@@ -238,7 +239,7 @@ const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
   return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = [...new Set(EX.map(e => e.a))];
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
@@ -413,7 +414,7 @@ function wizPropose() {
   const covered = new Set(out.map(e => e.g));
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
-      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (/singolo|un braccio/i.test(e.n)) s -= .3; return s; };
+      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (e.due) s -= 2.5; if (e.unCavo) s += .6; return s; };
     pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
   WZ.cur = out.map(e => e.id); return out;
