@@ -431,3 +431,14 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 ['t-french-cavo', 't-over-db', 't-overhead-corda', 't-overhead-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (e && e.lat === undefined) e.lat = 0.7; });
 // Military press: alla partenza la mano sta sulle clavicole, davanti alla spalla (non sopra l'articolazione): gomiti un po' avanti, niente oscillazione brusca del gomito al primo centimetro
 ['s-military', 'sm-military'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.fr[0] = [32, e.fr[0][1] - 8, ...(e.fr[0].slice(2))]; });
+
+/* ===== rematori: gomiti vicini al busto e corsa realistica ===== */
+(() => {
+  ['b-row-cavo', 'b-row-cavo-singolo', 'b-row-terra', 'b-row-terra-singolo', 'b-row-busto-cavi', 'b-row-singolo', 'b-row-db', 'sm-row', 'b-row-bar', 'j-row-singolo', 'b-row-jammer'].forEach(id => { const e = EX.find(x => x.id === id); if (e && e.lat === undefined) e.lat = 0.35; });
+  // rematore ai cavi a busto inclinato: a fine corsa il gomito resta poco dietro il busto e la mano arriva al fianco (non un piegamento completo)
+  const bb = EX.find(x => x.id === 'b-row-busto-cavi'); if (bb) bb.fr = [[50, 55], [-40, 12]];
+  // rematore seduto a terra: partenza con le braccia verso il cavo basso (leggermente in giu'), arrivo con la maniglia all'addome e i gomiti dietro
+  ['b-row-terra', 'b-row-terra-singolo', 'b-row-cavo', 'b-row-cavo-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.fr = [[78, 78, {t: 168}], [-45, 62, {t: 186}]]; });
+})();
+// Esercizi con cavigliera in piedi: le mani si appoggiano alla torre all'altezza del petto, gomiti piegati (non braccia tese in avanti)
+['g-leg-curl', 'g-kickback', 'g-kickback-flesso'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.fr = e.fr.map(f => [48, 112, ...f.slice(2)]); });

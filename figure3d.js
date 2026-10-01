@@ -14,7 +14,7 @@ const FIG3 = (() => {
   };
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
-  function rigMode(on) { UA = on ? 35 : 36; FA = on ? 39 : 38; TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
+  function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
   const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab'];
   const resolve = (ex, fr) => Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]});
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
@@ -188,7 +188,7 @@ const FIG3 = (() => {
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
-    let grip = ex.hand ? add(W, 14, p.fa + p.hd) : W;
+    let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
     const GZ = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
     if (ex.eq === 'hb') { W = [150, 20]; E = ik(S, W, UA, FA); grip = W; }
     const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
@@ -275,7 +275,8 @@ const FIG3 = (() => {
         toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
       const holds = ['bar', 'db', 'jam', 'hb'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
-      if (holds) { J.obj = {R: W3(W3n)}; if (!ex.one) J.obj.L = W3(W3f); }
+      if (holds) { J.obj = {R: W3(g3n)}; if (!ex.one) J.obj.L = W3(g3f); }
+      if (ex.hand) J.tip = {R: W3(g3n), L: W3(g3f)};   // polso flesso/esteso: la mano punta verso l'impugnatura
       P.J = J;
     }
     if (p.showM && !rig) {
