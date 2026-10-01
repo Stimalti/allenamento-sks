@@ -121,23 +121,18 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1CkBfohkCr/",
 "n": "circa 0:35-0:41",
 "v": "24"
+},
+{
+"u": "https://www.facebook.com/share/r/1DbV2dfbcr/",
+"n": "alzate frontali con barra al cavo, circa 0:08-0:11",
+"v": "28"
 }
 ],
 "s-facepull": [
 {
 "u": "https://www.facebook.com/share/r/19GwTGrpTd/",
-"n": "circa 0:13-0:17",
+"n": "face pull con due cavi alti (maniglie), circa 0:13-0:17",
 "v": "05"
-},
-{
-"u": "https://www.facebook.com/share/r/1CYqELgiKD/",
-"n": "circa 0:11-0:15",
-"v": "13"
-},
-{
-"u": "https://www.facebook.com/share/r/1DbV2dfbcr/",
-"n": "circa 0:09-0:11",
-"v": "28"
 },
 {
 "u": "https://www.youtube.com/watch?v=xnLgcLZkK74",

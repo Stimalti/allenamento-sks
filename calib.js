@@ -377,3 +377,8 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.forEach(e => { if (e.mm) return; for (const [re, k] of K) { if (re.test(e.id)) { e.mm = D[k]; break; } } if (!e.mm) e.mm = e.m; });
   EX.forEach(e => { if (/kickback-doppio|^t-kickback/.test(e.id)) e.mm = D.tri; if (/scrollate|shrug/.test(e.id)) e.mm = D.trapezi; if (/panca-stretta/.test(e.id)) e.mm = D.tri + ', grande pettorale, deltoide anteriore'; });
 })();
+
+/* ===== face pull: gomiti larghi all'altezza delle spalle, mani ai lati delle orecchie ===== */
+(() => { const e = EX.find(x => x.id === 's-facepull'); Object.assign(e, {lat: 3.2, gz: 20, az: 0.7, fr: [[88, 90, {t: 176}], [-60, 146, {t: 184}]],
+  cap: ['Braccia distese davanti, corda all’altezza del viso', 'Mani ai lati delle orecchie, gomiti larghi all’altezza delle spalle'],
+  trj: 'La corda viene dritta verso il viso; i gomiti si aprono di lato e salgono all’altezza delle spalle, le mani finiscono ai lati delle orecchie con i pollici verso di te.'}); })();
