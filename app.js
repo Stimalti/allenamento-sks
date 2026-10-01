@@ -447,7 +447,8 @@ function settings() {
   setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
-   <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
+   <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="exportfull">⬇ Backup completo con video</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
+   <p class="vnote">Il backup normale contiene pesi, storico, schede, foto profilo e link ai video. Quello completo include anche i video caricati dal telefono (file grande: va bene fino a circa 250 MB di video). L’importazione riconosce entrambi.</p>
    <input type="file" id="imp" accept="application/json" hidden></div>
    <div class="card"><h2>Foto profilo</h2><p>Scegli una foto da mostrare in alto a sinistra nell'app (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati e nel backup. L'icona dell'app sulla schermata Home non cambia.</p>
    <div id="logoprev" class="logoprev"></div><p id="logost" class="vnote"></p>
@@ -497,7 +498,8 @@ document.addEventListener('click', e => {
     (DB.myv[id] = DB.myv[id] || []).push({t: 'u', k: 'u' + Date.now(), u: p.href, n: p.hostname.replace(/^www\./, '')}); save(); inp.value = ''; flash('✓ Link aggiunto'); loadMine(b.closest('.tb, #mbody') || document); }
   else if (a === 'hist') histView(k);
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
-  else if (a === 'export') exportData();
+  else if (a === 'export') exportData(false);
+  else if (a === 'exportfull') exportData(true);
   else if (a === 'vwipe') { const n = Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0);
     ask(n ? 'Cancellare tutti i tuoi ' + n + ' video (file e link)? Non si può annullare.' : 'Cancellare tutti i video salvati su questo dispositivo? Non si può annullare.', 'Cancella tutto', async () => { try { await VDB.clear(); } catch (e) {} DB.myv = {}; save(); flash('✓ Tutti i tuoi video sono stati cancellati'); render(true); }); }
   else if (a === 'vrefdel') { const box = b.closest('.vbox'), id = box.dataset.vid, root = box.parentElement; DB.hiddenRef[b.dataset.u] = 1; save(); box.outerHTML = videoBlock(byId[id]); loadMine(root); flash('Video tolto'); }
@@ -565,8 +567,18 @@ function finish(pid, prof) {
   if (!n) { flash('Compila almeno una serie'); return; }
   save(); render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi e ripetizioni restano per la prossima volta');
 }
-async function exportData() {
-  const txt = JSON.stringify(DB, null, 1), name = 'allenamento-backup-' + today() + '.json';
+const blobToDataUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+async function exportData(full) {
+  let data = DB, name = 'allenamento-backup-' + today() + '.json';
+  if (full) { // backup completo: anche i file video salvati sul dispositivo (base64 dentro il JSON)
+    const vids = {}; let tot = 0;
+    for (const [id, l] of Object.entries(DB.myv)) { if (!Array.isArray(l)) continue; for (const x of l) { if (x.t !== 'f') continue;
+      try { const b = await VDB.get(x.k); if (b) { tot += b.size; vids[x.k] = {ex: id, n: x.n || '', d: await blobToDataUrl(b)}; } } catch (e) {} } }
+    if (!Object.keys(vids).length) { flash('Nessun video caricato: esporto solo i dati'); }
+    else if (tot > 250 * 1024 * 1024) { flash('⚠ Video troppo grandi per un unico backup (' + Math.round(tot / 1048576) + ' MB): esporto solo i dati'); }
+    else { data = Object.assign({}, DB, {vids}); name = 'allenamento-backup-con-video-' + today() + '.json'; flash('Backup con ' + Object.keys(vids).length + ' video (' + Math.round(tot / 1048576) + ' MB)…'); }
+  }
+  const txt = JSON.stringify(data, null, full ? 0 : 1);
   try { const d = window.claude && claude.use && await claude.use('downloads'); if (d) { await d.save({filename: name, data: txt}); return; } } catch (e) { if (e && e.code === 'declined') return; }
   try {
     if (!window.claude) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], {type: 'application/json'})); a.download = name; a.click(); return; }
@@ -576,7 +588,8 @@ async function exportData() {
 }
 function importData(f) {
   if (!f) return; const r = new FileReader();
-  r.onload = () => { try { const d = JSON.parse(r.result); if (!d.cur || !d.hist) throw 0; fixDB(d); const go2 = () => { DB = d; save(); render(); }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
+  r.onload = () => { try { const d = JSON.parse(r.result); if (!d.cur || !d.hist) throw 0; const vids = d.vids || null; delete d.vids; fixDB(d);
+    const go2 = async () => { DB = d; save(); render(); if (vids) { let n = 0; for (const [k, v] of Object.entries(vids)) { try { const b = await (await fetch(v.d)).blob(); await VDB.set(k, b); n++; } catch (e) {} } flash('✓ Backup ripristinato con ' + n + ' video'); } }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
   r.readAsText(f);
 }
 
