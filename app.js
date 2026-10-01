@@ -99,7 +99,10 @@ function pickRt(id) {
 }
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
 let giuliaSub = 'gA';
-const lib = {q: '', g: '', a: '', f: ''};
+const lib = {q: '', g: '', a: '', f: '', l: ''};
+const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
+const latoOf = e => e.one ? 'uno' : 'due';
+const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
 const pk = (prof, id) => prof + ':' + id;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -230,17 +233,18 @@ function planView(p, prof) {
    <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
 }
 
-const pick = {open: false, q: '', g: '', a: '', f: ''};
+const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false;
+  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = [...new Set(EX.map(e => e.a))];
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
   <div class="chips">${chip('f', '', 'Ogni obiettivo', sid)}${Object.entries(FIN).map(([k, v]) => chip('f', k, v === 'Tonificare' ? 'Per tonificare' : v === 'Forza' ? 'Per la forza' : 'Per la massa', sid)).join('')}</div>
+  <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>`;
 }
 const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.length} esercizi</div>
@@ -395,12 +399,12 @@ async function setLogo(file) {
 }
 applyLogo();
 /* ---------- proposta automatica di esercizi ---------- */
-const WZ = {step: 1, att: [], mus: [], fin: 'massa', pid: null, keep: [], rejected: [], cur: []};
+const WZ = {step: 1, att: [], mus: [], fin: 'massa', lato: '', pid: null, keep: [], rejected: [], cur: []};
 const ATT_ALL = () => [...new Set(EX.map(e => e.a))];
 const mkey = e => e.g + '|' + norm(e.m.split(',')[0].trim());
 const station = e => { if (e.eq !== 'cable') return e.a; const an = e.an ? (Array.isArray(e.an[0]) ? e.an[0] : e.an) : null, y = an ? an[1] : 100; const att = /corda/i.test(e.set) ? 'corda' : /barra|triangolo|V\b/i.test(e.set) ? 'barra' : /cavigliera/i.test(e.set) ? 'cavigliera' : 'maniglia'; return 'Cavi ' + (y < 60 ? 'alto' : y > 160 ? 'basso' : 'medio') + ' ' + att; };
 function wizPool() {
-  return EX.filter(e => (!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.includes(e.g)) && (e.fin || []).includes(WZ.fin) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
+  return EX.filter(e => (!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.includes(e.g)) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
   const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
@@ -421,13 +425,14 @@ function wizHtml() {
     <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti')}${ATT_ALL().map(a => chip2('att', a, WZ.att.includes(a), a)).join('')}</div>
     <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
     <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
+    <h3>Un braccio o due</h3><div class="chips wrap">${chip2('lato', '', !WZ.lato, 'Indifferente')}${Object.entries(LATO).map(([k, v]) => chip2('lato', k, WZ.lato === k, v)).join('')}</div>
     <p class="vnote">${wizPool().length} esercizi disponibili con questa scelta.</p>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzgo" ${wizPool().length ? '' : 'disabled'}>Proponi</button></div>`;
   const list = WZ.cur.map(id => byId[id]);
   const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">Proposta</h2>
     <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati.</p>
-    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(station(e))}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
+    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
     <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
@@ -545,7 +550,7 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
-  else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
+  else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
   else if (a === 'wzgo') { WZ.step = 2; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
   else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }
   else if (a === 'wzback') { WZ.step = 1; wizRender(); }
