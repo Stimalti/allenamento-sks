@@ -182,8 +182,17 @@ const FIG3 = (() => {
     const a0 = ankleOf(resolve(ex, ex.fr[0])), a1 = ankleOf(p);
     return Object.assign({}, p, {h: [p.h[0] + (a0[0] - a1[0]), p.h[1] + (a0[1] - a1[1])]});
   }
+  // bilanciere su binari (Smith) o stacco/squat ben eseguiti: la barra sale e scende in verticale. Con i piedi fermi, il busto si inclina quanto serve per tenere le mani sulla stessa verticale della partenza
+  function verticalBar(ex, p, rig) {
+    if (!rig || !ex.vbar || (ex.lin && ex.vref === undefined)) return p;
+    const p0 = anchorFeet(ex, resolve(ex, ex.fr[ex.vref || 0]), rig), H0 = [p0.h[0], p0.h[1] - p0.lift], S0 = add(H0, p0.tl, p0.t), W0 = add(add(S0, UA, p0.ua), FA, p0.fa);
+    const H = [p.h[0], p.h[1] - p.lift], armX = UA * Math.sin(p.ua * R) + FA * Math.sin(p.fa * R), v = Math.max(-1, Math.min(1, (W0[0] - armX - H[0]) / p.tl));
+    let t = 180 - Math.asin(v) / R;   // sin(t) = v: t < 180 inclina avanti, t > 180 indietro
+    t = Math.max(p.t - 45, Math.min(p.t + 45, t));
+    return Object.assign({}, p, {t});
+  }
   function geoSide(ex, p, rig) {
-    p = anchorFeet(ex, p, rig);
+    p = verticalBar(ex, anchorFeet(ex, p, rig), rig);
     const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
     const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);

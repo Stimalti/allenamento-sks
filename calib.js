@@ -472,3 +472,8 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 // Anche gli esercizi del secondo video (allenamento completo schiena ai cavi) sono proposti per primi dal wizard
 ['b-row-cavo', 'b-lat-larga', 'b-pulldown-braccia-tese', 's-facepull', 'b-lat-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.prio = true; });
+
+// Barra in verticale: Smith machine (binari) e stacchi/squat con bilanciere (la barra resta sulla stessa verticale, sopra il mesopiede)
+['sm-rdl', 'sm-squat', 'sm-front-squat', 'sm-calf', 'sm-scrollate', 'sm-row', 'g-rdl', 'b-rackpull', 'g-squat', 'g-front-squat', 'g-calf', 'b-scrollate'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.vbar = true; });
+// Military press alla Smith: la barra e' sui binari, quindi verticale sopra le spalle; alla partenza la barra sta al mento con i gomiti avanti e il busto appena indietro
+['sm-military', 's-military'].forEach(id => { const e = EX.find(x => x.id === id); if (e) { e.fr[0] = [15, 175, ...(e.fr[0].slice(2))]; e.vbar = true; e.vref = 1; } });
