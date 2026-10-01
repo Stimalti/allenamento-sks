@@ -1,5 +1,38 @@
 /* Video di riferimento (solo link alla fonte originale: nessun video e' incluso nell'app). Tempi indicativi. */
 const VIDEOS = {
+"b-lat-singolo": [
+{
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "pulldown a un braccio in piedi, circa 0:50-0:59 (3x10 per lato)",
+"v": "44"
+}
+],
+"b-row-barra-larga": [
+{
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "variante seduta: rematore alto presa larga al petto, gomiti alti, circa 0:41-0:50 (3x12)",
+"v": "44"
+},
+{
+"u": "https://www.facebook.com/share/r/19UYZBU21G/",
+"n": "presa larga, barra al petto (parte alta della schiena), circa 0:14-0:21",
+"v": "43"
+}
+],
+"b-row-barra-pro": [
+{
+"u": "https://www.facebook.com/share/r/19UYZBU21G/",
+"n": "presa prona larghezza spalle, scapole strette (schiena intera), circa 0:07-0:14",
+"v": "43"
+}
+],
+"b-row-barra-sup": [
+{
+"u": "https://www.facebook.com/share/r/19UYZBU21G/",
+"n": "presa supina, barra verso le anche (dorsali), circa 0:00-0:07",
+"v": "43"
+}
+],
 "p-panca": [
 {
 "u": "https://www.facebook.com/share/r/19fnxqneT2/",
@@ -113,6 +146,11 @@ const VIDEOS = {
 ],
 "s-facepull": [
 {
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "tirata alta al viso da seduto, gomiti larghi, circa 0:31-0:41 (3x10)",
+"v": "44"
+},
+{
 "u": "https://www.facebook.com/share/r/19GwTGrpTd/",
 "n": "face pull con due cavi alti (maniglie), circa 0:13-0:17",
 "v": "05"
@@ -167,6 +205,11 @@ const VIDEOS = {
 }
 ],
 "b-lat-larga": [
+{
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "lat machine presa larga, circa 0:11-0:21 (3x15)",
+"v": "44"
+},
 {
 "u": "https://www.facebook.com/share/r/1D5NS5by1v/",
 "n": "lat machine, tutto il video",
@@ -224,6 +267,11 @@ const VIDEOS = {
 ],
 "b-row-cavo": [
 {
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "rematore seduto ai cavi con maniglie (allenamento completo schiena), circa 0:00-0:11",
+"v": "44"
+},
+{
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
 "n": "rematore al cavo seduto, circa 0:17-0:21",
 "v": "34"
@@ -244,6 +292,11 @@ const VIDEOS = {
 }
 ],
 "b-pulldown-braccia-tese": [
+{
+"u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
+"n": "pulldown in piedi con barra fino alle anche, circa 0:22-0:31 (3x15)",
+"v": "44"
+},
 {
 "u": "https://www.facebook.com/share/r/1F37JDqoEr/",
 "n": "pulldown a braccia tese, circa 0:00-0:06",
@@ -1146,6 +1199,11 @@ const VIDEOS = {
 }
 ],
 "b-shrug-cavo": [
+{
+"u": "https://www.facebook.com/share/r/19UYZBU21G/",
+"n": "scrollate al cavo basso in piedi, contrazione in alto (trapezio), circa 0:21-0:28",
+"v": "43"
+},
 {
 "u": "https://www.youtube.com/watch?v=blCypidJdJs",
 "n": "Scrollate cavo basso · Bodygames",

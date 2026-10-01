@@ -442,3 +442,33 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 // Esercizi con cavigliera in piedi: le mani si appoggiano alla torre all'altezza del petto, gomiti piegati (non braccia tese in avanti)
 ['g-leg-curl', 'g-kickback', 'g-kickback-flesso'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.fr = e.fr.map(f => [48, 112, ...f.slice(2)]); });
+
+/* ===== Rematore al cavo basso con barra, a busto inclinato: 4 prese dal video "Your grip changes your back workout" ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const base = {g: 'schiena', a: 'Cavi', eq: 'cable', st: 'hinge', lin: true, an: [250, 212], lat: 0.35, due: false, unCavo: true, alt: undefined, prio: true, tipo: 'semi', fin: ['massa', 'tonificare'],
+    set: 'Cavo BASSO con barra dritta o EZ. Stai a un passo dalla torre, busto inclinato di circa 45° e schiena neutra, ginocchia morbide.',
+    pos: 'Piedi alla larghezza delle spalle, sguardo a terra, core contratto. Il busto resta fermo per tutta la serie.',
+    err: ['Busto che si alza a ogni ripetizione', 'Tirare con i bicipiti invece che con i gomiti', 'Schiena arrotondata', 'Spalle che salgono verso le orecchie']};
+  EX.push(cl('b-row-busto-cavi', Object.assign({}, base, {id: 'b-row-barra-sup', n: 'Rematore al cavo basso con barra, presa supina (dorsali)', presa: 'sup', m: 'Gran dorsale (fasci bassi), bicipiti, romboidi', mm: 'Gran dorsale (fasci inferiori), grande rotondo, bicipite brachiale, romboidi',
+    fr: [[50, 55], [-45, 12]], cap: ['Braccia tese verso il cavo, palmi in su', 'Barra tirata verso le anche, gomiti stretti ai fianchi'],
+    ese: ['Afferra la barra con i palmi verso l’alto, larghezza spalle.', 'Tira la barra verso le anche (non verso il petto), gomiti che sfiorano i fianchi.', 'Contrai 1 secondo con le scapole chiuse.', 'Ritorna lentamente a braccia tese.'],
+    cue: 'Gomiti verso le tasche posteriori: la barra arriva all’inguine, non allo stomaco.',
+    why: 'La presa supina e la traiettoria verso le anche spostano il lavoro sui fasci bassi del gran dorsale, come nel video: stessa macchina, quattro prese, quattro zone della schiena.',
+    trj: 'La barra va in linea retta dal cavo basso verso le anche, parallela alle cosce.'})));
+  EX.push(cl('b-row-busto-cavi', Object.assign({}, base, {id: 'b-row-barra-pro', n: 'Rematore al cavo basso con barra, presa prona (schiena intera)', presa: 'pro', m: 'Romboidi, trapezio medio, gran dorsale, deltoide posteriore', mm: 'Romboidi, trapezio medio e inferiore, gran dorsale, deltoide posteriore, bicipite',
+    fr: [[50, 55], [-40, 20]], cap: ['Braccia tese, palmi in giù, larghezza spalle', 'Barra all’ombelico, scapole strette'],
+    ese: ['Afferra la barra con i palmi verso il basso, larghezza spalle.', 'Tira la barra verso l’ombelico portando i gomiti dietro il busto.', 'Stringi forte le scapole 1 secondo.', 'Ritorna lentamente.'],
+    cue: 'Pensa a schiacciare una noce tra le scapole.',
+    why: 'Con la presa prona a larghezza spalle il carico si distribuisce su tutta la schiena: dorsali, romboidi e trapezio medio lavorano insieme.',
+    trj: 'La barra va in linea retta dal cavo basso verso l’ombelico.'})));
+  EX.push(cl('b-row-busto-cavi', Object.assign({}, base, {id: 'b-row-barra-larga', n: 'Rematore al cavo basso con barra, presa larga al petto (parte alta)', presa: 'pro', m: 'Trapezio medio, deltoide posteriore, romboidi, gran dorsale', mm: 'Trapezio medio, deltoide posteriore, romboidi, cuffia dei rotatori, gran dorsale (fasci alti)', lat: 1.4, gz: 44,
+    fr: [[55, 60], [-15, 50]], cap: ['Braccia tese, presa larga', 'Barra al petto, gomiti alti e larghi'],
+    ese: ['Afferra la barra con presa larga, palmi in giù.', 'Tira la barra verso il petto con i gomiti alti e aperti.', 'Contrai la parte alta della schiena 1 secondo.', 'Ritorna lentamente.'],
+    cue: 'Gomiti alti e larghi: la barra arriva al petto, non allo stomaco.',
+    why: 'Presa larga e traiettoria al petto spostano l’enfasi su trapezio medio e deltoide posteriore: la parte alta della schiena.',
+    trj: 'La barra sale in linea retta dal cavo basso verso il petto, più in alto che nelle altre prese.'})));
+  const sh = EX.find(e => e.id === 'b-shrug-cavo'); if (sh) sh.prio = true;
+})();
+// Anche gli esercizi del secondo video (allenamento completo schiena ai cavi) sono proposti per primi dal wizard
+['b-row-cavo', 'b-lat-larga', 'b-pulldown-braccia-tese', 's-facepull', 'b-lat-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.prio = true; });
