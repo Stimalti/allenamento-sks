@@ -477,3 +477,35 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 ['sm-rdl', 'sm-squat', 'sm-front-squat', 'sm-calf', 'sm-scrollate', 'sm-row', 'g-rdl', 'b-rackpull', 'g-squat', 'g-front-squat', 'g-calf', 'b-scrollate'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.vbar = true; });
 // Military press alla Smith: la barra e' sui binari, quindi verticale sopra le spalle; alla partenza la barra sta al mento con i gomiti avanti e il busto appena indietro
 ['sm-military', 's-military'].forEach(id => { const e = EX.find(x => x.id === id); if (e) { e.fr[0] = [15, 175, ...(e.fr[0].slice(2))]; e.vbar = true; e.vref = 1; } });
+
+/* ===== panche e busto allineati alle schede (gradi scritti nelle descrizioni) ===== */
+(() => {
+  const setT = (id, t0, t1) => { const e = EX.find(x => x.id === id); if (!e) return; e.fr = e.fr.map((f, i) => [f[0], f[1], Object.assign({}, f[2] || {}, {t: i === 0 ? t0 : (t1 === undefined ? t0 : t1)})]); };
+  // inclinazione della panca (gradi dall'orizzontale), come nelle schede
+  const INC = {'p-incl-db': 30, 'p-incl-cavi': 30, 'p-incl-cavo-singolo': 30, 'sm-incl': 35, 'j-incl': 35, 'c-incl': 50, 'c-curl-panca-cavo': 50, 'c-curl-panca-cavo-singolo': 50};
+  Object.entries(INC).forEach(([id, v]) => { const e = EX.find(x => x.id === id); if (e) e.inc = v; });
+  // busto: angolo dalla verticale scritto nella scheda -> t = 180 - gradi (avanti), 180 + gradi (indietro)
+  setT('b-row-bar', 115);            // 60-70° dalla verticale
+  setT('sm-row', 135);               // circa 45°
+  setT('b-row-singolo', 128);        // 45-60°
+  setT('b-row-jammer', 128);         // 45-60°
+  setT('j-row-singolo', 135);        // ~45°
+  setT('b-row-busto-cavi', 135);     // ~45°
+  ['b-row-barra-sup', 'b-row-barra-pro', 'b-row-barra-larga'].forEach(id => setT(id, 135));   // circa 45°
+  setT('t-kickback-doppio', 128);    // 45-60°
+  setT('p-croci-alte', 165, 165);    // ~15°
+  setT('p-croci-alte-singolo', 165, 165);
+  setT('p-croci-petto', 168, 168);   // 10-15°
+  setT('p-croci-singolo', 168, 168);
+  setT('p-croci-basse', 168, 168);   // 10-15° in avanti
+  setT('p-croci-basse-singolo', 168, 168);
+  setT('b-lat-larga', 184, 190);     // ~10° indietro
+  ['b-lat-neutra', 'b-lat-supina', 'b-lat-singolo'].forEach(id => setT(id, 184, 190));
+  setT('s-press-db', 185, 185);      // panca 80-85°
+  setT('s-press-cavo', 185, 185);
+  setT('s-press-cavo-singolo', 185, 185);
+  setT('b-rope-row-terra', 220, 220);   // 35-45° indietro
+  (() => { const e = EX.find(x => x.id === 'g-sumo'); if (e) e.fr[1][2].t = 165; })();   // busto eretto
+})();
+// Kickback ai cavi a due braccia: busto a ~52° e braccio parallelo al busto (gomito alto e fermo)
+(() => { const e = EX.find(x => x.id === 't-kickback-doppio'); if (e) e.fr = [[-52, 0, {t: 128}], [-52, -52, {t: 128}]]; })();

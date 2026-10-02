@@ -22,7 +22,7 @@ const FIG = (() => {
   function resolve(ex, fr) {
     const b = ST[ex.st];
     const o = fr[2] || {};
-    return Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, b, o, {ua:fr[0], fa:fr[1]});
+    const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, b, o, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && o.t === undefined) r.t = 270 - ex.inc; return r;
   }
   function lerpPose(a, b, k) {
     const r = {h:[a.h[0] + (b.h[0]-a.h[0])*k, a.h[1] + (b.h[1]-a.h[1])*k]};
@@ -74,7 +74,7 @@ const FIG = (() => {
     } else if (st === 'flat') {
       s += `<rect x="100" y="${h[1]+7}" width="150" height="9" rx="3" fill="${c}"/>` + line([120,h[1]+16],[120,FLOOR],5,c) + line([230,h[1]+16],[230,FLOOR],5,c);
     } else if (st === 'inc') {
-      s += line([h[0]-4,h[1]+8],add([h[0]-4,h[1]+8],86,225), 9, c) + `<rect x="${h[0]-20}" y="${h[1]+8}" width="62" height="9" rx="3" fill="${c}"/>` + line([h[0]+10,h[1]+17],[h[0]+10,FLOOR],5,c);
+      s += line([h[0]-4,h[1]+8],add([h[0]-4,h[1]+8],86,270 - ((ex && ex.inc) || 45)), 9, c) + `<rect x="${h[0]-20}" y="${h[1]+8}" width="62" height="9" rx="3" fill="${c}"/>` + line([h[0]+10,h[1]+17],[h[0]+10,FLOOR],5,c);
     } else if (st === 'kneel') {
       s += `<rect x="60" y="${FLOOR-2}" width="140" height="5" rx="2" fill="${c}" opacity=".6"/>`;
     }
