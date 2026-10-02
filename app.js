@@ -1,10 +1,13 @@
 /* App allenamento — tutto locale: i pesi si salvano nel telefono (localStorage) a ogni modifica. */
 (() => {
+// Se qualcosa impedisce l'avvio, mostra l'errore e un pulsante per ripristinare l'app (i dati salvati non si toccano)
+window.addEventListener('error', ev => { try { const m = document.querySelector('#main'); if (!m || m.innerHTML.length > 200) return; m.innerHTML = '<div style="padding:16px;font-family:system-ui"><h2>Qualcosa non è partito</h2><p style="color:#a00;word-break:break-all">' + String(ev.message || ev.error || 'errore').replace(/</g, '&lt;') + '</p><p>Premi Ripristina: svuota la cache dell’app e la ricarica. Allenamenti, routine e video restano al loro posto.</p><button id="ripristina" style="padding:12px 18px;font-size:16px">Ripristina app</button></div>'; const b = document.querySelector('#ripristina'); if (b) b.onclick = () => window.sksReset(); } catch (e) {} });
+window.sksReset = async () => { try { if ('serviceWorker' in navigator) { const rs = await navigator.serviceWorker.getRegistrations(); for (const r of rs) await r.unregister(); } if (window.caches) { const ks = await caches.keys(); for (const k of ks) await caches.delete(k); } } catch (e) {} location.href = location.pathname + '?r=' + Date.now(); };
 const KEY = 'sks_allenamento_v1', APPV = (document.querySelector('script[src*="app.js"]') || {src: ''}).src.replace(/.*v=/, '') || 'artifact';
 const $ = s => document.querySelector(s);
 const byId = Object.fromEntries(EX.map(e => [e.id, e]));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
@@ -490,7 +493,7 @@ function settings() {
    <div class="card"><h2>Foto profilo</h2><p>Scegli una foto da mostrare in alto a sinistra nell'app (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati e nel backup. L'icona dell'app sulla schermata Home non cambia.</p>
    <div id="logoprev" class="logoprev"></div><p id="logost" class="vnote"></p>
    <p><button class="ghost" data-act="logopick">🖼 Scegli la foto profilo</button> <button class="ghost" data-act="logoreset">↺ Foto originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
-   <div class="card"><h2>Stato</h2><p class="vnote">Versione app ${APPV} · esercizi: ${EX.length} · video di riferimento disponibili: ${Object.values(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).reduce((t, l) => t + l.length, 0)} link su ${Object.keys(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).length} esercizi · ${DB.hideRef ? '<b style="color:#d33">tutti nascosti</b>' : 'nascosti: ' + Object.keys(DB.hiddenRef).length} · tuoi video: ${Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0)}</p>
+   <div class="card"><h2>Stato</h2><p class="vnote">Versione app ${APPV} · esercizi: ${EX.length} · video di riferimento disponibili: ${Object.values(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).reduce((t, l) => t + l.length, 0)} link su ${Object.keys(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).length} esercizi · ${DB.hideRef ? '<b style="color:#d33">tutti nascosti</b>' : 'nascosti: ' + Object.keys(DB.hiddenRef).length} · tuoi video: ${Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0)}</p><p><button class="ghost" data-act="sksreset">🔄 Ripristina app (svuota cache, i dati restano)</button></p>
    ${DB.hideRef || Object.keys(DB.hiddenRef).length ? '<p><button class="primary" style="width:auto;padding:10px 16px" data-act="vrefall">👁 Mostra tutti i video di riferimento</button></p>' : ''}</div>
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
@@ -555,6 +558,7 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
+  else if (a === 'sksreset') window.sksReset();
   else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
   else if (a === 'wzgo') { WZ.step = 2; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
   else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }
@@ -639,7 +643,7 @@ function importData(f) {
 }
 
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h !== tab && TABS.some(t => t.id === h)) { tab = h; render(); } });
-render();
+try { render(); } catch (e) { window.dispatchEvent(new ErrorEvent('error', {message: 'Avvio: ' + (e && e.message)})); throw e; }
 initCloud();
 if (!window.claude && 'serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
