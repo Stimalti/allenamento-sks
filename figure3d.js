@@ -263,10 +263,11 @@ const FIG3 = (() => {
     }
     const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
     if (rig && !window.FIG3_ICON && tilt > 5 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
-      const GZ2 = 48, ORG = '#ff6b35'; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, 180), GZ2), .8, ORG));
+      // su panca inclinata il riferimento e' l'orizzontale (l'angolo mostrato e' quello della panca, es. 30°); in piedi e' la verticale
+      const GZ2 = 48, ORG = '#ff6b35', ref = ex.st === 'inc' ? 270 : 180; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, ref), GZ2), .8, ORG));
       P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
-      let prev = add(H, 54, 180); for (let i = 1; i <= 10; i++) { const a = 180 + (p.t - 180) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
-      P.tilt = Math.round(tilt);
+      let prev = add(H, 54, ref); for (let i = 1; i <= 10; i++) { const a = ref + (p.t - ref) * i / 10, pt = add(H, 54, a); P.push(cyl(pt3(prev, GZ2), pt3(pt, GZ2), .8, ORG)); prev = pt; }
+      P.tilt = ex.st === 'inc' ? Math.round(Math.abs(270 - p.t)) : Math.round(tilt);
     }
     P.tiltAll = Math.round(tilt); P.st = ex.st;
     P.gp = ex.cp === 'ankle' ? pt3(A, LN) : (ex.one ? g3n : [g3n[0], g3n[1], 0]);
@@ -511,7 +512,7 @@ const FIG3 = (() => {
         }
         while (pool.length > prims.length) group.remove(pool.pop());
         const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.presa];
-        const back = ['lie', 'inc'].includes(ex.st) ? 'schiena appoggiata alla panca' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
+        const back = ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
         cap.innerHTML = '<b>' + esc3(k < .5 ? ex.cap[0] : ex.cap[1]) + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
