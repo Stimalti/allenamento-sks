@@ -105,6 +105,7 @@ let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
+const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
 const pk = (prof, id) => prof + ':' + id;
@@ -242,7 +243,7 @@ function planView(p, prof) {
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (st.g && e.g !== st.g) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+  return EX.filter(e => { if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])} · ${esc(e.m.split(',')[0])}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
@@ -416,7 +417,7 @@ const wizPrio = e => !!e.prio && (!WZ.att.length || WZ.att.includes('Cavi')) && 
 // spalle ai cavi: prima gli esercizi con un solo cavo e due mani (corda, barra, maniglia doppia)
 const wizPrioSp = e => e.g === 'spalle' && e.eq === 'cable' && !!e.unCavo && !e.one && WZ.mus.includes('spalle') && (!WZ.att.length || WZ.att.includes('Cavi'));
 function wizPool() {
-  return EX.filter(e => (wizPrio(e) || ((!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.includes(e.g)))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
+  return EX.filter(e => (wizPrio(e) || ((!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
   const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);

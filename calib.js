@@ -530,3 +530,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 // Rematore seduto con corda: le mani partono vicine e si aprono ai lati dell'addome a fine corsa
 (() => { const e = EX.find(x => x.id === 'b-row-corda'); if (e) { e.gz = 12; e.gz2 = 34; e.cap = ['Braccia distese, corda chiusa davanti a te', 'Corda all’ombelico, mani aperte ai lati, scapole strette']; } })();
+// Face pull: anche per la schiena (romboidi, trapezio medio); corsa corretta: braccia distese verso la puleggia alta, poi gomiti alti e larghi e corda ai lati del viso
+(() => { const e = EX.find(x => x.id === 's-facepull'); if (!e) return; e.g2 = ['schiena']; e.m = 'Deltoide posteriore, romboidi, trapezio medio, cuffia dei rotatori';
+  Object.assign(e, {lin: true, lat: 3.2, gz: 18, gz2: 40, az: 0.7, fr: [[92, 95, {t: 176}], [85, -108, {t: 182}]], cap: ['Braccia distese verso la puleggia alta, corda chiusa', 'Gomiti alti e larghi, corda ai lati del viso, mani aperte']});
+})();
