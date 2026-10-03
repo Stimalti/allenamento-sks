@@ -181,6 +181,7 @@ async function loadMine(root) {
 function techHtml(ex) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
   return `<div class="fig" data-fig="${ex.id}"></div>
+  ${ex.noanim ? '<p class="warn">↔ Questo esercizio è un movimento <b>laterale</b> (il corpo si piega di fianco): il modello 3D mostra solo la posizione di partenza. Segui la descrizione qui sotto.</p>' : ''}
   <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
   ${ex.alt && byId[ex.alt] ? `<p class="altc">🔁 Serve una sola torre? <button class="tlink" data-act="open" data-id="${ex.alt}">${esc(byId[ex.alt].n)}</button> (un cavo e una maniglia)</p>` : ''}

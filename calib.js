@@ -880,3 +880,31 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Arrotola le spalle e sali fino a sederti.', 'Scendi lentamente fino a sfiorare la panca.', 'Per progredire tieni un disco o un manubrio al petto.'],
     cue: 'Arrotolati, non alzarti rigido.', why: 'Sit-up più comodo e caricabile grazie ai piedi bloccati.', err: ['Schiena dritta come una tavola', 'Tirare il collo', 'Cadere in discesa']});
 })();
+/* ===== flessione laterale: side bend e plank laterale (movimento laterale: il 3D mostra solo la posa di partenza) ===== */
+(() => {
+  const A = o => { if (EX.some(e => e.id === o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', lin: true, noanim: true}, o)); };
+  A({id: 'a-side-bend-db', n: 'Side bend con manubrio', a: 'Manubri', eq: 'db', one: true, st: 'stand', fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
+    fr: [[4, 4, {t: 180}], [4, 4, {t: 180}]], cap: ['In piedi, manubrio in una mano lungo il fianco', 'Il busto si piega di lato verso il manubrio e torna (movimento laterale, non mostrato dal 3D)'],
+    trj: 'Movimento laterale puro: il busto si inclina di lato verso il manubrio (il manubrio scende lungo la coscia) e poi torna dritto e un po’ oltre, verso il lato opposto. Niente rotazione, niente inclinazione in avanti.',
+    set: 'Un manubrio in una mano, l’altra mano sul fianco o dietro la testa. In piedi, piedi alla larghezza delle anche.', pos: 'Busto dritto, spalle basse, sguardo avanti. Il bacino resta fermo e centrato.',
+    ese: ['Lascia scendere il manubrio lungo la coscia inclinando il busto di lato.', 'Scendi finché senti allungare il fianco opposto, senza ruotare.', 'Risali contraendo il fianco libero e vai leggermente oltre la verticale.', 'Finisci la serie e cambia mano.'],
+    cue: 'Il lavoro lo fa il fianco OPPOSTO al manubrio, quando risali.', why: 'Obliqui e quadrato dei lombi con carico regolabile; utile anche per la mobilità del tronco.', err: ['Inclinarsi in avanti o indietro', 'Ruotare il busto', 'Spostare il bacino di lato per “aiutare”', 'Usare un peso troppo alto']});
+  A({id: 'a-side-bend-cavo', n: 'Flessione laterale al cavo basso', a: 'Cavi', eq: 'cable', one: true, an: [258, 212], st: 'stand', fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
+    fr: [[4, 4, {t: 180}], [4, 4, {t: 180}]], cap: ['Di lato alla torre, maniglia nella mano vicina al cavo', 'Il busto si piega verso la torre e torna (movimento laterale, non mostrato dal 3D)'],
+    trj: 'Come il side bend con manubrio, ma la resistenza del cavo è costante lungo tutto il movimento: il busto si inclina verso la torre e risale contraendo il fianco opposto.',
+    set: 'Cavo BASSO con maniglia singola. Stai di lato alla torre, maniglia nella mano vicina alla torre, braccio disteso lungo il fianco.', pos: 'Piedi alla larghezza delle anche, ginocchia morbide, bacino fermo.',
+    ese: ['Inclina il busto verso la torre lasciando scendere la maniglia.', 'Risali contraendo il fianco opposto fino a superare leggermente la verticale.', 'Scendi controllato: il cavo tira per tutta la serie.', 'Cambia lato.'],
+    cue: 'Allontanati dalla torre con le costole, non con il bacino.', why: 'Tensione continua sugli obliqui, senza dover tenere un manubrio pesante.', err: ['Ruotare il busto', 'Piegare il braccio', 'Spostare il bacino']});
+  A({id: 'a-side-plank', n: 'Plank laterale', st: 'floor', m: 'Obliqui, quadrato dei lombi, core (isometrico)', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome, medio gluteo',
+    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 2}]], cap: ['Posizione tenuta sul fianco: gomito sotto la spalla, corpo in linea (il 3D mostra il plank classico)', 'Il bacino resta alto per tutta la tenuta'],
+    trj: 'Nessun movimento: sei sdraiato su un fianco, appoggiato sull’avambraccio e sul bordo del piede, e tieni il corpo dritto come una tavola, con il bacino sollevato da terra.',
+    set: 'Tappetino a terra. Sdraiati su un fianco, gomito sotto la spalla, avambraccio a terra perpendicolare al corpo, piedi uno sopra l’altro (o uno davanti all’altro per più equilibrio).', pos: 'Testa, spalle, bacino e piedi in linea; la mano libera sul fianco o verso il soffitto.',
+    ese: ['Solleva il bacino da terra fino ad avere il corpo in linea.', 'Spingi il gomito nel pavimento e tieni il fianco basso attivo.', 'Respira e tieni 20-45 secondi, poi cambia lato.'],
+    cue: 'Non lasciare che il bacino scenda: immagina una corda che lo tira verso il soffitto.', why: 'L’esercizio più semplice per gli obliqui e la stabilità laterale, importante per la schiena e per squat e stacchi.', err: ['Bacino che scende o va indietro', 'Spalla che “affonda” (gomito non sotto la spalla)', 'Trattenere il respiro', 'Ruotare il busto verso terra']});
+  A({id: 'a-side-plank-hip', n: 'Plank laterale con bacino su e giù', st: 'floor', m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome, medio gluteo',
+    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 6}]], cap: ['Plank laterale: bacino alto (il 3D mostra il plank classico)', 'Il bacino scende a sfiorare terra e risale'],
+    trj: 'Dalla posizione di plank laterale, il bacino scende verso terra fino quasi a toccarla e risale sopra la linea del corpo: è il side bend in isometria dinamica.',
+    set: 'Tappetino a terra, posizione di plank laterale sull’avambraccio.', pos: 'Gomito sotto la spalla, corpo in linea, piedi uno sopra l’altro.',
+    ese: ['Dal plank laterale abbassa il bacino verso terra senza appoggiarlo.', 'Risali contraendo il fianco fino a superare la linea del corpo.', 'Fai le ripetizioni e cambia lato.'],
+    cue: 'Movimento lento: 2 secondi giù, 2 su.', why: 'Versione dinamica del plank laterale: obliqui e quadrato dei lombi con più ripetizioni e meno tempo di tenuta.', err: ['Ruotare il busto', 'Toccare terra e “rimbalzare”', 'Spalla che affonda']});
+})();
