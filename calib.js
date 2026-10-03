@@ -746,7 +746,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => {
   const MM = 'retto addominale, obliqui esterni e interni, trasverso dell’addome';
   const A = o => { if (EX.some(e => e.id === o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', m: 'Addominali', mm: MM, lin: true}, o)); };
-  const LIE = {h: [150, 210], t: 270};   // sdraiato a terra sul tappetino, testa a sinistra, piedi verso la torre
+  const LIE = {h: [150, 197], t: 270};   // sdraiato a terra sul tappetino, testa a sinistra, piedi verso la torre
   // --- a terra, corpo libero ---
   A({id: 'a-crunch-terra', n: 'Crunch a terra', st: 'floor', m: 'Retto dell’addome (parte alta)', mm: 'retto addominale (fasci superiori), obliqui esterni e interni',
     fr: [[-105, -20, {...LIE, th: 125, sh: 45}], [-80, -20, {...LIE, t: 232, cu: 38, th: 125, sh: 45}]], cap: ['Sdraiato, ginocchia piegate, mani alla testa', 'Spalle staccate da terra, schiena bassa che resta appoggiata'],
@@ -777,17 +777,17 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Alza le gambe di 20-30 cm.', 'Alterna piccoli calci su e giù, gambe tese.', 'Continua per il tempo o le ripetizioni previste.'],
     cue: 'Movimento piccolo e veloce, addome sempre contratto.', why: 'Tenuta prolungata della parte bassa dell’addome.', err: ['Schiena che si inarca', 'Gambe troppo alte', 'Trattenere il respiro']});
   A({id: 'a-hollow', n: 'Hollow hold (tenuta a barchetta)', st: 'floor', m: 'Core completo (isometrico)', mm: 'retto addominale, trasverso dell’addome, obliqui, flessori dell’anca',
-    fr: [[-150, -150, {...LIE, t: 250, cu: 20, th: 112, sh: 112}], [-150, -150, {...LIE, t: 248, cu: 22, th: 118, sh: 118}]], cap: ['Braccia dietro, gambe tese sollevate, spalle staccate', 'Posizione tenuta: piccola oscillazione'],
+    fr: [[-150, -150, {...LIE, h: [150, 203], t: 250, cu: 20, th: 112, sh: 112}], [-150, -150, {...LIE, h: [150, 203], t: 248, cu: 22, th: 118, sh: 118}]], cap: ['Braccia dietro, gambe tese sollevate, spalle staccate', 'Posizione tenuta: piccola oscillazione'],
     set: 'Tappetino a terra. Sdraiati, braccia distese dietro la testa, gambe tese.', pos: 'Zona lombare schiacciata a terra, spalle e gambe sollevate: il corpo è una barchetta.',
     ese: ['Schiaccia la schiena bassa a terra.', 'Solleva spalle, braccia e gambe di 15-20 cm.', 'Tieni 20-40 secondi respirando.'],
     cue: 'Prima schiaccia la schiena a terra, poi alza il resto.', why: 'La base della stabilità del tronco: insegna a tenere il bacino neutro sotto carico.', err: ['Lombare che si stacca', 'Gambe troppo alte (troppo facile)', 'Trattenere il respiro']});
   A({id: 'a-dead-bug', n: 'Dead bug', st: 'floor', m: 'Trasverso, core (stabilità)', mm: 'trasverso dell’addome, retto addominale, obliqui, flessori dell’anca', rl: 170,
-    fr: [[180, 180, {...LIE, th: 170, sh: 90}], [-140, -140, {...LIE, th: 110, sh: 110}]], cap: ['Braccia verso il soffitto, ginocchia sopra le anche', 'Braccio dietro la testa e gamba opposta distesa'],
+    fr: [[180, 180, {...LIE, h: [150, 202], th: 170, sh: 90}], [-140, -140, {...LIE, h: [150, 202], th: 110, sh: 110}]], cap: ['Braccia verso il soffitto, ginocchia sopra le anche', 'Braccio dietro la testa e gamba opposta distesa'],
     set: 'Tappetino a terra. Sdraiati, braccia verso il soffitto, cosce verticali e ginocchia a 90°.', pos: 'Zona lombare appoggiata per tutto l’esercizio.',
     ese: ['Distendi lentamente un braccio dietro la testa e la gamba opposta in avanti.', 'Fermati a pochi cm da terra.', 'Torna e cambia lato.'],
     cue: 'La schiena non deve mai staccarsi da terra: se succede, accorcia il movimento.', why: 'Stabilità del tronco a basso rischio: ottimo per iniziare e per la schiena.', err: ['Lombare che si inarca', 'Movimento veloce', 'Trattenere il respiro']});
   A({id: 'a-vup', n: 'V-up', st: 'floor', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, obliqui, ileopsoas, retto femorale',
-    fr: [[-160, -160, {...LIE, th: 95, sh: 95}], [115, 115, {...LIE, t: 210, th: 150, sh: 150}]], cap: ['Disteso, braccia dietro la testa', 'Busto e gambe salgono insieme: mani verso i piedi'],
+    fr: [[-160, -160, {...LIE, th: 95, sh: 95}], [115, 115, {...LIE, h: [150, 203], t: 210, th: 150, sh: 150}]], cap: ['Disteso, braccia dietro la testa', 'Busto e gambe salgono insieme: mani verso i piedi'],
     set: 'Tappetino a terra. Sdraiati completamente disteso, braccia dietro la testa.', pos: 'Gambe tese, braccia tese.',
     ese: ['Solleva contemporaneamente busto e gambe.', 'Tocca (o avvicina) i piedi con le mani formando una V.', 'Scendi controllato senza appoggiare del tutto.'],
     cue: 'Sali con il fiato che esce, scendi piano.', why: 'Esercizio avanzato: tutta la catena addominale in un movimento solo.', err: ['Slancio con le braccia', 'Schiena curva in alto', 'Cadere in discesa']});
@@ -797,18 +797,18 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Arrotola prima le spalle, poi tutta la schiena fino a sederti.', 'Tocca le ginocchia con i gomiti.', 'Scendi vertebra dopo vertebra.'],
     cue: 'Sali arrotolando, non come una tavola rigida.', why: 'Movimento completo: addome più flessori dell’anca. Ottimo con un disco o manubrio al petto per progredire.', err: ['Salire rigido con la schiena dritta', 'Tirare il collo', 'Lasciarsi cadere']});
   A({id: 'a-plank', n: 'Plank sui gomiti', st: 'floor', m: 'Core completo (isometrico)', mm: 'trasverso dell’addome, retto addominale, obliqui, glutei, erettori spinali',
-    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 0}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 2}]], cap: ['Gomiti sotto le spalle, corpo in linea', 'Posizione tenuta: glutei stretti, bacino neutro'],
+    fr: [[0, 90, {h: [150, 181], t: 92, th: -66, sh: -66, lift: 0}], [0, 90, {h: [150, 181], t: 92, th: -66, sh: -66, lift: 2}]], cap: ['Gomiti sotto le spalle, corpo in linea', 'Posizione tenuta: glutei stretti, bacino neutro'],
     set: 'Tappetino a terra. Avambracci a terra, gomiti sotto le spalle, piedi uniti o poco larghi.', pos: 'Testa, schiena e bacino in linea; glutei contratti.',
     ese: ['Mettiti sugli avambracci e sulle punte dei piedi.', 'Stringi glutei e addome, respira.', 'Tieni 30-60 secondi senza far cadere i fianchi.'],
     cue: 'Immagina di portare i gomiti verso i piedi: l’addome si accende.', why: 'La tenuta più semplice ed efficace per il tronco; protegge la schiena negli esercizi pesanti.', err: ['Fianchi che scendono', 'Sedere troppo alto', 'Testa che pende']});
   A({id: 'a-mountain', n: 'Mountain climber', st: 'floor', m: 'Core, flessori anca (dinamico)', mm: 'retto addominale, obliqui, ileopsoas, spalle (stabilità)', rl: -45,
-    fr: [[0, 0, {h: [150, 154], t: 92, th: -45, sh: -45}], [0, 0, {h: [150, 154], t: 92, th: 75, sh: -10}]], cap: ['Plank sulle mani, corpo in linea', 'Un ginocchio verso il petto, l’altro piede resta dietro'],
+    fr: [[0, 0, {h: [150, 150], t: 92, th: -42, sh: -42}], [0, 0, {h: [150, 150], t: 92, th: 75, sh: -10}]], cap: ['Plank sulle mani, corpo in linea', 'Un ginocchio verso il petto, l’altro piede resta dietro'],
     set: 'Tappetino a terra. Posizione di plank sulle mani, mani sotto le spalle.', pos: 'Schiena piatta, bacino fermo mentre le gambe si muovono.',
     ese: ['Porta un ginocchio verso il petto.', 'Riportalo indietro e cambia gamba.', 'Vai lento (controllo) o veloce (fiato).'],
     cue: 'Il bacino non rimbalza: si muovono solo le gambe.', why: 'Addome dinamico più lavoro cardiovascolare, senza attrezzi.', err: ['Sedere che si alza', 'Schiena che cede', 'Spalle davanti alle mani']});
   // --- con manubrio ---
   A({id: 'a-russian-twist', n: 'Russian twist con manubrio', a: 'Manubri', eq: 'db', gz: 6, m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, trasverso', fin: ['massa', 'tonificare'],
-    st: 'floor', fr: [[70, 75, {h: [112, 210], t: 150, th: 110, sh: 60, tw: 45, zs: 40}], [70, 75, {h: [112, 210], t: 150, th: 110, sh: 60, tw: -45, zs: -40}]], cap: ['Seduto, busto indietro, manubrio a destra', 'Rotazione: manubrio a sinistra'],
+    st: 'floor', fr: [[70, 75, {h: [112, 204], t: 150, th: 110, sh: 60, tw: 45, zs: 40}], [70, 75, {h: [112, 204], t: 150, th: 110, sh: 60, tw: -45, zs: -40}]], cap: ['Seduto, busto indietro, manubrio a destra', 'Rotazione: manubrio a sinistra'],
     set: 'Tappetino a terra, un manubrio leggero tenuto con due mani. Seduto, ginocchia piegate, piedi sollevati (o a terra per facilitare).', pos: 'Busto inclinato indietro di 45°, schiena dritta.',
     ese: ['Porta il manubrio di fianco a un’anca ruotando il busto.', 'Passa dall’altra parte controllando il movimento.', 'Le spalle ruotano, i fianchi restano fermi.'],
     cue: 'Ruota le spalle, non solo le braccia.', why: 'Obliqui con carico regolabile: aumenta il manubrio invece delle ripetizioni.', err: ['Curvare la schiena', 'Muovere solo le braccia', 'Andare veloci con peso alto']});
@@ -852,7 +852,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Arrotola la colonna portando un gomito verso il ginocchio opposto.', 'Contrai 1 secondo.', 'Risali e alterna il lato.'],
     cue: 'Ruota mentre scendi, non dopo.', why: 'Variante del crunch al cavo per gli obliqui con carico regolabile.', err: ['Piegarsi dalle anche', 'Ruotare solo le braccia']});
   A({id: 'a-crunch-inverso-cavo', n: 'Crunch inverso al cavo (cavigliera)', a: 'Cavi', eq: 'cable', cp: 'ankle', an: [258, 212], m: 'Retto dell’addome (parte bassa)', mm: 'retto addominale (fasci inferiori), obliqui, ileopsoas', fin: ['massa', 'tonificare'], st: 'floor',
-    fr: [[90, 90, {h: [120, 210], t: 270, th: 100, sh: 100}], [90, 90, {h: [120, 210], t: 270, th: 170, sh: 170, lift: 6}]], cap: ['Sdraiato, cavigliera alle caviglie, gambe sollevate', 'Gambe verticali e bacino staccato'],
+    fr: [[90, 90, {h: [120, 197], t: 270, th: 100, sh: 100}], [90, 90, {h: [120, 197], t: 270, th: 170, sh: 170, lift: 6}]], cap: ['Sdraiato, cavigliera alle caviglie, gambe sollevate', 'Gambe verticali e bacino staccato'],
     set: 'Cavo BASSO con cavigliera (o una cavigliera per gamba). Sdraiati a terra con i piedi verso la torre, mani sotto i glutei (o aggrappate a qualcosa dietro la testa).', pos: 'Schiena bassa a terra, gambe quasi tese.',
     ese: ['Parti con le gambe sollevate e il cavo in tensione.', 'Alza le gambe arrotolando il bacino contro la resistenza.', 'Scendi lentamente.'],
     cue: 'Il cavo tira verso il basso: resistigli nella discesa.', why: 'Leg raise con carico regolabile: progressione vera per la parte bassa dell’addome.', err: ['Schiena che si inarca', 'Slancio', 'Peso eccessivo']});
@@ -896,13 +896,13 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Inclina il busto verso la torre lasciando scendere la maniglia.', 'Risali contraendo il fianco opposto fino a superare leggermente la verticale.', 'Scendi controllato: il cavo tira per tutta la serie.', 'Cambia lato.'],
     cue: 'Allontanati dalla torre con le costole, non con il bacino.', why: 'Tensione continua sugli obliqui, senza dover tenere un manubrio pesante.', err: ['Ruotare il busto', 'Piegare il braccio', 'Spostare il bacino']});
   A({id: 'a-side-plank', n: 'Plank laterale', st: 'floor', m: 'Obliqui, quadrato dei lombi, core (isometrico)', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome, medio gluteo',
-    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 2}]], cap: ['Posizione tenuta sul fianco: gomito sotto la spalla, corpo in linea (il 3D mostra il plank classico)', 'Il bacino resta alto per tutta la tenuta'],
+    fr: [[0, 90, {h: [150, 181], t: 92, th: -66, sh: -66}], [0, 90, {h: [150, 181], t: 92, th: -66, sh: -66, lift: 2}]], cap: ['Posizione tenuta sul fianco: gomito sotto la spalla, corpo in linea (il 3D mostra il plank classico)', 'Il bacino resta alto per tutta la tenuta'],
     trj: 'Nessun movimento: sei sdraiato su un fianco, appoggiato sull’avambraccio e sul bordo del piede, e tieni il corpo dritto come una tavola, con il bacino sollevato da terra.',
     set: 'Tappetino a terra. Sdraiati su un fianco, gomito sotto la spalla, avambraccio a terra perpendicolare al corpo, piedi uno sopra l’altro (o uno davanti all’altro per più equilibrio).', pos: 'Testa, spalle, bacino e piedi in linea; la mano libera sul fianco o verso il soffitto.',
     ese: ['Solleva il bacino da terra fino ad avere il corpo in linea.', 'Spingi il gomito nel pavimento e tieni il fianco basso attivo.', 'Respira e tieni 20-45 secondi, poi cambia lato.'],
     cue: 'Non lasciare che il bacino scenda: immagina una corda che lo tira verso il soffitto.', why: 'L’esercizio più semplice per gli obliqui e la stabilità laterale, importante per la schiena e per squat e stacchi.', err: ['Bacino che scende o va indietro', 'Spalla che “affonda” (gomito non sotto la spalla)', 'Trattenere il respiro', 'Ruotare il busto verso terra']});
   A({id: 'a-side-plank-hip', n: 'Plank laterale con bacino su e giù', st: 'floor', m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome, medio gluteo',
-    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 6}]], cap: ['Plank laterale: bacino alto (il 3D mostra il plank classico)', 'Il bacino scende a sfiorare terra e risale'],
+    fr: [[0, 90, {h: [150, 181], t: 92, th: -66, sh: -66}], [0, 90, {h: [150, 181], t: 92, th: -66, sh: -66, lift: 6}]], cap: ['Plank laterale: bacino alto (il 3D mostra il plank classico)', 'Il bacino scende a sfiorare terra e risale'],
     trj: 'Dalla posizione di plank laterale, il bacino scende verso terra fino quasi a toccarla e risale sopra la linea del corpo: è il side bend in isometria dinamica.',
     set: 'Tappetino a terra, posizione di plank laterale sull’avambraccio.', pos: 'Gomito sotto la spalla, corpo in linea, piedi uno sopra l’altro.',
     ese: ['Dal plank laterale abbassa il bacino verso terra senza appoggiarlo.', 'Risali contraendo il fianco fino a superare la linea del corpo.', 'Fai le ripetizioni e cambia lato.'],
