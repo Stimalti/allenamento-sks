@@ -5,7 +5,8 @@ App autonoma (nessun server, nessun account): apri `index.html` da un hosting st
 - **Esercizi**: 74 esercizi ricercabili, con illustrazione animata (partenza → arrivo), impostazione di cavi/altezze, tecnica, perché, errori.
 - **Giorno 1-4**: schede per la forza (petto+tricipiti / schiena+bicipiti+avambracci / spalle+braccia / gambe+addominali).
 - **Giulia**: gambe e glutei (A e B), con pesi separati dai tuoi.
-- Pesi e ripetizioni si salvano da soli a ogni modifica (sul dispositivo). "Fine allenamento" li archivia nello storico; ⚙ → esporta/importa backup.
+- Due modi d'uso: **Prepara** (la scheda del giorno: esercizi, serie, ripetizioni, programmi pronti, proposte) e **Allenati** (un esercizio alla volta: pesi, ✓ serie con timer automatico, note, "Come si fa" con animazione 3D, video e spiegazione). "Fine allenamento" archivia nello storico; ⚙ → backup e **Attrezzi disponibili** (di base senza bilanciere libero).
+- La versione precedente (v69) è conservata come "versione 0" nella cartella `v0/` del sito e nel tag git `v0`.
 
 Hosting gratuito possibile: GitHub Pages o Netlify puntando alla cartella `allenamento/`.
 Prova locale: `cd allenamento && python3 -m http.server 8000`.

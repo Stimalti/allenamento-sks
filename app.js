@@ -12,7 +12,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {};
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {};
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
@@ -81,7 +81,7 @@ const tabPlan = id => id === 'giulia' ? 'gA' : id;
 const rtList = id => DB.rt[id] || (DB.rt[id] = []);
 const customPlan = id => { const base = PLAN.find(p => p.id === id);
   return {id, custom: true, profilo: id === 'mia' ? 'mia' : id[0] === 'g' && id.length === 2 && id[1] > '9' ? 'giulia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : dayName(id), sotto: DB.names[id] ? (DB.names[id].m || '') : '',
-    obiettivo: 'Esercizi scelti da te: aggiungili o toglili dalla Libreria con il tasto + e riordinali qui sotto.',
+    obiettivo: 'Tocca ALLENATI per fare gli esercizi uno alla volta, con pesi, timer di recupero e spiegazioni. Qui sotto prepari la scheda: aggiungi, togli, riordina.',
     ex: rtList(id).filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))}; };
 const planOf = id => CUST.includes(id) ? customPlan(id) : PLAN.find(p => p.id === id);
 const inRt = (rid, id) => rtList(rid).some(x => x.e === id);
@@ -108,6 +108,8 @@ let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
+const avail = e => !DB.noatt[e.a];   // attrezzo disponibile (impostazioni → Attrezzi disponibili)
+const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
@@ -220,38 +222,67 @@ function exCard(x, idx, prof, pl) {
   const cu = pl && pl.custom, pid = pl && pl.id;
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s);
   const done = c.sets.filter(s => s.done).length;
-  return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
-   ${cov(ex.id, 'cover')}${cu ? `<div class="mctl"><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">Togli</button></div>` : ''}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
-    <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
-   ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>recupero</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
+  return `<article class="card ex prep" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
+   <div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>${cov(ex.id, 'thumb')}
+    <div style="min-width:0;flex:1"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}${avail(ex) ? '' : '<span class="tag na">attrezzo non disponibile</span>'}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
+   ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><button class="ghost" data-act="addset" data-k="${k}" data-n="${c.sets.length}" aria-label="Più serie">+</button><button class="ghost" data-act="delset" data-k="${k}" data-n="${c.sets.length}" aria-label="Meno serie">−</button><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>rec.</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
    ${cu && ex.fin ? `<div class="objrow"><span>Obiettivo</span>${ex.fin.map(f => `<button class="${x.obj === f ? 'on' : ''}" data-act="objset" data-pid="${pid}" data-id="${ex.id}" data-f="${f}">${FIN[f]}</button>`).join('')}</div>${x.obj && presOf(ex, x.obj) ? `<div class="objtip">Consigliato per ${FIN[x.obj].toLowerCase()}: ${presOf(ex, x.obj).sr} × ${presOf(ex, x.obj).r}, recupero ${presOf(ex, x.obj).rec} · ${esc(pesoTxt(ex, x.obj))}</div>` : ''}` : `<div class="role">${esc(x.ruolo)}</div>`}
-   ${setsHtml(k, x.s, x.r)}${lastLine(k)}${hintLine(k, x.r)}
-   <details class="tech"><summary>Tecnica 3D, cavi e spiegazione</summary><div class="tb">${techHtml(ex)}</div></details>
+   ${lastLine(k)}${DB.notes[ex.id] ? `<div class="last">📝 ${esc(DB.notes[ex.id])}</div>` : ''}
+   <div class="sbar"><button data-act="open" data-id="${ex.id}">🎬 Come si fa</button><button data-act="hist" data-k="${k}">Storico</button>${cu ? `<span style="flex:1"></span><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">Togli</button>` : ''}</div>
   </article>`;
 }
 
 const secs = rec => { const m = String(rec).match(/(\d+)\s*min/), t = String(rec).match(/(\d+)\s*s\b/); return m ? +m[1] * 60 : t ? +t[1] : 20; };
+const planTot = (p, prof) => { let tot = 0, dn = 0, mins = 0; p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); }); return {tot, dn, mins}; };
 function planView(p, prof) {
-  let tot = 0, dn = 0, mins = 0;
-  p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); });
+  const {tot, dn, mins} = planTot(p, prof);
   const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
   return `<section class="hero"><div class="eyebrow">${p.custom ? 'Allenamento' : prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
    <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
-   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div></section>
-   ${p.custom ? custTools(p) : ''}
+   <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
+   <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button></section>
+   ${p.custom ? `<div class="prepH"><h3>🛠 Prepara la scheda</h3><small>serie, ripetizioni, ordine ed esercizi</small></div>${custTools(p)}` : ''}
    ${p.ex.map((x, i) => exCard(x, i, prof, p)).join('')}
    ${p.custom ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : ''}
-   <button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">Fine allenamento · salva nello storico</button>`;
+   ${dn ? `<button class="ghost addmore" data-act="finish" data-p="${p.id}" data-prof="${prof}">🏁 Fine allenamento · salva nello storico (${dn} serie fatte)</button>` : ''}`;
+}
+
+/* ---------- modalità allenamento: un esercizio alla volta ---------- */
+const TR = {on: false, pid: null, i: 0, how: false};
+try { const t = JSON.parse(localStorage.getItem('sks_train') || 'null'); if (t && t.on && CUST.includes(t.pid)) Object.assign(TR, t); } catch (e) {}
+const trSave = () => { try { localStorage.setItem('sks_train', JSON.stringify(TR)); } catch (e) {} };
+function trainStart(pid) {
+  const p = planOf(pid); if (!p || !p.ex.length) { flash('Scheda vuota: aggiungi prima gli esercizi'); return; }
+  const prof = p.profilo || 'io'; let i = p.ex.findIndex(x => { const c = curFor(pk(prof, x.e), x.s); return c.sets.some(s => !s.done); }); if (i < 0) i = 0;
+  TR.on = true; TR.pid = pid; TR.i = i; trSave(); tab = pid === 'gA' ? 'giulia' : pid; location.hash = tab; render(); window.scrollTo(0, 0);
+}
+function trainExit() { TR.on = false; trSave(); render(); window.scrollTo(0, 0); }
+function trainView() {
+  const p = planOf(TR.pid), prof = p.profilo || 'io', n = p.ex.length; TR.i = Math.max(0, Math.min(TR.i, n - 1));
+  const x = p.ex[TR.i], ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s), {tot, dn} = planTot(p, prof);
+  const dots = p.ex.map((y, j) => { const cc = curFor(pk(prof, y.e), y.s), d = cc.sets.filter(s => s.done).length; return `<button class="tdot ${j === TR.i ? 'cur' : ''} ${d >= cc.sets.length ? 'done' : d ? 'part' : ''}" data-act="trgo" data-i="${j}" aria-label="${esc(byId[y.e].n)}">${j + 1}</button>`; }).join('');
+  return `<div class="ttop"><button class="ghost" data-act="trexit">✕ Esci</button><div class="tprog"><b>Esercizio ${TR.i + 1} di ${n}</b><div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><small>${dn}/${tot} serie completate</small></div><button class="ghost" data-act="tmopen" aria-label="Timer recupero">⏱</button></div>
+   <div class="tdots">${dots}</div>
+   <article class="card ex train" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
+    ${cov(ex.id, 'cover')}<div class="exh"><span class="num ${c.sets.every(s => s.done) ? 'done' : ''}">${TR.i + 1}</span>
+     <div style="min-width:0;flex:1"><h2>${esc(ex.n)}</h2><div class="meta">${gtag(ex)}${cab(ex)}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
+    <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span>${x.obj && FIN[x.obj] ? `<span>· ${FIN[x.obj]}</span>` : ''}</div>
+    ${lastLine(k)}${hintLine(k, x.r)}
+    <button class="howbtn ${TR.how ? 'on' : ''}" data-act="trhow">🎬 Come si fa${TR.how ? ' · chiudi' : ''}<small>animazione 3D · video · spiegazione passo passo</small></button>
+    ${TR.how ? `<div class="tb howbox">${techHtml(ex)}<button class="ghost addmore" data-act="trhow" style="margin-top:12px">▲ Chiudi e vai alle serie</button></div>` : ''}
+    ${setsHtml(k, x.s, x.r)}
+   </article>
+   <div class="tbarnav"><button class="ghost" data-act="trprev"${TR.i === 0 ? ' disabled' : ''}>◀ Prec.</button>${TR.i < n - 1 ? `<button class="primary" data-act="trnext">Prossimo: ${esc(byId[p.ex[TR.i + 1].e].n.split(' (')[0].slice(0, 26))} ▶</button>` : `<button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">🏁 Fine allenamento</button>`}</div>`;
 }
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
-  const atts = [...new Set(EX.map(e => e.a))];
+  const atts = ATT_AV();
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
   <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti (' + Object.keys(DB.fav).length + ')', sid)}</div>
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
@@ -259,10 +290,10 @@ function filters(st, sid, qid) {
   <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
   <div class="chips">${chip('a', '', 'Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>`;
 }
-const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.length} esercizi</div>
+const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`; };
 function libView() { return `<div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="presets">📋 Programmi pronti (forza · massa · tonificare)</button></div>${filters(lib, 'lib', 'q')}<div id="libres">${libRes()}</div>`; }
-const pickRes = pid => { const list = filt(pick); return `<div class="count">${list.length} di ${EX.length} esercizi</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
+const pickRes = pid => { const list = filt(pick); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
 const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
@@ -279,16 +310,20 @@ function render(keep) {
   $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[tabPlan(x.id)]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); if (!nm.m && nm.n.length > 7) a = [nm.n.slice(0, 7) + '.']; }
     return `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${esc(full)}"><i>${x.b}</i><span>${a.map(esc).join('<br>')}</span></button>`; }).join('');
   let h;
-  if (tab === 'lib') h = libView();
+  const training = TR.on && CUST.includes(TR.pid) && tab === (TR.pid === 'gA' ? 'giulia' : TR.pid) && planOf(TR.pid).ex.length;
+  document.body.classList.toggle('training', !!training);
+  if (training) { const p = planOf(TR.pid); $('#ttl').innerHTML = esc(p.nome) + '<small>Allenamento in corso · esercizio ' + (Math.min(TR.i, p.ex.length - 1) + 1) + ' di ' + p.ex.length + '</small>'; h = trainView(); }
+  else if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
     h = custView(planOf('gA'));
   } else if (CUST.includes(tab)) {
     h = custView(planOf(tab));
   } else h = planView(planOf(tab), 'io');
   $('#main').innerHTML = h;
+  if (training && TR.how) { const f = $('#main [data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount); loadMine($('#main')); }
   if (keep) window.scrollTo(0, y);
 }
-function go(id) { tab = id; location.hash = id; render(); window.scrollTo(0, 0); }
+function go(id) { if (TR.on && id !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } tab = id; location.hash = id; render(); window.scrollTo(0, 0); }
 
 /* ---------- modali ---------- */
 function ask(msg, label, cb) {
@@ -421,7 +456,7 @@ const wizPrio = e => !!e.prio && (!WZ.att.length || WZ.att.includes('Cavi')) && 
 // spalle ai cavi: prima gli esercizi con un solo cavo e due mani (corda, barra, maniglia doppia)
 const wizPrioSp = e => e.g === 'spalle' && e.eq === 'cable' && !!e.unCavo && !e.one && WZ.mus.includes('spalle') && (!WZ.att.length || WZ.att.includes('Cavi'));
 function wizPool() {
-  return EX.filter(e => (wizPrio(e) || ((!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
+  return EX.filter(e => avail(e) && (wizPrio(e) || ((!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
   const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
@@ -439,7 +474,7 @@ function wizHtml() {
   const chip2 = (t, v, on, l) => `<button class="chip ${on ? 'on' : ''}" data-act="wzchip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
   if (WZ.step === 1) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
     <p class="vnote">Scegli attrezzi, muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito (stesso attrezzo o stessa postazione).</p>
-    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti')}${ATT_ALL().map(a => chip2('att', a, WZ.att.includes(a), a)).join('')}</div>
+    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a)).join('')}</div>
     <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
     <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
     <h3>Un braccio o due</h3><div class="chips wrap">${chip2('lato', '', !WZ.lato, 'Indifferente')}${Object.entries(LATO).map(([k, v]) => chip2('lato', k, WZ.lato === k, v)).join('')}</div>
@@ -463,7 +498,7 @@ const PRESETS = [
    ex: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
   {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare · corpo intero (parte alta)', d: 'Tutto ai cavi con una sola torre, 12-15 ripetizioni e recuperi brevi: circa 35-40 minuti.',
    ex: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
-function presetItems(P) { return P.ex.filter(id => byId[id]).map(id => { const ex = byId[id], pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
+function presetItems(P) { return P.ex.filter(id => byId[id] && avail(byId[id])).map(id => { const ex = byId[id], pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
 function presetsHtml(pid) {
   const dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
@@ -520,6 +555,7 @@ function tmTick() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) tmTick(); });
 if (TM.run) setTimeout(tmShow, 50);
+const attlHtml = () => `<div class="attl">${ATT_ALL().map(a => `<button class="${DB.noatt[a] ? '' : 'on'}" data-act="atttog" data-a="${esc(a)}">${DB.noatt[a] ? '✕' : '✓'} ${esc(a)} <small>(${EX.filter(e => e.a === a).length})</small></button>`).join('')}</div>`;
 function settings() {
   setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
@@ -535,7 +571,7 @@ function settings() {
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
-   <div class="card"><h2>Attrezzatura prevista</h2><p>Powerrack Atletica SKS con safety, bilanciere e dischi, manubri, panca regolabile con attacco leg extension, jammer arms, doppia puleggia (cavi alto/basso) con corda, barra dritta/V, maniglie singole e cavigliera, sbarra per trazioni, Smith machine (per le varianti guidate). Se manca qualcosa, nella Libreria filtra per attrezzo e sostituisci.</p></div>
+   <div class="card"><h2>Attrezzi disponibili</h2><p>Spegni gli attrezzi che non hai: i loro esercizi spariscono dalla libreria, dalle proposte e dai programmi pronti (quelli già nelle schede restano, segnalati). Powerrack Atletica SKS: safety, manubri, panca regolabile, jammer arms, doppia puleggia con corda/barra/maniglie/cavigliera, sbarra, parallele, Smith machine.</p>${attlHtml()}</div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Le icone degli esercizi sono disegnate con lo stesso modello 3D.</p></div>
    <div class="card"><button class="ghost danger" data-act="wipe">Cancella tutti i pesi</button></div>`);
 }
@@ -560,7 +596,8 @@ document.addEventListener('click', e => {
   else if (a === 'rensave') { const id = b.dataset.id; DB.names[id] = {n: $('#rn-n').value.trim(), m: $('#rn-m').value.trim()}; save(); closeModal(); render(true); }
   else if (a === 'renreset') { const id = b.dataset.id; delete DB.names[id]; save(); closeModal(); render(true); }
   else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress();
-    if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); } }
+    if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); }
+    if (TR.on && s.done && DB.cur[k].sets.every(z => z.done)) setTimeout(() => flash('✓ Esercizio completato: quando sei pronto tocca Prossimo'), 1200); }
   else if (a === 'tmadj') { const d = +b.dataset.d; if (TM.run) TM.end += d * 1000; else TM.left = Math.max(0, TM.left + d); TM.total = Math.max(TM.total, TM.run ? (TM.end - Date.now()) / 1000 : TM.left); if (TM.run && TM.end - Date.now() > 10500) TM.pre = false; tmTick(); tmSave(); }
   else if (a === 'tmplay') { tmAudio(); if (TM.run) { TM.left = Math.max(0, (TM.end - Date.now()) / 1000); TM.run = false; } else { if (TM.left <= 0) TM.left = TM.last || 90; TM.end = Date.now() + TM.left * 1000; TM.run = true; TM.done = false; TM.pre = TM.left <= 10; } tmTick(); tmSave(); }
   else if (a === 'tmset') { TM.pre = false; tmStart(+b.dataset.s); }
@@ -570,9 +607,10 @@ document.addEventListener('click', e => {
     const c = DB.cur[k], n = Math.max(1, c.sets.length + (a === 'addset' ? 1 : -1));
     if (a === 'delset') c.sets.length = n; else curFor(k, n);
     save(); const host = b.closest('.ex, #mbody'); const holder = host.querySelector('[data-sets]');
+    if (!holder) { render(true); return; }   // scheda in preparazione: basta ridisegnare il numero di serie
     const tgt = b.closest('.ex') ? (planFind(k)?.r || '') : '';
     const tmp = document.createElement('div'); tmp.innerHTML = setsHtml(k, n, tgt);
-    holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
+    holder.replaceWith(tmp.querySelector('[data-sets]')); const sb = b.closest('.sbar'); if (sb) sb.querySelectorAll('button').forEach(x => x.dataset.n = n);
     const pre = host.querySelector('.presc b'); if (pre) { const sp = pre.querySelector('.n'); if (sp) sp.textContent = n; else pre.textContent = n + ' × ' + (planFind(k)?.r || ''); } refreshProgress();
   }
   else if (a === 'vdel') { const id = b.dataset.id, key = b.dataset.k, root = b.closest('.tb, #mbody') || document; const x = (DB.myv[id] || []).find(v => v.k === key);
@@ -582,6 +620,12 @@ document.addEventListener('click', e => {
     if (!p || !/^https?:$/.test(p.protocol) || !p.hostname.includes('.')) { flash('⚠ Link non valido'); return; }
     (DB.myv[id] = DB.myv[id] || []).push({t: 'u', k: 'u' + Date.now(), u: p.href, n: p.hostname.replace(/^www\./, '')}); save(); inp.value = ''; flash('✓ Link aggiunto'); loadMine(b.closest('.tb, #mbody') || document); }
   else if (a === 'hist') histView(k);
+  else if (a === 'train') trainStart(b.dataset.pid);
+  else if (a === 'trexit') trainExit();
+  else if (a === 'trprev' || a === 'trnext') { TR.i += a === 'trnext' ? 1 : -1; trSave(); render(); window.scrollTo(0, 0); }
+  else if (a === 'trgo') { TR.i = +b.dataset.i; trSave(); render(); window.scrollTo(0, 0); }
+  else if (a === 'trhow') { TR.how = !TR.how; trSave(); render(true); if (TR.how) { const el = $('#main .howbox'); if (el) setTimeout(() => el.scrollIntoView({behavior: 'smooth', block: 'start'}), 30); } }
+  else if (a === 'atttog') { const t = b.dataset.a; if (DB.noatt[t]) delete DB.noatt[t]; else DB.noatt[t] = 1; save(); const box = b.closest('.attl'); if (box) box.outerHTML = attlHtml(); flash(DB.noatt[t] ? t + ': non disponibile' : t + ': disponibile'); }
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'export') exportData(false);
   else if (a === 'exportfull') exportData(true);
@@ -611,7 +655,7 @@ document.addEventListener('click', e => {
   else if (a === 'rshare') reportShare(false);
   else if (a === 'rcopy') reportShare(true);
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, v: 3}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, notes: DB.notes, fav: DB.fav, seeds: DB.seeds, noatt: DB.noatt, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.act === 'wzkeep') { const id = t.dataset.id, i = WZ.keep.indexOf(id); if (t.checked && i < 0) WZ.keep.push(id); if (!t.checked && i >= 0) WZ.keep.splice(i, 1); wizRender(); } });
@@ -637,13 +681,14 @@ document.addEventListener('toggle', e => {
   loadMine(d);
 }, true);
 
-function planFind(k) { const [prof, id] = k.split(':'); if (prof !== 'giulia') { for (const r of (prof === 'mia' ? ['mia'] : ['g1', 'g2', 'g3', 'g4'])) { const x = rtList(r).find(x => x.e === id); if (x) return x; } return null; } const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
+function planFind(k) { const [prof, id] = k.split(':'); if (TR.on) { const x = rtList(TR.pid).find(x => x.e === id); if (x) return x; } if (prof !== 'giulia') { for (const r of (prof === 'mia' ? ['mia'] : ['g1', 'g2', 'g3', 'g4', 'dom'])) { const x = rtList(r).find(x => x.e === id); if (x) return x; } return null; } { const x = rtList('gA').find(x => x.e === id); if (x) return x; } const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
 function refreshProgress() {
   const p = planOf(tabPlan(tab)); if (!p) return;
   const prof = p.profilo || 'io'; let tot = 0, dn = 0;
   p.ex.forEach(x => { const c = DB.cur[pk(prof, x.e)]; if (c) { tot += c.sets.length; dn += c.sets.filter(s => s.done).length; } });
   const bar = document.querySelector('.prog i'); if (bar) { bar.style.width = (tot ? Math.round(dn / tot * 100) : 0) + '%'; bar.parentElement.nextElementSibling.textContent = dn + '/' + tot + ' serie completate'; }
-  p.ex.forEach((x, i) => { const c = DB.cur[pk(prof, x.e)]; const n = document.querySelector('#c-' + pk(prof, x.e).replace(':', '-') + ' .num'); if (n && c) n.classList.toggle('done', c.sets.every(s => s.done)); });
+  p.ex.forEach((x, i) => { const c = DB.cur[pk(prof, x.e)]; const n = document.querySelector('#c-' + pk(prof, x.e).replace(':', '-') + ' .num'); if (n && c) n.classList.toggle('done', c.sets.every(s => s.done));
+    const d = document.querySelector('.tdot[data-i="' + i + '"]'); if (d && c) { const k = c.sets.filter(s => s.done).length; d.classList.toggle('done', k >= c.sets.length); d.classList.toggle('part', k > 0 && k < c.sets.length); } });
 }
 function finish(pid, prof) {
   const p = planOf(pid); let n = 0;
@@ -655,7 +700,7 @@ function finish(pid, prof) {
     c.sets.forEach(s => { s.done = false; });
   });
   if (!n) { flash('Compila almeno una serie'); return; }
-  save(); render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
+  save(); if (TR.on) { TR.on = false; TR.i = 0; trSave(); render(); window.scrollTo(0, 0); } else render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
 }
 const blobToDataUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 async function exportData(full) {
@@ -683,7 +728,8 @@ function importData(f) {
   r.readAsText(f);
 }
 
-window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h !== tab && TABS.some(t => t.id === h)) { tab = h; render(); } });
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h !== tab && TABS.some(t => t.id === h)) { if (TR.on && h !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } tab = h; render(); } });
+if (TR.on && CUST.includes(TR.pid)) { tab = TR.pid === 'gA' ? 'giulia' : TR.pid; location.hash = tab; }
 try { render(); } catch (e) { window.dispatchEvent(new ErrorEvent('error', {message: 'Avvio: ' + (e && e.message)})); throw e; }
 initCloud();
 if (!window.claude && 'serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
