@@ -623,3 +623,11 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   // presa per il rig e wizard
   ['t-dip', 't-dip-panca', 'b-trazioni-neutra', 'c-hammer-db', 'c-hammer-cross'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.presa = e.presa || 'neu'; });
 })();
+// Estensioni sopra la testa con corda: gomiti fermi in alto, l'avambraccio ruota da dietro la testa fino a braccia distese (passando sopra, non davanti)
+(() => { ['t-overhead-corda', 't-overhead-singolo'].forEach(id => { const e = EX.find(x => x.id === id); if (!e) return;
+  Object.assign(e, {lin: false, lat: 0.9, gz: 12, gz2: 24, fr: [[165, -35, {t: 172}], [168, -188, {t: 172}]], cap: ['Gomiti in alto, corda dietro la testa', 'Braccia distese sopra la testa, corda aperta'],
+    trj: 'I gomiti restano fermi in alto vicino alle orecchie: si muove solo l’avambraccio, che da dietro la testa ruota fino a braccia distese.'}); }); })();
+// Trazioni: gomiti leggermente in fuori e davanti, corpo che sale in verticale senza oscillare
+(() => { ['b-trazioni', 'c-chinup', 'b-trazioni-larga', 'b-trazioni-stretta', 'b-trazioni-neutra', 'b-trazioni-negative', 'b-trazioni-elastico'].forEach(id => { const e = EX.find(x => x.id === id); if (!e) return;
+  e.lat = id === 'b-trazioni-larga' ? 2.6 : id === 'b-trazioni-stretta' || id === 'c-chinup' || id === 'b-trazioni-neutra' ? 0.9 : 1.6;
+  e.fr = e.fr.map(f => [f[0], f[1], Object.assign({}, f[2] || {}, {t: 180, th: 22, sh: -88})]); }); })();

@@ -199,7 +199,9 @@ const FIG3 = (() => {
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
     const GZ0 = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), GZ = ex.gz2 !== undefined && p.k !== undefined ? GZ0 + (ex.gz2 - GZ0) * p.k : GZ0, presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
-    if (ex.eq === 'hb') { W = [150, 20]; E = ik(S, W, UA, FA); grip = W; }
+    if (ex.eq === 'hb') { W = [150, 20]; grip = W;   // sbarra: il gomito va sempre davanti al busto (mai dietro), anche quando la mano e' esattamente sopra la spalla
+      const dx = W[0] - S[0], dy = W[1] - S[1], d0 = Math.hypot(dx, dy), d = Math.max(Math.abs(UA - FA) + .5, Math.min(d0, UA + FA - .5)), a0 = (UA*UA - FA*FA + d*d) / (2*d), hh = Math.sqrt(Math.max(0, UA*UA - a0*a0)), ux = dx / d0, uy = dy / d0;
+      const c1 = [S[0] + a0*ux - hh*uy, S[1] + a0*uy + hh*ux], c2 = [S[0] + a0*ux + hh*uy, S[1] + a0*uy - hh*ux]; E = c1[0] >= c2[0] ? c1 : c2; }
     const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
