@@ -198,7 +198,7 @@ const FIG3 = (() => {
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
-    const GZ = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
+    const GZ0 = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), GZ = ex.gz2 !== undefined && p.k !== undefined ? GZ0 + (ex.gz2 - GZ0) * p.k : GZ0, presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
     if (ex.eq === 'hb') { W = [150, 20]; E = ik(S, W, UA, FA); grip = W; }
     const pe = vn([E[0] - S[0], E[1] - S[1], 0]);
     let E3n, W3n, E3f, W3f, g3n, g3f;

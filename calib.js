@@ -528,3 +528,5 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     why: 'La corda lascia i polsi liberi e permette di chiudere di più le scapole rispetto alla barra: più lavoro per dorsali e parte centrale della schiena.',
     err: ['Busto che oscilla avanti e indietro', 'Tirare verso il petto invece che all’ombelico', 'Spalle che salgono', 'Schiena arrotondata in partenza']}));
 })();
+// Rematore seduto con corda: le mani partono vicine e si aprono ai lati dell'addome a fine corsa
+(() => { const e = EX.find(x => x.id === 'b-row-corda'); if (e) { e.gz = 12; e.gz2 = 34; e.cap = ['Braccia distese, corda chiusa davanti a te', 'Corda all’ombelico, mani aperte ai lati, scapole strette']; } })();
