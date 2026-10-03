@@ -12,7 +12,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {};
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {}; if (!Array.isArray(d.sess)) d.sess = [];
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
@@ -353,7 +353,7 @@ function histView(k) {
   modal(`<h2 style="padding-right:44px">Storico · ${esc(ex.n)}</h2>
    <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
    ${DB.notes[id] ? `<p class="gn">📝 ${esc(DB.notes[id])}</p>` : ''}
-   <div class="card hist">${h.map(e => `<div><b>${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`);
+   <div class="card hist">${h.map(e => `<div><b>${wdOf(e.d).slice(0, 3)} ${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`);
 }
 /* ---------- storico: stampa / PDF / condivisione ---------- */
 function reportData() {
@@ -365,13 +365,15 @@ function reportData() {
 const fmtFull = d => d.split('-').reverse().join('/');
 function reportText(data) {
   let t = 'STORICO ALLENAMENTI · ' + fmtFull(today()) + '\n';
+  if ((DB.sess || []).length) { t += '\nSEDUTE FATTE\n'; DB.sess.slice(-40).reverse().forEach(x => { t += '  ' + fmtWd(x.d) + ': ' + x.name + ' (' + x.n + ' esercizi)\n'; }); }
   data.forEach(({ex, h}) => { t += '\n' + ex.n + ' (' + GRUPPI[ex.g] + ')\n'; if (DB.notes[ex.id]) t += '  Note: ' + DB.notes[ex.id] + '\n'; h.forEach(e => { t += '  ' + fmtFull(e.d) + ': ' + e.sets.map(s => (s.kg || '–') + ' kg × ' + (s.reps || '–') + (s.note ? ' (' + s.note + ')' : '')).join(' · ') + '\n'; }); });
   return t;
 }
 function reportHtml(data) {
   if (!data.length) return '<p>Nessun allenamento archiviato: usa “Fine allenamento” per salvarlo nello storico.</p>';
-  return data.map(({ex, h}) => { const best = Math.max(0, ...h.flatMap(e => e.sets.map(s => num(s.kg))));
-    return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3>${DB.notes[ex.id] ? `<p class="gn">📝 ${esc(DB.notes[ex.id])}</p>` : ''}<table>${h.map(e => `<tr><td>${fmtFull(e.d)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
+  const sess = (DB.sess || []).slice(-40).reverse();
+  return (sess.length ? `<section class="rp"><h3>Sedute fatte <small>data reale · scheda usata</small></h3><table>${sess.map(x => `<tr><td>${esc(fmtWd(x.d))}</td><td>${esc(x.name)} <small>· ${x.n} esercizi</small></td></tr>`).join('')}</table></section>` : '') + data.map(({ex, h}) => { const best = Math.max(0, ...h.flatMap(e => e.sets.map(s => num(s.kg))));
+    return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3>${DB.notes[ex.id] ? `<p class="gn">📝 ${esc(DB.notes[ex.id])}</p>` : ''}<table>${h.map(e => `<tr><td>${esc(fmtWd(e.d))}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
 }
 function reportView() {
   const data = reportData();
@@ -453,7 +455,7 @@ const ATT_ALL = () => [...new Set(EX.map(e => e.a))];
 const mkey = e => e.g + '|' + norm(e.m.split(',')[0].trim());
 const station = e => { if (e.eq !== 'cable') return e.a; const an = e.an ? (Array.isArray(e.an[0]) ? e.an[0] : e.an) : null, y = an ? an[1] : 100; const att = /corda/i.test(e.set) ? 'corda' : /barra|triangolo|V\b/i.test(e.set) ? 'barra' : /cavigliera/i.test(e.set) ? 'cavigliera' : 'maniglia'; return 'Cavi ' + (y < 60 ? 'alto' : y > 160 ? 'basso' : 'medio') + ' ' + att; };
 // esercizi "prioritari" (dal video sulle prese ai cavi): proposti per primi quando si chiede schiena o spalle ai cavi; si possono comunque togliere con "Altra proposta"
-const wizPrio = e => !!e.prio && (!WZ.att.length || WZ.att.includes('Cavi')) && (!WZ.mus.length || WZ.mus.includes('schiena'));
+const wizPrio = e => !!e.prio && inG(e, 'schiena') && (!WZ.att.length || WZ.att.includes('Cavi')) && (!WZ.mus.length || WZ.mus.includes('schiena'));
 // spalle ai cavi: prima gli esercizi con un solo cavo e due mani (corda, barra, maniglia doppia)
 const wizPrioSp = e => e.g === 'spalle' && e.eq === 'cable' && !!e.unCavo && !e.one && WZ.mus.includes('spalle') && (!WZ.att.length || WZ.att.includes('Cavi'));
 function wizPool() {
@@ -474,8 +476,12 @@ function wizPropose() {
 function wizHtml() {
   const chip2 = (t, v, on, l) => `<button class="chip ${on ? 'on' : ''}" data-act="wzchip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
   if (WZ.step === 1) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
-    <p class="vnote">Scegli attrezzi, muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito (stesso attrezzo o stessa postazione).</p>
-    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a)).join('')}</div>
+    <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi allenarti oggi? Puoi sceglierne più di uno.</p>
+    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a + ' (' + EX.filter(e => e.a === a).length + ')')).join('')}</div>
+    <p class="vnote">${EX.filter(e => avail(e) && (!WZ.att.length || WZ.att.includes(e.a))).length} esercizi con questi attrezzi. In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
+    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wznext">Avanti: muscoli e obiettivo →</button></div>`;
+  if (WZ.step === 2) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
+    <p class="vnote">Attrezzi: <b>${esc(WZ.att.length ? WZ.att.join(', ') : 'tutti')}</b> · <button class="tlink" data-act="wzback1">cambia</button>. Ora muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito.</p>
     <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
     <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
     <h3>Un braccio o due</h3><div class="chips wrap">${chip2('lato', '', !WZ.lato, 'Indifferente')}${Object.entries(LATO).map(([k, v]) => chip2('lato', k, WZ.lato === k, v)).join('')}</div>
@@ -499,22 +505,47 @@ const PRESETS = [
    ex: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
   {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare · corpo intero (parte alta)', d: 'Tutto ai cavi con una sola torre, 12-15 ripetizioni e recuperi brevi: circa 35-40 minuti.',
    ex: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
-function presetItems(P) { return P.ex.filter(id => byId[id] && avail(byId[id])).map(id => { const ex = byId[id], pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
+const PS = {att: null, pid: null};   // attrezzi scelti per i programmi pronti (null = non ancora chiesto)
+const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_AV();
+// costruisce il programma con gli attrezzi scelti: tiene gli esercizi del programma base se l'attrezzo c'è, altrimenti sostituisce con uno dello stesso gruppo (preferiti e "dai tuoi video" prima)
+function presetBuild(P, atts) {
+  const ok = e => avail(e) && atts.includes(e.a) && (e.fin || []).includes(P.fin);
+  const score = e => (DB.fav[e.id] ? 80 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 5 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
+  const out = [], used = new Set(), keys = new Set();
+  const ok2 = e => avail(e) && atts.includes(e.a);   // ripiego: stesso gruppo e attrezzo anche se non è indicato per quell'obiettivo
+  const pickFor = g => EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0] || EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0];
+  P.ex.forEach(id => { const o = byId[id]; if (!o) return; let e = ok(o) && !keys.has(mkey(o)) ? o : null, sub = false;
+    if (!e) { e = pickFor(o.g); sub = !!e; }
+    if (e && !used.has(e.id)) { used.add(e.id); keys.add(mkey(e)); out.push({ex: e, sub, orig: sub ? o : null}); } });
+  ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti'].forEach(g => { if (!out.some(x => x.ex.g === g)) { const e = pickFor(g); if (e) { used.add(e.id); keys.add(mkey(e)); out.push({ex: e, sub: true, orig: null}); } } });
+  return out;
+}
+function presetItems(P, atts) { return presetBuild(P, atts || psAtt()).map(({ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: ex.id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
+function presetAttHtml(pid) {
+  const all = ATT_AV(), sel = psAtt();
+  return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
+   <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi fare il programma? Scegline uno o più: ogni programma viene adattato (gli esercizi con attrezzi non scelti vengono sostituiti con altri dello stesso gruppo).</p>
+   <div class="chips wrap">${all.map(a => `<button class="chip ${sel.includes(a) ? 'on' : ''}" data-act="psatt" data-a="${esc(a)}"${pid ? ` data-pid="${pid}"` : ''}>${esc(a)} (${EX.filter(e => e.a === a).length})</button>`).join('')}</div>
+   <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : sel.length + ' attrezzi scelti.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psgo"${pid ? ` data-pid="${pid}"` : ''}>Avanti: i programmi →</button></div>`;
+}
 function presetsHtml(pid) {
   const dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
+  if (PS.att === null) return presetAttHtml(pid);
+  const atts = psAtt();
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
-   <p class="vnote">Allenamenti completi e veloci: petto, schiena, spalle, bicipiti e tricipiti in 7-8 esercizi. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
-   ${PRESETS.map(P => `<div class="card preset"><h3>${esc(P.n)}</h3><p class="vnote">${esc(P.d)}</p><ol>${presetItems(P).map(x => `<li>${esc(byId[x.e].n)} <small>${x.s} × ${x.r} · rec. ${x.rec}</small></li>`).join('')}</ol>
-     <div class="sbar" style="padding:6px 0 0"><button class="primary" style="width:auto;padding:9px 16px" data-act="preset" data-key="${P.key}"${pid ? ` data-pid="${pid}"` : ''}>${pid ? 'Usa questo programma' : 'Scegli il giorno…'}</button></div></div>`).join('')}`;
+   <p class="vnote">Attrezzi: <b>${esc(atts.length === ATT_AV().length ? 'tutti' : atts.join(', '))}</b> · <button class="tlink" data-act="psback"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Allenamenti completi e veloci: petto, schiena, spalle, bicipiti e tricipiti in 7-8 esercizi. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
+   ${PRESETS.map(P => { const items = presetBuild(P, atts); return `<div class="card preset"><h3>${esc(P.n)}</h3><p class="vnote">${esc(P.d)}</p>${items.length ? `<ol>${items.map(({ex, sub, orig}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return `<li>${esc(ex.n)} <small>${pr.s} × ${pr.r} · rec. ${pr.rec}${sub ? ' · <i>' + (orig ? 'al posto di ' + esc(orig.n) : 'aggiunto') + '</i>' : ''}</small></li>`; }).join('')}</ol>` : '<p class="vnote">Nessun esercizio con questi attrezzi.</p>'}
+     <div class="sbar" style="padding:6px 0 0"><button class="primary" style="width:auto;padding:9px 16px" data-act="preset" data-key="${P.key}"${pid ? ` data-pid="${pid}"` : ''}${items.length ? '' : ' disabled'}>${pid ? 'Usa questo programma' : 'Scegli il giorno…'}</button></div></div>`; }).join('')}`;
 }
 function presetDayHtml(key) {
   const P = PRESETS.find(p => p.key === key), dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">In quale giorno?</h2><p class="vnote">${esc(P.n)}: gli esercizi del giorno scelto verranno sostituiti.</p>
    <div class="chips wrap">${CUST.map(id => `<button class="chip" data-act="preset" data-key="${key}" data-pid="${id}">${esc(dayN(id))}${rtList(id).length ? ' (' + rtList(id).length + ')' : ''}</button>`).join('')}</div>
-   <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="presets">← Programmi</button></div>`;
+   <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="psgo">← Programmi</button></div>`;
 }
 function presetApply(key, pid) {
-  const P = PRESETS.find(p => p.key === key), items = presetItems(P), run = () => { DB.rt[pid] = items; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
+  const P = PRESETS.find(p => p.key === key), items = presetItems(P, psAtt()), run = () => { DB.rt[pid] = items; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
   if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + P.n + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
 }
 
@@ -628,6 +659,8 @@ document.addEventListener('click', e => {
   else if (a === 'trhow') { TR.how = !TR.how; trSave(); render(true); if (TR.how) { const el = $('#main .howbox'); if (el) setTimeout(() => el.scrollIntoView({behavior: 'smooth', block: 'start'}), 30); } }
   else if (a === 'atttog') { const t = b.dataset.a; if (DB.noatt[t]) delete DB.noatt[t]; else DB.noatt[t] = 1; save(); const box = b.closest('.attl'); if (box) box.outerHTML = attlHtml(); flash(DB.noatt[t] ? t + ': non disponibile' : t + ': disponibile'); }
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
+  else if (a === 'findate') { $('#findate').value = b.dataset.d; b.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); }
+  else if (a === 'finsave') finishDo(b.dataset.p, b.dataset.prof, $('#findate').value);
   else if (a === 'export') exportData(false);
   else if (a === 'exportfull') exportData(true);
   else if (a === 'vwipe') { const n = Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.length : 0), 0);
@@ -640,14 +673,19 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
-  else if (a === 'presets') modal(presetsHtml(b.dataset.pid));
+  else if (a === 'presets') { PS.att = null; modal(presetsHtml(b.dataset.pid)); }
+  else if (a === 'psatt') { const all = ATT_AV(), cur = psAtt().slice(), t = b.dataset.a, i = cur.indexOf(t); if (i >= 0) { if (cur.length > 1) cur.splice(i, 1); } else cur.push(t); PS.att = cur.filter(x => all.includes(x)); $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
+  else if (a === 'psgo') { if (PS.att === null) PS.att = ATT_AV(); $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
+  else if (a === 'psback') { $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
   else if (a === 'preset') { if (b.dataset.pid) presetApply(b.dataset.key, b.dataset.pid); else modal(presetDayHtml(b.dataset.key)); }
   else if (a === 'sksreset') window.sksReset();
   else if (a === 'fav') { if (DB.fav[b.dataset.id]) delete DB.fav[b.dataset.id]; else DB.fav[b.dataset.id] = 1; save(); render(true); flash(DB.fav[b.dataset.id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
   else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
-  else if (a === 'wzgo') { WZ.step = 2; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
+  else if (a === 'wzgo') { WZ.step = 3; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
+  else if (a === 'wznext') { WZ.step = 2; wizRender(); }
+  else if (a === 'wzback1') { WZ.step = 1; wizRender(); }
   else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }
-  else if (a === 'wzback') { WZ.step = 1; wizRender(); }
+  else if (a === 'wzback') { WZ.step = 2; wizRender(); }
   else if (a === 'wzday') { WZ.pid = b.dataset.id; wizRender(); }
   else if (a === 'wzadd') wizAdd();
   else if (a === 'wprint') printHtml('Piano settimanale', weekHtml());
@@ -669,6 +707,7 @@ document.addEventListener('change', async e => {
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('vurlin')) { e.preventDefault(); e.target.parentElement.querySelector('[data-act=vurl]').click(); } });
 document.addEventListener('input', e => {
   const t = e.target;
+  if (t.id === 'findate') { document.querySelectorAll('[data-act=findate]').forEach(c => c.classList.toggle('on', c.dataset.d === t.value)); return; }
   if (t.id === 'pq') { pick.q = t.value; const r = $('#pkres'); if (r) r.innerHTML = pickRes(r.dataset.pid); return; } // aggiorna solo i risultati: la casella resta attiva (tastiera del telefono)
   if (t.id === 'q') { lib.q = t.value; const r = $('#libres'); if (r) r.innerHTML = libRes(); return; }
   if (t.dataset.mf) { const x = rtList(t.dataset.pid).find(m => m.e === t.dataset.id); if (x) { x[t.dataset.mf] = t.value.slice(0, 12); save(); } return; }
@@ -691,17 +730,32 @@ function refreshProgress() {
   p.ex.forEach((x, i) => { const c = DB.cur[pk(prof, x.e)]; const n = document.querySelector('#c-' + pk(prof, x.e).replace(':', '-') + ' .num'); if (n && c) n.classList.toggle('done', c.sets.every(s => s.done));
     const d = document.querySelector('.tdot[data-i="' + i + '"]'); if (d && c) { const k = c.sets.filter(s => s.done).length; d.classList.toggle('done', k >= c.sets.length); d.classList.toggle('part', k > 0 && k < c.sets.length); } });
 }
-function finish(pid, prof) {
-  const p = planOf(pid); let n = 0;
+const WD = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+const wdOf = d => WD[new Date(d + 'T12:00:00').getDay()];
+const dShift = n => { const t = new Date(); t.setDate(t.getDate() - n); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const fmtWd = d => wdOf(d).slice(0, 3) + ' ' + fmtD(d);
+function finish(pid, prof) {   // chiede quando è stata fatta la seduta (es. scheda del venerdì fatta di sabato → salvata per sabato)
+  const p = planOf(pid), done = p.ex.filter(x => { const c = DB.cur[pk(prof, x.e)]; return c && c.sets.some(s => s.kg || s.reps || s.note); }).length;
+  if (!done) { flash('Compila almeno una serie'); return; }
+  const opt = n => { const d = dShift(n); return `<button class="chip ${n === 0 ? 'on' : ''}" data-act="findate" data-d="${d}">${n === 0 ? 'Oggi' : n === 1 ? 'Ieri' : wdOf(d)}<small style="margin-left:6px;opacity:.75">${fmtD(d)}</small></button>`; };
+  modal(`<h2 style="padding-right:44px">🏁 Fine allenamento</h2><p class="vnote">${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}: ${done} esercizi compilati. <b>Quando l'hai fatto?</b> Lo storico lo salva con questa data (anche se la scheda è di un altro giorno).</p>
+   <div class="chips wrap">${[0, 1, 2, 3].map(opt).join('')}</div>
+   <label class="fl" style="margin-top:10px">Oppure un'altra data<input type="date" id="findate" value="${today()}" max="${today()}"></label>
+   <div class="sbar" style="padding:6px 0 0"><button class="ghost" data-act="no">Annulla</button><button class="primary" style="width:auto;padding:10px 18px" data-act="finsave" data-p="${pid}" data-prof="${prof}">Salva nello storico</button></div>`);
+  $('#mbody [data-act=no]').onclick = closeModal;
+}
+function finishDo(pid, prof, d) {
+  const p = planOf(pid); let n = 0; if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) d = today();
   p.ex.forEach(x => {
     const k = pk(prof, x.e), c = DB.cur[k]; if (!c) return;
     const sets = c.sets.filter(s => s.kg || s.reps || s.note).map(s => ({kg: s.kg, reps: s.reps, note: s.note || undefined}));
     if (!sets.length) return;
-    (DB.hist[k] = DB.hist[k] || []).push({d: today(), sets}); n++;
+    (DB.hist[k] = DB.hist[k] || []).push({d, sets}); DB.hist[k].sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); n++;
     c.sets.forEach(s => { s.done = false; });
   });
   if (!n) { flash('Compila almeno una serie'); return; }
-  save(); if (TR.on) { TR.on = false; TR.i = 0; trSave(); render(); window.scrollTo(0, 0); } else render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
+  DB.sess.push({d, pid, n, name: p.nome + (p.sotto ? ' · ' + p.sotto : '')}); DB.sess.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); if (DB.sess.length > 400) DB.sess.splice(0, DB.sess.length - 400);
+  closeModal(); save(); if (TR.on) { TR.on = false; TR.i = 0; trSave(); render(); window.scrollTo(0, 0); } else render(true); flash('✓ Salvato per ' + wdOf(d) + ' ' + fmtD(d) + ' (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
 }
 const blobToDataUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 async function exportData(full) {
