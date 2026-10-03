@@ -457,8 +457,8 @@ function wizHtml() {
 
 /* ---------- programmi pronti: allenamento completo e veloce (petto, schiena, spalle, bicipiti, tricipiti) ---------- */
 const PRESETS = [
-  {key: 'forza', fin: 'forza', n: '💪 Forza · corpo intero (parte alta)', d: 'Esercizi fondamentali con bilanciere, sbarra e parallele. Serie pesanti e recuperi lunghi: circa 50-60 minuti.',
-   ex: ['p-panca', 'b-row-bar', 's-military', 'b-trazioni-neutra', 't-dip', 'c-curl-bar', 'b-rackpull']},
+  {key: 'forza', fin: 'forza', n: '💪 Forza · corpo intero (parte alta)', d: 'Fondamentali alla Smith machine, sbarra, parallele e jammer arms (niente bilanciere libero). Serie pesanti e recuperi lunghi: circa 50-60 minuti.',
+   ex: ['sm-panca', 'sm-row', 'sm-military', 'b-trazioni-neutra', 't-dip', 'c-curl-db', 'j-press-piedi']},
   {key: 'massa', fin: 'massa', n: '🏋️ Massa · corpo intero (parte alta)', d: 'Un esercizio per ogni gruppo con manubri e un cavo, 8-12 ripetizioni: circa 45-55 minuti.',
    ex: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
   {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare · corpo intero (parte alta)', d: 'Tutto ai cavi con una sola torre, 12-15 ripetizioni e recuperi brevi: circa 35-40 minuti.',
