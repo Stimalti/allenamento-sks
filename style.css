@@ -240,3 +240,4 @@ body.training #timer{bottom:calc(88px + env(safe-area-inset-bottom))}
 .sbar .primary{border:0;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font:800 17px var(--disp);letter-spacing:.03em;text-transform:uppercase}
 .hero .ghost{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);color:#fff}
 .hero .sbar{padding:10px 0 0}
+.pairbox{border-radius:14px;padding:10px 12px;margin:10px 0 4px;background:var(--in);border:1px solid var(--line)}.pairbox.ok{border-color:var(--ok)}.pairbox.no{border-color:var(--acc)}.pairbox p{margin:4px 0 0}

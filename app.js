@@ -250,7 +250,7 @@ function planView(p, prof) {
   return `<section class="hero"><div class="eyebrow">${isToday ? 'Oggi · ' : ''}${esc(dayName(p.id))}${last ? ' · ultima seduta ' + esc(fmtWd(last.d)) : ''}</div><h2>${esc(p.nome)}</h2>${p.sotto ? `<div class="sub">${esc(p.sotto)}</div>` : ''}
    ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
-   ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} Valutazione ${evalDay(p.id).score}/10 · ${evalDay(p.id).grade} ›</button>` : ''}
+   ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} ${evalDay(p.id).skip ? 'Non valutata (gambe/addome)' : 'Valutazione ' + evalDay(p.id).score + '/10 · ' + evalDay(p.id).grade} ›</button>` : ''}
    <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button>` : `<p>Scheda vuota. Qui sotto scegli un <b>programma pronto</b>, fatti <b>proporre</b> esercizi oppure aggiungili uno a uno.</p>`}</section>
    <div class="prepH"><h3>${edit ? '✏️ Modifica scheda' : 'Esercizi'}</h3>${p.custom && p.ex.length ? `<button class="ghost small" data-act="pedit">${edit ? '✓ Fine modifiche' : '✏️ Modifica'}</button>` : ''}</div>
    ${edit ? custTools(p) + p.ex.map((x, i) => exCard(x, i, prof, p)).join('') + (p.ex.length ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : '')
@@ -342,13 +342,38 @@ function go(id) { if (TR.on && id !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { T
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 const fmtLong = d => { const t = new Date(d + 'T12:00:00'); return WD[t.getDay()] + ' ' + t.getDate() + ' ' + MESI[t.getMonth()]; };
 const mondayOf = d => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
-const PUSH = ['petto', 'spalle', 'tricipiti'], PULL = ['schiena', 'bicipiti'];
+const PUSH = ['petto', 'spalle', 'tricipiti'], PULL = ['schiena', 'bicipiti', 'avambracci'];
+const SKIP_G = ['gambe', 'addome'];   // per scelta dell'utente gambe e addome non entrano nelle valutazioni
+const gName = g => GRUPPI[g].toLowerCase();
+// giudizio sull'abbinamento dei gruppi muscolari di una giornata (solo parte alta)
+function pairing(pid) {
+  const L = rtList(pid).filter(x => byId[x.e]); const G = [...new Set(L.map(x => byId[x.e].g).filter(g => !SKIP_G.includes(g)))]; if (!G.length) return null;
+  const sub = (a, set) => a.every(g => set.includes(g)), has = g => G.includes(g);
+  const list = G.map(gName).join(' + ');
+  let ok = true, title, why, alt = '';
+  if (G.length === 1) { const g = G[0]; const best = {petto: 'tricipiti o spalle (stessa spinta)', schiena: 'bicipiti (stessa tirata) o petto (antagonisti)', spalle: 'petto e tricipiti, oppure da sole con braccia', bicipiti: 'schiena o tricipiti', tricipiti: 'petto o bicipiti', avambracci: 'schiena e bicipiti'}[g];
+    title = `${list}: giornata dedicata, va bene`; why = `Un solo gruppo con più esercizi: ottimo per concentrarsi. Se vuoi accorciare la settimana si abbina bene con ${best}.`; }
+  else if (sub(G, PUSH)) { title = `${list}: abbinamento classico di spinta`; why = 'Petto, spalle e tricipiti spingono insieme: il tricipite e il deltoide anteriore sono già caldi dopo le spinte, quindi li finisci con pochi esercizi. Giorno dopo: schiena e bicipiti.'; }
+  else if (sub(G, PULL)) { title = `${list}: abbinamento classico di tirata`; why = 'Schiena, bicipiti e avambracci tirano insieme: il bicipite lavora già nei rematori e nelle trazioni, lo chiudi con 1-2 curl. Giorno dopo: petto, spalle, tricipiti.'; }
+  else if (sub(G, ['bicipiti', 'tricipiti', 'avambracci'])) { title = `${list}: giornata braccia`; why = 'Bicipiti e tricipiti sono antagonisti: alternarli tiene il braccio irrorato e il recupero breve. Mettila a distanza di un giorno da spinta e tirata.'; }
+  else if (sub(G, ['petto', 'schiena']) || sub(G, ['petto', 'schiena', 'spalle'])) { title = `${list}: antagonisti, abbinamento ottimo`; why = 'Petto e schiena sono antagonisti: puoi alternare una spinta e una tirata (superserie) con recuperi brevi, le spalle restano equilibrate.'; }
+  else if (G.length >= 4) { title = `${list}: parte alta completa`; why = 'Tutta la parte alta in un giorno va bene se ti alleni 2-3 volte a settimana e tieni 6-8 esercizi: uno-due per gruppo, prima i multiarticolari.'; if (L.length > 8) { ok = false; alt = 'Con più di 8 esercizi conviene dividere: spinta (petto, spalle, tricipiti) in un giorno e tirata (schiena, bicipiti) in un altro.'; } }
+  else { ok = false; const push = G.filter(g => PUSH.includes(g)), pull = G.filter(g => PULL.includes(g));
+    title = `${list}: abbinamento misto, si può fare meglio`;
+    why = `${push.map(gName).join(' e ')} ${push.length > 1 ? 'spingono' : 'spinge'}, ${pull.map(gName).join(' e ')} ${pull.length > 1 ? 'tirano' : 'tira'}: nessuna interferenza grave, ma non sfrutti il “pre-riscaldamento” che hai quando abbini muscoli che lavorano insieme.`;
+    alt = 'Abbinamenti consigliati: petto + tricipiti (+ spalle), schiena + bicipiti, oppure petto + schiena come antagonisti. ' + (has('petto') && has('bicipiti') ? 'Qui: sposta i bicipiti nel giorno della schiena e metti i tricipiti con il petto.' : has('schiena') && has('tricipiti') ? 'Qui: sposta i tricipiti nel giorno del petto e metti i bicipiti con la schiena.' : has('spalle') && has('schiena') && !has('petto') ? 'Qui: le spalle rendono di più con il petto; con la schiena vanno bene solo deltoidi posteriori e face pull.' : 'Sposta il gruppo “fuori posto” in un altro giorno.'); }
+  // stesso gruppo il giorno prima o dopo
+  const idx = DAYS.findIndex(([t]) => dayPid(t) === pid), near = [];
+  if (idx >= 0) [idx - 1, idx + 1].forEach(j => { const d = DAYS[(j + 7) % 7]; const pid2 = dayPid(d[0]); if (pid2 === pid) return; const G2 = new Set(rtList(pid2).filter(x => byId[x.e]).map(x => byId[x.e].g)); G.filter(g => G2.has(g)).forEach(g => { if (!near.some(n => n.g === g)) near.push({g, day: d[2]}); }); });
+  return {ok, title, why, alt, G, near};
+}
 const dayPid = tid => tabPlan(tid);
 const plannedDays = () => DAYS.filter(([tid]) => rtList(dayPid(tid)).length).map(([tid]) => dayPid(tid));
 // valuta l'insieme di esercizi scelti per un giorno: muscoli coperti, equilibrio spinta/tirata, ordine, volume, durata, doppioni, attrezzi
 function evalDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return null;
   const p = planOf(pid), prof = p.profilo || 'io', pros = [], cons = [], tips = []; let score = 10;
+  if (L.every(x => SKIP_G.includes(byId[x.e].g))) return {score: null, grade: 'non valutata', icon: '🦵', pros: ['Giornata di sole gambe/addome: per tua scelta non viene valutata.'], cons: [], tips: [], n: L.length, tot: L.reduce((t, x) => t + x.s, 0), mins: 0, groups: [...new Set(L.map(x => byId[x.e].g))], pair: null, skip: true};
   const sets = x => (DB.cur[pk(prof, x.e)] || {sets: []}).sets.length || x.s;
   const tot = L.reduce((t, x) => t + sets(x), 0), mins = Math.round(L.reduce((t, x) => t + sets(x) * (40 + secs(x.rec)), 0) / 60);
   const gs = {}; L.forEach(x => { const e = byId[x.e]; gs[e.g] = (gs[e.g] || 0) + sets(x); (e.g2 || []).forEach(g => { gs[g] = (gs[g] || 0) + sets(x) / 2; }); });
@@ -363,8 +388,10 @@ function evalDay(pid) {
   else if (tot > 28) { cons.push(`${tot} serie: volume alto, servono più di ${mins} minuti.`); score -= 1.5; tips.push('Riduci a 3 serie per esercizio o sposta qualcosa in un altro giorno.'); }
   if (mins > 80) { cons.push(`Durata stimata ~${mins} minuti: lunga per mantenere intensità.`); score -= 1; }
   else if (mins >= 25) pros.push(`Durata stimata ~${mins} minuti.`);
-  const names = groups.map(g => GRUPPI[g]).join(', ');
-  if (groups.length >= 3) pros.push(`Lavora ${groups.length} gruppi: ${names}.`); else pros.push(`Giornata mirata: ${names}.`);
+  const pr = pairing(pid);
+  if (pr) { if (pr.ok) pros.push(pr.title + '. ' + pr.why); else { cons.push(pr.title + '. ' + pr.why); score -= 1; if (pr.alt) tips.push(pr.alt); }
+    pr.near.forEach(z => { cons.push(`${GRUPPI[z.g]} anche ${z.day.toLowerCase()}: due giorni di fila sullo stesso muscolo, servono 48 ore di recupero.`); score -= 0.5; tips.push(`Sposta ${gName(z.g)} in un giorno non consecutivo oppure lascia un giorno di pausa.`); }); }
+  else pros.push(`Giornata di ${groups.map(gName).join(' e ')} (non valutata: gambe e addome sono esclusi per tua scelta).`);
   if (upper && push && pull) { const r = push / pull; if (r >= 0.5 && r <= 2) pros.push('Spinta e tirata in equilibrio (petto/spalle/tricipiti contro schiena/bicipiti): bene per postura e spalle.'); else { cons.push(r > 2 ? 'Molta più spinta che tirata: con il tempo le spalle vanno avanti.' : 'Molta più tirata che spinta.'); score -= 1; tips.push(r > 2 ? 'Aggiungi un rematore o un face pull.' : 'Aggiungi una spinta (panca Smith, press con manubri o chest press al cavo).'); } }
   else if (upper && (push || pull) && n >= 4) { cons.push(push ? 'Solo esercizi di spinta, nessuna tirata.' : 'Solo esercizi di tirata, nessuna spinta.'); score -= 1; tips.push(push ? 'Metti almeno un rematore o una lat machine, anche nello stesso giorno.' : 'Metti almeno una spinta per il petto o le spalle.'); }
   const fi = L.findIndex(x => byId[x.e].tipo === 'iso'), fc = L.findIndex(x => byId[x.e].tipo === 'comp');
@@ -376,7 +403,7 @@ function evalDay(pid) {
   const longRec = L.filter(x => secs(x.rec) >= 150).length; if (longRec && longRec === n && L.some(x => byId[x.e].tipo === 'iso')) tips.push('Sugli esercizi di isolamento bastano 60-90 secondi di recupero.');
   score = Math.max(1, Math.min(10, Math.round(score * 2) / 2));
   const grade = score >= 9 ? 'ottima' : score >= 7 ? 'buona' : score >= 5 ? 'da sistemare' : 'da rivedere', icon = score >= 9 ? '🏆' : score >= 7 ? '👍' : score >= 5 ? '🛠' : '⚠️';
-  return {score, grade, icon, pros, cons, tips, n, tot, mins, groups};
+  return {score, grade, icon, pros, cons, tips, n, tot, mins, groups, pair: pr};
 }
 /* proposte concrete per un giorno: riordino, esercizi da togliere, sostituire o aggiungere (si applicano solo dopo conferma) */
 const TIER = e => e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;
@@ -403,7 +430,7 @@ function proposeDay(pid) {
   if (push && pull) { const ps = live.filter(e => PUSH.includes(e.g)).length, pl = live.filter(e => PULL.includes(e.g)).length;
     if (ps >= pl * 2 + 1) { const c = best('schiena'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${ps} esercizi di spinta contro ${pl} di tirata: riequilibra con un altro esercizio per la schiena.`}); }
     if (pl >= ps * 2 + 1) { const c = best('petto') || best('spalle'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${pl} esercizi di tirata contro ${ps} di spinta: aggiungi una spinta.`}); } }
-  if (has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
+  if (false && has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
     if (knee && !post) { const c = best('gambe', e => POST.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo squat/affondi: manca un esercizio per femorali e glutei (catena posteriore).'}); }
     if (post && !knee) { const c = best('gambe', e => KNEE.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo stacchi/femorali: manca uno squat o un affondo per i quadricipiti.'}); } }
   // 5. pochi esercizi → aggiungi un multiarticolare per il gruppo principale
@@ -426,7 +453,9 @@ function proposeApply(pid, chosen) {
 }
 function evalHtml(pid) {
   const v = evalDay(pid), p = planOf(pid); if (!v) return '';
+  if (v.skip) return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.grade}</h2><p class="vnote">${esc(v.pros[0])}</p><div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
   return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.score}/10, ${v.grade}</h2><p class="vnote">${v.n} esercizi · ${v.tot} serie · ~${v.mins} minuti. Giudizio automatico sull'insieme degli esercizi che hai scelto (non sul peso che usi).</p>
+   ${v.pair ? `<div class="pairbox ${v.pair.ok ? 'ok' : 'no'}"><b>${v.pair.ok ? '✅' : '🔀'} Abbinamento muscoli</b><p>${esc(v.pair.title)}.</p><p class="vnote" style="margin:4px 0 0">${esc(v.pair.why)}${v.pair.alt ? ' <b>Meglio:</b> ' + esc(v.pair.alt) : ''}</p></div>` : ''}
    ${v.pros.length ? `<h3 style="margin:12px 0 6px">Cosa va bene</h3><ul class="evl ok">${v.pros.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
    ${v.cons.length ? `<h3 style="margin:12px 0 6px">Cosa migliorare</h3><ul class="evl no">${v.cons.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '<p class="vnote">Nessun punto debole trovato.</p>'}
    ${v.tips.length ? `<h3 style="margin:12px 0 6px">Consigli</h3><ul class="evl tip">${v.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
@@ -445,7 +474,7 @@ function quality() {
   const prog = cmp ? imp / cmp : null;
   const recent = sess.slice(-5).filter(x => x.st), compl = recent.length ? recent.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / recent.length : null;
   const cov = new Set(); plannedDays().forEach(pid => rtList(pid).forEach(x => { const e = byId[x.e]; if (e) { cov.add(e.g); (e.g2 || []).forEach(g => cov.add(g)); } }));
-  const main = ['petto', 'schiena', 'spalle', 'gambe', 'bicipiti', 'tricipiti', 'addome'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
+  const main = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
   let streak = 0; for (let i = weeks.length - 1; i >= 0; i--) { if (weeks[i].n) streak++; else if (i < weeks.length - 1) break; }
   const thisWeek = weeks[weeks.length - 1].n, lastSess = sess[sess.length - 1];
   const daysSince = lastSess ? Math.round((new Date(t + 'T12:00:00') - new Date(lastSess.d + 'T12:00:00')) / 864e5) : null;
@@ -459,8 +488,9 @@ function tipsFor(q) {
   if (q.prog !== null && q.cmp >= 3 && q.prog < 0.3) tips.push({i: '📈', t: 'Pochi esercizi sono migliorati rispetto alla volta prima: quando chiudi tutte le serie al numero di ripetizioni previsto, la volta dopo aggiungi 2,5 kg (sui cavi una tacca).'});
   if (q.prog !== null && q.prog >= 0.6) tips.push({i: '🔥', t: `Stai progredendo su ${q.imp} esercizi su ${q.cmp}: continua così e ricordati di dormire e mangiare abbastanza proteine.`});
   if (q.compl !== null && q.compl < 0.7) tips.push({i: '✂️', t: 'Nelle ultime sedute hai completato meno del 70% delle serie: scheda troppo lunga o troppo poco tempo. Togli 1-2 esercizi per giorno.'});
-  if (q.missing.length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.map(g => GRUPPI[g].toLowerCase()).join(', ')}. ${q.missing.includes('gambe') ? 'Le gambe sono metà del corpo: anche un solo giorno con squat alla Smith, stacco rumeno e leg extension fa la differenza.' : 'Aggiungi almeno un esercizio per ciascuno in uno dei giorni.'}`});
-  const cons = plannedDays().map(pid => ({pid, v: evalDay(pid)})).filter(x => x.v && x.v.score < 7);
+  if (q.missing.length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.map(gName).join(', ')}. Aggiungi almeno un esercizio per ciascuno in uno dei giorni.`});
+  plannedDays().forEach(pid => { const pr = pairing(pid); if (pr && !pr.ok) tips.push({i: '🔀', t: `${planOf(pid).nome}: ${pr.title}.`, pid}); });
+  const cons = plannedDays().map(pid => ({pid, v: evalDay(pid)})).filter(x => x.v && x.v.score !== null && x.v.score < 7 && !(x.v.pair && !x.v.pair.ok));
   cons.forEach(x => tips.push({i: '🛠', t: `${planOf(x.pid).nome}: ${x.v.cons[0] || 'da sistemare'} Tocca la valutazione per i dettagli.`, pid: x.pid}));
   // esercizi pronti per aumentare il carico
   const up = []; plannedDays().forEach(pid => { const p = planOf(pid); rtList(pid).forEach(x => { const k = pk(p.profilo || 'io', x.e), h = lastHist(k), u = upper(x.r); if (h && u && h.sets.length && h.sets.every(s => num(s.reps) >= u && num(s.kg) > 0) && !up.some(z => z.e === x.e)) up.push({e: x.e, kg: Math.max(...h.sets.map(s => num(s.kg)))}); }); });
@@ -479,18 +509,18 @@ function homeView() {
   const verdict = !q.nsess ? 'Ancora nessuna seduta salvata: i giudizi arrivano dopo le prime sedute.' : avg >= .75 ? '👍 Ti stai allenando bene: costante, in progressione ed equilibrato.' : avg >= .5 ? '🙂 Vai abbastanza bene: guarda i consigli qui sotto per migliorare il punto più debole.' : '⚠️ C’è da sistemare: leggi i consigli e parti dalla costanza.';
   const max = Math.max(1, q.planned, ...q.weeks.map(w => w.n));
   return `<section class="hero home"><div class="eyebrow">${hello}</div><h2>${esc(WD[new Date().getDay()])}</h2><div class="sub">${esc(fmtLong(t).replace(/^\S+ /, ''))}${q.lastSess ? ' · ultima seduta ' + esc(fmtWd(q.lastSess.d)) : ''}</div>
-   ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
+   ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v && !v.skip ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana, ultime 8 settimane${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
     <div class="bars">${q.weeks.map((w, i) => `<div class="bar"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === 7 ? 'ora' : fmtD(w.key)}</small></div>`).join('')}</div>
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
-    ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 7) + '/7')}
-    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = nelle ultime 5 sedute. Equilibrio = gruppi muscolari coperti nella settimana.</p></div>
+    ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
+    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = nelle ultime 5 sedute. Equilibrio = gruppi della parte alta coperti nella settimana (gambe e addome esclusi per tua scelta).</p></div>
    <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : ''}</div></li>`).join('')}</ul></div>
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
-    ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>` : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
+    ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? (e.skip ? `<span class="sc s10" style="background:var(--in);color:var(--mut)">${e.icon}</span>` : `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>`) : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
 }
 
 /* ---------- modali ---------- */
