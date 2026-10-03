@@ -724,3 +724,6 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue: 'Gomiti in fuori, verso l’alto: lavora la parte alta della schiena.', why: 'Variante del rematore con jammer arms che sposta il lavoro su trapezio medio e deltoidi posteriori.',
     err: ['Busto che si alza', 'Gomiti stretti (diventa il rematore classico)']}));
 })();
+/* ===== esercizi che richiedono la panca (attrezzo scegliibile in programmi, proposte e filtri) ===== */
+(() => { const no = new Set(['b-lat-larga', 'b-row-cavo', 'b-row-corda', 'b-row-cavo-singolo', 'w-wrist-curl', 'b-trazioni-negative', 'b-trazioni-negative-2', 't-over-db']);   // la panca è solo un'alternativa
+  EX.forEach(e => { if (e.a === 'Panca' || (!no.has(e.id) && /panca/i.test(e.n + ' ' + (e.set || '') + ' ' + (e.pos || '')))) e.bench = true; }); })();

@@ -111,8 +111,11 @@ let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
-const avail = e => !DB.noatt[e.a];   // attrezzo disponibile (impostazioni → Attrezzi disponibili)
+const avail = e => !DB.noatt[e.a] && !(e.bench && DB.noatt.Panca);   // attrezzo disponibile (impostazioni → Attrezzi disponibili); la panca serve anche a esercizi con altri attrezzi
 const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
+const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.bench) : e.a === a).length;
+const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.bench || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
+const attLabel = a => a === 'Panca' ? 'Panca (serve in ' + attCount(a) + ' esercizi)' : a;
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
@@ -288,7 +291,7 @@ function trainView() {
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.bench))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
@@ -296,7 +299,7 @@ function filters(st, sid, qid) {
   const atts = ATT_AV();
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
   <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti (' + Object.keys(DB.fav).length + ')', sid)}</div>
-  <div class="chips">${chip('a', '', '🏋️ Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>
+  <div class="chips">${chip('a', '', '🏋️ Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a === 'Panca' ? 'Su panca' : a, sid)).join('')}</div>
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
   <div class="chips">${chip('f', '', 'Ogni obiettivo', sid)}${Object.entries(FIN).map(([k, v]) => chip('f', k, v === 'Tonificare' ? 'Per tonificare' : v === 'Forza' ? 'Per la forza' : 'Per la massa', sid)).join('')}</div>
   <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
@@ -705,7 +708,7 @@ const wizPrio = e => !!e.prio && inG(e, 'schiena') && (!WZ.att.length || WZ.att.
 // spalle ai cavi: prima gli esercizi con un solo cavo e due mani (corda, barra, maniglia doppia)
 const wizPrioSp = e => e.g === 'spalle' && e.eq === 'cable' && !!e.unCavo && !e.one && WZ.mus.includes('spalle') && (!WZ.att.length || WZ.att.includes('Cavi'));
 function wizPool() {
-  return EX.filter(e => avail(e) && (wizPrio(e) || ((!WZ.att.length || WZ.att.includes(e.a)) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
+  return EX.filter(e => avail(e) && (wizPrio(e) || (attOk(e, WZ.att) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
   const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
@@ -723,8 +726,8 @@ function wizHtml() {
   const chip2 = (t, v, on, l) => `<button class="chip ${on ? 'on' : ''}" data-act="wzchip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
   if (WZ.step === 1) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
     <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi allenarti oggi? Puoi sceglierne più di uno.</p>
-    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a + ' (' + EX.filter(e => e.a === a).length + ')')).join('')}</div>
-    <p class="vnote">${EX.filter(e => avail(e) && (!WZ.att.length || WZ.att.includes(e.a))).length} esercizi con questi attrezzi. In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
+    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a === 'Panca' ? attLabel(a) : a + ' (' + attCount(a) + ')')).join('')}</div>
+    <p class="vnote">${EX.filter(e => avail(e) && attOk(e, WZ.att)).length} esercizi con questi attrezzi.${WZ.att.length && !WZ.att.includes('Panca') ? ' Senza la panca restano esclusi gli esercizi che la richiedono (panca piana/inclinata, press seduti…).' : ''} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wznext">Avanti: muscoli e obiettivo →</button></div>`;
   if (WZ.step === 2) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
     <p class="vnote">Attrezzi: <b>${esc(WZ.att.length ? WZ.att.join(', ') : 'tutti')}</b> · <button class="tlink" data-act="wzback1">cambia</button>. Ora muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito.</p>
@@ -755,10 +758,10 @@ const PS = {att: null, pid: null};   // attrezzi scelti per i programmi pronti (
 const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_AV();
 // costruisce il programma con gli attrezzi scelti: tiene gli esercizi del programma base se l'attrezzo c'è, altrimenti sostituisce con uno dello stesso gruppo (preferiti e "dai tuoi video" prima)
 function presetBuild(P, atts) {
-  const ok = e => avail(e) && atts.includes(e.a) && (e.fin || []).includes(P.fin);
+  const ok = e => avail(e) && attOk(e, atts) && (e.fin || []).includes(P.fin);
   const score = e => (DB.fav[e.id] ? 80 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 5 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
   const out = [], used = new Set(), keys = new Set();
-  const ok2 = e => avail(e) && atts.includes(e.a);   // ripiego: stesso gruppo e attrezzo anche se non è indicato per quell'obiettivo
+  const ok2 = e => avail(e) && attOk(e, atts);   // ripiego: stesso gruppo e attrezzo anche se non è indicato per quell'obiettivo
   const pickFor = g => EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0] || EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0];
   P.ex.forEach(id => { const o = byId[id]; if (!o) return; let e = ok(o) && !keys.has(mkey(o)) ? o : null, sub = false;
     if (!e) { e = pickFor(o.g); sub = !!e; }
@@ -771,8 +774,8 @@ function presetAttHtml(pid) {
   const all = ATT_AV(), sel = psAtt();
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
    <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi fare il programma? Scegline uno o più: ogni programma viene adattato (gli esercizi con attrezzi non scelti vengono sostituiti con altri dello stesso gruppo).</p>
-   <div class="chips wrap">${all.map(a => `<button class="chip ${sel.includes(a) ? 'on' : ''}" data-act="psatt" data-a="${esc(a)}"${pid ? ` data-pid="${pid}"` : ''}>${esc(a)} (${EX.filter(e => e.a === a).length})</button>`).join('')}</div>
-   <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : sel.length + ' attrezzi scelti.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
+   <div class="chips wrap">${all.map(a => `<button class="chip ${sel.includes(a) ? 'on' : ''}" data-act="psatt" data-a="${esc(a)}"${pid ? ` data-pid="${pid}"` : ''}>${a === 'Panca' ? esc(attLabel(a)) : esc(a) + ' (' + attCount(a) + ')'}</button>`).join('')}</div>
+   <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : sel.length + ' attrezzi scelti.'}${sel.includes('Panca') ? '' : ' Senza la panca: niente panca piana/inclinata né press seduti, solo esercizi in piedi o ai cavi.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psgo"${pid ? ` data-pid="${pid}"` : ''}>Avanti: i programmi →</button></div>`;
 }
 function presetsHtml(pid) {
@@ -833,7 +836,7 @@ function tmTick() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) tmTick(); });
 if (TM.run) setTimeout(tmShow, 50);
-const attlHtml = () => `<div class="attl">${ATT_ALL().map(a => `<button class="${DB.noatt[a] ? '' : 'on'}" data-act="atttog" data-a="${esc(a)}">${DB.noatt[a] ? '✕' : '✓'} ${esc(a)} <small>(${EX.filter(e => e.a === a).length})</small></button>`).join('')}</div>`;
+const attlHtml = () => `<div class="attl">${ATT_ALL().map(a => `<button class="${DB.noatt[a] ? '' : 'on'}" data-act="atttog" data-a="${esc(a)}">${DB.noatt[a] ? '✕' : '✓'} ${esc(a)} <small>(${attCount(a)}${a === 'Panca' ? ' esercizi la usano' : ''})</small></button>`).join('')}</div>`;
 function settings() {
   setTimeout(applyLogo, 0);
   modal(`<h2 style="padding-right:44px">Dati e backup</h2>
