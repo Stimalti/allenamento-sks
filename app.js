@@ -103,7 +103,9 @@ function pickRt(id) {
   modal(`<h2 style="padding-right:44px">Aggiungi a…</h2><p style="color:var(--mut);margin:0 0 10px">${esc(byId[id].n)}</p><div id="rtrows">${rows()}</div>`);
   pickRt.rows = rows;
 }
-let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
+const todayTabId = () => DAYS[(new Date().getDay() + 6) % 7][0];
+let tab = (location.hash || '#' + todayTabId()).slice(1); if (!TABS.some(t => t.id === tab)) tab = todayTabId();
+let prepEdit = false;   // scheda del giorno: vista semplice (false) o modifica (true)
 let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
@@ -223,27 +225,34 @@ function exCard(x, idx, prof, pl) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s);
   const done = c.sets.filter(s => s.done).length;
   return `<article class="card ex prep" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
+   ${cu ? `<div class="mctl"><span class="mlab">Ordine</span><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>▲ Su</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù"${idx === pl.ex.length - 1 ? ' disabled' : ''}>▼ Giù</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">✕ Togli</button></div>` : ''}
    <div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>${cov(ex.id, 'thumb')}
     <div style="min-width:0;flex:1"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}${avail(ex) ? '' : '<span class="tag na">attrezzo non disponibile</span>'}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
    ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><button class="ghost" data-act="addset" data-k="${k}" data-n="${c.sets.length}" aria-label="Più serie">+</button><button class="ghost" data-act="delset" data-k="${k}" data-n="${c.sets.length}" aria-label="Meno serie">−</button><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>rec.</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
    ${cu && ex.fin ? `<div class="objrow"><span>Obiettivo</span>${ex.fin.map(f => `<button class="${x.obj === f ? 'on' : ''}" data-act="objset" data-pid="${pid}" data-id="${ex.id}" data-f="${f}">${FIN[f]}</button>`).join('')}</div>${x.obj && presOf(ex, x.obj) ? `<div class="objtip">Consigliato per ${FIN[x.obj].toLowerCase()}: ${presOf(ex, x.obj).sr} × ${presOf(ex, x.obj).r}, recupero ${presOf(ex, x.obj).rec} · ${esc(pesoTxt(ex, x.obj))}</div>` : ''}` : `<div class="role">${esc(x.ruolo)}</div>`}
    ${lastLine(k)}${DB.notes[ex.id] ? `<div class="last">📝 ${esc(DB.notes[ex.id])}</div>` : ''}
-   <div class="sbar"><button data-act="open" data-id="${ex.id}">🎬 Come si fa</button><button data-act="hist" data-k="${k}">Storico</button>${cu ? `<span style="flex:1"></span><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">Togli</button>` : ''}</div>
+   <div class="sbar"><button data-act="open" data-id="${ex.id}">🎬 Come si fa</button><button data-act="hist" data-k="${k}">Storico</button></div>
   </article>`;
 }
 
 const secs = rec => { const m = String(rec).match(/(\d+)\s*min/), t = String(rec).match(/(\d+)\s*s\b/); return m ? +m[1] * 60 : t ? +t[1] : 20; };
 const planTot = (p, prof) => { let tot = 0, dn = 0, mins = 0; p.ex.forEach(x => { const c = curFor(pk(prof, x.e), x.s); tot += c.sets.length; dn += c.sets.filter(s => s.done).length; mins += c.sets.length * (40 + secs(x.rec)); }); return {tot, dn, mins}; };
+function exRowPlan(x, i, prof) {
+  const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s), d = c.sets.filter(s => s.done).length, h = lastHist(k);
+  const kg = h ? h.sets.map(s => s.kg).filter(Boolean) : [], kgTxt = kg.length ? ' · ultima ' + (kg.every(v => v === kg[0]) ? kg[0] : kg.join('/')) + ' kg' : '';
+  return `<button class="li plan" style="--gc:${GCOL[ex.g]}" data-act="open" data-id="${ex.id}" id="c-${k.replace(':', '-')}"><span class="num ${d >= c.sets.length ? 'done' : d ? 'part' : ''}">${i + 1}</span>${cov(ex.id, 'thumb') || ''}<span class="t"><b>${esc(ex.n)}</b><small>${c.sets.length} × ${esc(x.r)} · rec. ${esc(x.rec)}${kgTxt}${avail(ex) ? '' : ' · <span style="color:#b91c1c">attrezzo non disponibile</span>'}</small></span><span class="chev">›</span></button>`;
+}
 function planView(p, prof) {
   const {tot, dn, mins} = planTot(p, prof);
-  const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length;
-  return `<section class="hero"><div class="eyebrow">${p.custom ? 'Allenamento' : prof === 'giulia' ? 'Giulia' : 'Forza · 4 giorni'}</div><h2>${esc(p.nome)}</h2><div class="sub">${esc(p.sotto)}</div><p>${esc(p.obiettivo)}</p>
-   <div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
+  const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length, edit = p.custom && (prepEdit || !p.ex.length);
+  const last = (DB.sess || []).filter(z => z.pid === p.id).slice(-1)[0], isToday = tabPlan(todayTabId()) === p.id;
+  return `<section class="hero"><div class="eyebrow">${isToday ? 'Oggi · ' : ''}${esc(dayName(p.id))}${last ? ' · ultima seduta ' + esc(fmtWd(last.d)) : ''}</div><h2>${esc(p.nome)}</h2>${p.sotto ? `<div class="sub">${esc(p.sotto)}</div>` : ''}
+   ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
-   <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button></section>
-   ${p.custom ? `<div class="prepH"><h3>🛠 Prepara la scheda</h3><small>serie, ripetizioni, ordine ed esercizi</small></div>${custTools(p)}` : ''}
-   ${p.ex.map((x, i) => exCard(x, i, prof, p)).join('')}
-   ${p.custom ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : ''}
+   <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button>` : `<p>Scheda vuota. Qui sotto scegli un <b>programma pronto</b>, fatti <b>proporre</b> esercizi oppure aggiungili uno a uno.</p>`}</section>
+   <div class="prepH"><h3>${edit ? '✏️ Modifica scheda' : 'Esercizi'}</h3>${p.custom && p.ex.length ? `<button class="ghost small" data-act="pedit">${edit ? '✓ Fine modifiche' : '✏️ Modifica'}</button>` : ''}</div>
+   ${edit ? custTools(p) + p.ex.map((x, i) => exCard(x, i, prof, p)).join('') + (p.ex.length ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : '')
+          : p.ex.map((x, i) => exRowPlan(x, i, prof)).join('') + (p.ex.length ? '<p class="vnote" style="margin:4px 2px 12px">Tocca un esercizio per vedere come si fa. “Modifica” per cambiare ordine, serie e ripetizioni.</p>' : '')}
    ${dn ? `<button class="ghost addmore" data-act="finish" data-p="${p.id}" data-prof="${prof}">🏁 Fine allenamento · salva nello storico (${dn} serie fatte)</button>` : ''}`;
 }
 
@@ -295,10 +304,10 @@ const libRes = () => { const list = filt(lib); return `<div class="count">${list
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`; };
 function libView() { return `<div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="presets">📋 Programmi pronti (forza · massa · tonificare)</button></div>${filters(lib, 'lib', 'q')}<div id="libres">${libRes()}</div>`; }
 const pickRes = pid => { const list = filt(pick); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
-const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
+const custView = cp => planView(cp, cp.profilo);
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
-  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="presets" data-pid="${cp.id}">📋 Programmi pronti</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button></div>` +
+  return `<div class="ctools"><button class="ghost" data-act="presets" data-pid="${cp.id}">📋 Programma pronto</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina giorno</button><button class="ghost" data-act="week">📅 Piano della settimana</button></div>` +
     (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div id="pkres" data-pid="${cp.id}">${pickRes(cp.id)}</div></section>` : '');
 }
 const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
@@ -324,7 +333,7 @@ function render(keep) {
   if (training && TR.how) { const f = $('#main [data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount); loadMine($('#main')); }
   if (keep) window.scrollTo(0, y);
 }
-function go(id) { if (TR.on && id !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } tab = id; location.hash = id; render(); window.scrollTo(0, 0); }
+function go(id) { if (TR.on && id !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } if (id !== tab) { prepEdit = false; pick.open = false; } tab = id; location.hash = id; render(); window.scrollTo(0, 0); }
 
 /* ---------- modali ---------- */
 function ask(msg, label, cb) {
@@ -545,7 +554,7 @@ function presetDayHtml(key) {
    <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="psgo">← Programmi</button></div>`;
 }
 function presetApply(key, pid) {
-  const P = PRESETS.find(p => p.key === key), items = presetItems(P, psAtt()), run = () => { DB.rt[pid] = items; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
+  const P = PRESETS.find(p => p.key === key), items = presetItems(P, psAtt()), run = () => { DB.rt[pid] = items; prepEdit = false; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
   if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + P.n + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
 }
 
@@ -653,6 +662,7 @@ document.addEventListener('click', e => {
     (DB.myv[id] = DB.myv[id] || []).push({t: 'u', k: 'u' + Date.now(), u: p.href, n: p.hostname.replace(/^www\./, '')}); save(); inp.value = ''; flash('✓ Link aggiunto'); loadMine(b.closest('.tb, #mbody') || document); }
   else if (a === 'hist') histView(k);
   else if (a === 'train') trainStart(b.dataset.pid);
+  else if (a === 'pedit') { prepEdit = !prepEdit; pick.open = false; render(true); }
   else if (a === 'trexit') trainExit();
   else if (a === 'trprev' || a === 'trnext') { TR.i += a === 'trnext' ? 1 : -1; trSave(); render(); window.scrollTo(0, 0); }
   else if (a === 'trgo') { TR.i = +b.dataset.i; trSave(); render(); window.scrollTo(0, 0); }

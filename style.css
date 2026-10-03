@@ -211,3 +211,11 @@ body.training{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
 body.training #timer{bottom:calc(88px + env(safe-area-inset-bottom))}
 .attl{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.attl button{border:1px solid var(--line);background:var(--in);border-radius:999px;padding:8px 14px;font-weight:700;color:var(--mut)}
 .attl button.on{background:var(--ok);border-color:var(--ok);color:#fff}.attl button small{font-weight:600;opacity:.8}
+
+/* vista semplice del giorno */
+.li.plan{padding:10px 12px;gap:10px}.li.plan .num{width:34px;height:34px;font-size:18px;border-radius:11px}.li.plan .num.part{background:color-mix(in srgb,var(--gc) 55%,var(--ok))}
+.li.plan .thumb{width:66px;height:50px}.li.plan .t b{font-size:16px}.li.plan .t small{font-size:12.5px}
+.chev{color:var(--mut);font-size:24px;line-height:1;padding-left:4px}
+.prepH{justify-content:space-between;align-items:center}.ghost.small{padding:8px 12px;font-size:14px}
+.mctl{padding:10px 14px 0;align-items:center;justify-content:flex-start}.mctl .mlab{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}.mctl .rm{margin-left:auto}
+.hero p{font-size:15px}
