@@ -516,3 +516,15 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 // Pulldown a braccia tese: presa stretta (mani poco meno della larghezza delle spalle)
 (() => { const e = EX.find(x => x.id === 'b-pulldown-braccia-tese'); if (e) e.gz = 16; })();
+/* ===== Rematore seduto con corda (video "3 esercizi con la corda") ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('b-row-cavo', {id: 'b-row-corda', n: 'Rematore al cavo basso seduto con corda', presa: 'neu', unCavo: true, due: false, alt: undefined, prio: true, tipo: 'semi', fin: ['massa', 'tonificare'],
+    m: 'Dorsali, romboidi, trapezio medio, bicipiti', mm: 'Gran dorsale, romboidi, trapezio medio, deltoide posteriore, bicipite brachiale',
+    set: 'Cavo BASSO con corda. Siediti sulla panca (o a terra) davanti alla torre, piedi appoggiati, ginocchia leggermente flesse. Afferra la corda con i palmi che si guardano.',
+    pos: 'Schiena neutra, petto alto, busto fermo. La corda permette di aprire le mani a fine corsa.',
+    ese: ['Parti con le braccia distese e le scapole lasciate scivolare in avanti.', 'Tira la corda verso l’ombelico, gomiti vicini ai fianchi.', 'A fine corsa apri le mani ai lati dell’addome e stringi le scapole 1 secondo.', 'Ritorna lentamente controllando il cavo.'],
+    cue: 'Corda all’ombelico, gomiti dietro le costole, mani che si aprono a fine corsa.',
+    why: 'La corda lascia i polsi liberi e permette di chiudere di più le scapole rispetto alla barra: più lavoro per dorsali e parte centrale della schiena.',
+    err: ['Busto che oscilla avanti e indietro', 'Tirare verso il petto invece che all’ombelico', 'Spalle che salgono', 'Schiena arrotondata in partenza']}));
+})();

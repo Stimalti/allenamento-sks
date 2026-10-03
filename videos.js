@@ -1,5 +1,12 @@
 /* Video di riferimento (solo link alla fonte originale: nessun video e' incluso nell'app). Tempi indicativi. */
 const VIDEOS = {
+"b-row-corda": [
+{
+"u": "https://www.facebook.com/share/r/19hPF7X2xA/",
+"n": "rematore seduto con corda tirata all’ombelico, gomiti ai fianchi (parte centrale della schiena), circa 0:11-0:14",
+"v": "45"
+}
+],
 "b-lat-singolo": [
 {
 "u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
@@ -146,6 +153,11 @@ const VIDEOS = {
 ],
 "s-facepull": [
 {
+"u": "https://www.facebook.com/share/r/19hPF7X2xA/",
+"n": "corda tirata di fronte al viso con le mani divaricate, in piedi (deltoidi posteriori), circa 0:21-0:24",
+"v": "45"
+},
+{
 "u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
 "n": "tirata alta al viso da seduto, gomiti larghi, circa 0:31-0:41 (3x10)",
 "v": "44"
@@ -282,6 +294,11 @@ const VIDEOS = {
 }
 ],
 "b-pulldown-braccia-tese": [
+{
+"u": "https://www.facebook.com/share/r/19hPF7X2xA/",
+"n": "con la corda: pulldown a braccia tese fino ai fianchi, in piedi (dorsali), circa 0:00-0:06",
+"v": "45"
+},
 {
 "u": "https://www.facebook.com/share/r/1MbR3Cj4C3/",
 "n": "pulldown in piedi con barra fino alle anche, circa 0:22-0:31 (3x15)",
