@@ -509,3 +509,8 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 // Kickback ai cavi a due braccia: busto a ~52° e braccio parallelo al busto (gomito alto e fermo)
 (() => { const e = EX.find(x => x.id === 't-kickback-doppio'); if (e) e.fr = [[-52, 0, {t: 128}], [-52, -52, {t: 128}]]; })();
+// Rematori a busto inclinato (45°): partenza con le braccia distese verso il cavo basso, arrivo con la mano al fianco/addome/petto e il gomito dietro il busto
+(() => {
+  const F = {'b-row-busto-cavi': [[40, 45], [-78, 0]], 'b-row-singolo': [[40, 45], [-78, 0]], 'b-row-barra-sup': [[40, 45], [-78, 0]], 'b-row-barra-pro': [[40, 45], [-100, 15]], 'b-row-barra-larga': [[40, 45], [-110, 40]]};
+  Object.entries(F).forEach(([id, fr]) => { const e = EX.find(x => x.id === id); if (!e) return; e.fr = fr.map((f, i) => [f[0], f[1], Object.assign({}, (e.fr[i] && e.fr[i][2]) || {})]); });
+})();
