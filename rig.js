@@ -197,7 +197,7 @@ const RIG = (() => {
               hf = hf.lengthSq() > 1e-6 ? hf.normalize().multiplyScalar(w).add(alt.multiplyScalar(1 - w)) : alt; } }
           if (hf.lengthSq() < 1e-6) hf = lastHf[s] || J.armF[s]; else hf.normalize(); }
         lastHf[s] = hf.clone();
-        if (J.obj && J.obj[s]) { const hd0 = tip.clone().sub(wrist).normalize(), pn0 = (s === 'R' ? hf.clone().cross(hd0) : hd0.clone().cross(hf)).normalize().multiplyScalar(.013); wrist.add(pn0); tip.add(pn0); }   // l'attrezzo sta dentro il pugno, sul lato del palmo
+        if (J.obj && J.obj[s]) { const hd0 = tip.clone().sub(wrist).normalize(), pn0 = (s === 'R' ? hf.clone().cross(hd0) : hd0.clone().cross(hf)).normalize().multiplyScalar(-.013); wrist.add(pn0); tip.add(pn0); }   // l'attrezzo sta dentro il pugno, sul lato del palmo (la mano si sposta verso il dorso)
         setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.presa ? hf : J.armF[s]); setBone('hand' + s, wrist, tip, hf); // l'avambraccio ruota con la presa (prono-supinazione)
         { const hbI = IDX['hand' + s], hb = bones[hbI]; hb.updateMatrix();
           const Mm = hb.matrix.clone().multiply(inv[hbI]), obj = J.obj && J.obj[s], target = obj || J.H;
@@ -209,8 +209,8 @@ const RIG = (() => {
               cum += ang[k] * Math.PI / 180 * sg; const d = d0.normalize().applyAxisAngle(ax, cum); out.push(out[k].clone().addScaledVector(d, L)); }
             return out; };
           const mid = FING[1], ps = chain(mid, 1), ms = chain(mid, -1);
-          const pn = (s === 'R' ? hf.clone().cross(hd) : hd.clone().cross(hf)).normalize(), b0 = ps[0];   // -pn = lato del palmo: le dita si chiudono sempre verso il palmo, mai verso il dorso
-          const sg = ps[3].clone().sub(b0).dot(pn) <= ms[3].clone().sub(b0).dot(pn) ? 1 : -1;
+          const pn = (s === 'R' ? hf.clone().cross(hd) : hd.clone().cross(hf)).normalize(), b0 = ps[0];   // pn = normale del palmo (pollice x dita per la mano destra): le dita si chiudono verso il palmo, mai verso il dorso
+          const sg = ps[3].clone().sub(b0).dot(pn) >= ms[3].clone().sub(b0).dot(pn) ? 1 : -1;
           FING.forEach(F => { const o = chain(F, sg); for (let k = 0; k < o.length - 1; k++) setBone(F.n + s + k, o[k], o[k + 1], hf); }); }
         setBone('legU' + s, J.hip[s], J.kn[s], J.legF[s]); setBone('legL' + s, J.kn[s], J.an[s], (J.legFL || J.legF)[s]); setBone('foot' + s, J.an[s], J.toe[s], J.footUp[s]);
       });

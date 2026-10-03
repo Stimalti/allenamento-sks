@@ -514,3 +514,5 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   const F = {'b-row-busto-cavi': [[40, 45], [-78, 0]], 'b-row-singolo': [[40, 45], [-78, 0]], 'b-row-barra-sup': [[40, 45], [-78, 0]], 'b-row-barra-pro': [[40, 45], [-100, 15]], 'b-row-barra-larga': [[40, 45], [-110, 40]]};
   Object.entries(F).forEach(([id, fr]) => { const e = EX.find(x => x.id === id); if (!e) return; e.fr = fr.map((f, i) => [f[0], f[1], Object.assign({}, (e.fr[i] && e.fr[i][2]) || {})]); });
 })();
+// Pulldown a braccia tese: presa stretta (mani poco meno della larghezza delle spalle)
+(() => { const e = EX.find(x => x.id === 'b-pulldown-braccia-tese'); if (e) e.gz = 16; })();
