@@ -111,10 +111,10 @@ let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
-const avail = e => !DB.noatt[e.a] && !(e.bench && DB.noatt.Panca);   // attrezzo disponibile (impostazioni → Attrezzi disponibili); la panca serve anche a esercizi con altri attrezzi
+const avail = e => !DB.noatt[e.a] && !(e.nb && DB.noatt.Panca);   // attrezzo disponibile (impostazioni → Attrezzi disponibili); la panca serve anche a esercizi con altri attrezzi
 const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
-const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.bench) : e.a === a).length;
-const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.bench || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
+const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.nb) : e.a === a).length;
+const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.nb || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
 const attLabel = a => a === 'Panca' ? 'Panca (serve in ' + attCount(a) + ' esercizi)' : a;
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
@@ -291,7 +291,7 @@ function trainView() {
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.bench))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.nb))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };

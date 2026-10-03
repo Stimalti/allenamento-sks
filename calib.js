@@ -726,7 +726,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 /* ===== esercizi che richiedono la panca (attrezzo scegliibile in programmi, proposte e filtri) ===== */
 (() => { const no = new Set(['b-lat-larga', 'b-row-cavo', 'b-row-corda', 'b-row-cavo-singolo', 'w-wrist-curl', 'b-trazioni-negative', 'b-trazioni-negative-2', 't-over-db']);   // la panca è solo un'alternativa
-  EX.forEach(e => { if (e.a === 'Panca' || (!no.has(e.id) && /panca/i.test(e.n + ' ' + (e.set || '') + ' ' + (e.pos || '')))) e.bench = true; }); })();
+  EX.forEach(e => { if (e.a === 'Panca' || (!no.has(e.id) && /panca/i.test(e.n + ' ' + (e.set || '') + ' ' + (e.pos || '')))) e.nb = true; }); })();   // e.nb = richiede la panca (e.bench e' gia' usato per la grafica)
 /* ===== core: torsione del busto (woodchop), cavo laterale (Pallof), flessione della colonna (crunch) ===== */
 (() => { const g = id => EX.find(e => e.id === id);
   let e = g('a-woodchop'); if (e) Object.assign(e, {an: [185, 18], tzf: 92, gz: 7, az: 1.1, fr: [[150, 150, {t: 182, tw: 45, zs: 58}], [22, 4, {t: 160, tw: -42, zs: -58}]],
@@ -741,4 +741,142 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   e = g('a-crunch-cavo'); if (e) Object.assign(e, {fr: [[90, -125, {t: 180}], [125, -125, {t: 128, cu: 50}]],
     cap: ['In ginocchio, corda ai lati della testa, schiena dritta', 'Colonna arrotolata, gomiti verso le ginocchia: il bacino resta fermo'],
     trj: 'Non è un inchino dalle anche: il bacino resta fermo e la colonna si arrotola, portando le costole verso il bacino e i gomiti verso le ginocchia.'});
+})();
+/* ===== addominali: molti esercizi in più (a terra, alla sbarra, ai cavi, con manubrio) ===== */
+(() => {
+  const MM = 'retto addominale, obliqui esterni e interni, trasverso dell’addome';
+  const A = o => { if (EX.some(e => e.id === o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', m: 'Addominali', mm: MM, lin: true}, o)); };
+  const LIE = {h: [150, 210], t: 270};   // sdraiato a terra sul tappetino, testa a sinistra, piedi verso la torre
+  // --- a terra, corpo libero ---
+  A({id: 'a-crunch-terra', n: 'Crunch a terra', st: 'floor', m: 'Retto dell’addome (parte alta)', mm: 'retto addominale (fasci superiori), obliqui esterni e interni',
+    fr: [[-105, -20, {...LIE, th: 125, sh: 45}], [-80, -20, {...LIE, t: 232, cu: 38, th: 125, sh: 45}]], cap: ['Sdraiato, ginocchia piegate, mani alla testa', 'Spalle staccate da terra, schiena bassa che resta appoggiata'],
+    trj: 'Movimento corto: solo le spalle e la parte alta della schiena si staccano, la zona lombare resta a terra. Il mento non si avvicina al petto.',
+    set: 'Tappetino a terra. Sdraiati, ginocchia piegate, piedi appoggiati, mani ai lati della testa (non dietro la nuca).', pos: 'Schiena bassa appoggiata, gomiti aperti, sguardo in alto.',
+    ese: ['Espira e stacca le spalle da terra arrotolando la parte alta della schiena.', 'Fermati 1 secondo in alto con gli addominali contratti.', 'Scendi lentamente senza appoggiare del tutto la testa.'],
+    cue: 'Porta le costole verso il bacino, non la testa verso le ginocchia.', why: 'L’esercizio base per il retto dell’addome: controllato e sicuro per la schiena.', err: ['Tirare la testa con le mani', 'Staccare la zona lombare', 'Andare veloce usando lo slancio']});
+  A({id: 'a-crunch-inverso', n: 'Crunch inverso a terra', st: 'floor', m: 'Retto dell’addome (parte bassa)', mm: 'retto addominale (fasci inferiori), obliqui, flessori dell’anca',
+    fr: [[90, 90, {...LIE, th: 150, sh: 70}], [90, 90, {...LIE, th: 205, sh: 120, lift: 8}]], cap: ['Sdraiato, braccia lungo i fianchi, ginocchia piegate in alto', 'Ginocchia al petto e bacino staccato da terra'],
+    trj: 'Le ginocchia salgono verso il petto e il bacino si arrotola staccandosi da terra; il movimento parte dall’addome, non dalle gambe.',
+    set: 'Tappetino a terra. Sdraiati, braccia lungo i fianchi con i palmi a terra, gambe piegate con le cosce verticali.', pos: 'Testa e spalle a terra, ginocchia piegate a 90°.',
+    ese: ['Porta le ginocchia verso il petto.', 'Continua arrotolando il bacino finché si stacca da terra.', 'Scendi piano senza far cadere le gambe.'],
+    cue: 'Stacca il bacino, non limitarti a muovere le gambe.', why: 'Mette l’accento sulla parte bassa dell’addome, difficile da sentire con i crunch classici.', err: ['Usare lo slancio delle gambe', 'Inarcare la schiena in discesa', 'Spingere con le mani']});
+  A({id: 'a-bicicletta', n: 'Crunch bicicletta', st: 'floor', m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, flessori dell’anca', rl: 100,
+    fr: [[-105, -20, {...LIE, t: 240, cu: 30, th: 160, sh: 90, tw: -30}], [-80, -20, {...LIE, t: 232, cu: 38, th: 100, sh: 100, tw: 30}]], cap: ['Gomito destro verso il ginocchio sinistro, gamba destra piegata', 'Si cambia lato: la gamba si distende e il busto ruota dall’altra parte'],
+    trj: 'Pedalata lenta: una gamba si distende mentre l’altra si piega, e il busto ruota portando il gomito verso il ginocchio opposto.',
+    set: 'Tappetino a terra. Sdraiati, mani ai lati della testa, gambe sollevate.', pos: 'Zona lombare appoggiata, spalle staccate per tutta la serie.',
+    ese: ['Porta il ginocchio destro verso il petto distendendo la sinistra.', 'Ruota il busto portando il gomito sinistro verso il ginocchio destro.', 'Cambia lato in modo lento e controllato.'],
+    cue: 'Ruota con le spalle, non tirare con il collo.', why: 'Tra i migliori esercizi per obliqui e retto insieme, senza attrezzi.', err: ['Andare veloci', 'Tirare la testa', 'Appoggiare le spalle tra una ripetizione e l’altra']});
+  A({id: 'a-leg-raise-terra', n: 'Leg raise a terra', st: 'floor', m: 'Retto dell’addome (parte bassa), flessori anca', mm: 'retto addominale (fasci inferiori), obliqui, ileopsoas',
+    fr: [[90, 90, {...LIE, th: 100, sh: 100}], [90, 90, {...LIE, th: 170, sh: 170}]], cap: ['Gambe tese sollevate poco da terra, mani sotto i glutei', 'Gambe verticali'],
+    set: 'Tappetino a terra. Sdraiati con le mani sotto i glutei, gambe tese.', pos: 'Schiena bassa schiacciata a terra, gambe tese o appena piegate.',
+    ese: ['Parti con i piedi sollevati di 10-15 cm.', 'Alza le gambe fino alla verticale.', 'Scendi lentamente fermandoti prima di toccare terra.'],
+    cue: 'Se la schiena si inarca, piega un po’ le ginocchia o accorcia la discesa.', why: 'Parte bassa dell’addome e flessori dell’anca: la discesa lenta è la parte che conta.', err: ['Schiena che si inarca', 'Piedi che toccano terra', 'Slancio']});
+  A({id: 'a-sforbiciate', n: 'Sforbiciate (flutter kicks)', st: 'floor', m: 'Retto dell’addome (parte bassa), flessori anca', mm: 'retto addominale (fasci inferiori), ileopsoas, obliqui', rl: 115,
+    fr: [[90, 90, {...LIE, th: 100, sh: 100}], [90, 90, {...LIE, th: 135, sh: 135}]], cap: ['Gambe tese sollevate, una più bassa', 'Le gambe si alternano su e giù'],
+    set: 'Tappetino a terra. Sdraiati con le mani sotto i glutei, gambe tese e sollevate.', pos: 'Schiena bassa a terra, testa appoggiata o leggermente sollevata.',
+    ese: ['Alza le gambe di 20-30 cm.', 'Alterna piccoli calci su e giù, gambe tese.', 'Continua per il tempo o le ripetizioni previste.'],
+    cue: 'Movimento piccolo e veloce, addome sempre contratto.', why: 'Tenuta prolungata della parte bassa dell’addome.', err: ['Schiena che si inarca', 'Gambe troppo alte', 'Trattenere il respiro']});
+  A({id: 'a-hollow', n: 'Hollow hold (tenuta a barchetta)', st: 'floor', m: 'Core completo (isometrico)', mm: 'retto addominale, trasverso dell’addome, obliqui, flessori dell’anca',
+    fr: [[-150, -150, {...LIE, t: 250, cu: 20, th: 112, sh: 112}], [-150, -150, {...LIE, t: 248, cu: 22, th: 118, sh: 118}]], cap: ['Braccia dietro, gambe tese sollevate, spalle staccate', 'Posizione tenuta: piccola oscillazione'],
+    set: 'Tappetino a terra. Sdraiati, braccia distese dietro la testa, gambe tese.', pos: 'Zona lombare schiacciata a terra, spalle e gambe sollevate: il corpo è una barchetta.',
+    ese: ['Schiaccia la schiena bassa a terra.', 'Solleva spalle, braccia e gambe di 15-20 cm.', 'Tieni 20-40 secondi respirando.'],
+    cue: 'Prima schiaccia la schiena a terra, poi alza il resto.', why: 'La base della stabilità del tronco: insegna a tenere il bacino neutro sotto carico.', err: ['Lombare che si stacca', 'Gambe troppo alte (troppo facile)', 'Trattenere il respiro']});
+  A({id: 'a-dead-bug', n: 'Dead bug', st: 'floor', m: 'Trasverso, core (stabilità)', mm: 'trasverso dell’addome, retto addominale, obliqui, flessori dell’anca', rl: 170,
+    fr: [[180, 180, {...LIE, th: 170, sh: 90}], [-140, -140, {...LIE, th: 110, sh: 110}]], cap: ['Braccia verso il soffitto, ginocchia sopra le anche', 'Braccio dietro la testa e gamba opposta distesa'],
+    set: 'Tappetino a terra. Sdraiati, braccia verso il soffitto, cosce verticali e ginocchia a 90°.', pos: 'Zona lombare appoggiata per tutto l’esercizio.',
+    ese: ['Distendi lentamente un braccio dietro la testa e la gamba opposta in avanti.', 'Fermati a pochi cm da terra.', 'Torna e cambia lato.'],
+    cue: 'La schiena non deve mai staccarsi da terra: se succede, accorcia il movimento.', why: 'Stabilità del tronco a basso rischio: ottimo per iniziare e per la schiena.', err: ['Lombare che si inarca', 'Movimento veloce', 'Trattenere il respiro']});
+  A({id: 'a-vup', n: 'V-up', st: 'floor', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, obliqui, ileopsoas, retto femorale',
+    fr: [[-160, -160, {...LIE, th: 95, sh: 95}], [115, 115, {...LIE, t: 210, th: 150, sh: 150}]], cap: ['Disteso, braccia dietro la testa', 'Busto e gambe salgono insieme: mani verso i piedi'],
+    set: 'Tappetino a terra. Sdraiati completamente disteso, braccia dietro la testa.', pos: 'Gambe tese, braccia tese.',
+    ese: ['Solleva contemporaneamente busto e gambe.', 'Tocca (o avvicina) i piedi con le mani formando una V.', 'Scendi controllato senza appoggiare del tutto.'],
+    cue: 'Sali con il fiato che esce, scendi piano.', why: 'Esercizio avanzato: tutta la catena addominale in un movimento solo.', err: ['Slancio con le braccia', 'Schiena curva in alto', 'Cadere in discesa']});
+  A({id: 'a-situp', n: 'Sit-up', st: 'floor', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, obliqui, ileopsoas',
+    fr: [[150, -100, {...LIE, th: 125, sh: 45}], [40, -210, {...LIE, t: 160, th: 125, sh: 45}]], cap: ['Sdraiato, braccia incrociate al petto, ginocchia piegate', 'Seduto: busto quasi verticale'],
+    set: 'Tappetino a terra. Sdraiati, ginocchia piegate, piedi a terra (puoi bloccarli sotto un attrezzo), braccia incrociate al petto.', pos: 'Mento leggermente dentro, piedi fermi.',
+    ese: ['Arrotola prima le spalle, poi tutta la schiena fino a sederti.', 'Tocca le ginocchia con i gomiti.', 'Scendi vertebra dopo vertebra.'],
+    cue: 'Sali arrotolando, non come una tavola rigida.', why: 'Movimento completo: addome più flessori dell’anca. Ottimo con un disco o manubrio al petto per progredire.', err: ['Salire rigido con la schiena dritta', 'Tirare il collo', 'Lasciarsi cadere']});
+  A({id: 'a-plank', n: 'Plank sui gomiti', st: 'floor', m: 'Core completo (isometrico)', mm: 'trasverso dell’addome, retto addominale, obliqui, glutei, erettori spinali',
+    fr: [[0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 0}], [0, 90, {h: [150, 190], t: 92, th: -68, sh: -68, lift: 2}]], cap: ['Gomiti sotto le spalle, corpo in linea', 'Posizione tenuta: glutei stretti, bacino neutro'],
+    set: 'Tappetino a terra. Avambracci a terra, gomiti sotto le spalle, piedi uniti o poco larghi.', pos: 'Testa, schiena e bacino in linea; glutei contratti.',
+    ese: ['Mettiti sugli avambracci e sulle punte dei piedi.', 'Stringi glutei e addome, respira.', 'Tieni 30-60 secondi senza far cadere i fianchi.'],
+    cue: 'Immagina di portare i gomiti verso i piedi: l’addome si accende.', why: 'La tenuta più semplice ed efficace per il tronco; protegge la schiena negli esercizi pesanti.', err: ['Fianchi che scendono', 'Sedere troppo alto', 'Testa che pende']});
+  A({id: 'a-mountain', n: 'Mountain climber', st: 'floor', m: 'Core, flessori anca (dinamico)', mm: 'retto addominale, obliqui, ileopsoas, spalle (stabilità)', rl: -45,
+    fr: [[0, 0, {h: [150, 154], t: 92, th: -45, sh: -45}], [0, 0, {h: [150, 154], t: 92, th: 75, sh: -10}]], cap: ['Plank sulle mani, corpo in linea', 'Un ginocchio verso il petto, l’altro piede resta dietro'],
+    set: 'Tappetino a terra. Posizione di plank sulle mani, mani sotto le spalle.', pos: 'Schiena piatta, bacino fermo mentre le gambe si muovono.',
+    ese: ['Porta un ginocchio verso il petto.', 'Riportalo indietro e cambia gamba.', 'Vai lento (controllo) o veloce (fiato).'],
+    cue: 'Il bacino non rimbalza: si muovono solo le gambe.', why: 'Addome dinamico più lavoro cardiovascolare, senza attrezzi.', err: ['Sedere che si alza', 'Schiena che cede', 'Spalle davanti alle mani']});
+  // --- con manubrio ---
+  A({id: 'a-russian-twist', n: 'Russian twist con manubrio', a: 'Manubri', eq: 'db', gz: 6, m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, trasverso', fin: ['massa', 'tonificare'],
+    st: 'floor', fr: [[70, 75, {h: [112, 210], t: 150, th: 110, sh: 60, tw: 45, zs: 40}], [70, 75, {h: [112, 210], t: 150, th: 110, sh: 60, tw: -45, zs: -40}]], cap: ['Seduto, busto indietro, manubrio a destra', 'Rotazione: manubrio a sinistra'],
+    set: 'Tappetino a terra, un manubrio leggero tenuto con due mani. Seduto, ginocchia piegate, piedi sollevati (o a terra per facilitare).', pos: 'Busto inclinato indietro di 45°, schiena dritta.',
+    ese: ['Porta il manubrio di fianco a un’anca ruotando il busto.', 'Passa dall’altra parte controllando il movimento.', 'Le spalle ruotano, i fianchi restano fermi.'],
+    cue: 'Ruota le spalle, non solo le braccia.', why: 'Obliqui con carico regolabile: aumenta il manubrio invece delle ripetizioni.', err: ['Curvare la schiena', 'Muovere solo le braccia', 'Andare veloci con peso alto']});
+  A({id: 'a-situp-db', n: 'Sit-up con manubrio al petto', a: 'Manubri', eq: 'db', gz: 6, m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, obliqui, ileopsoas', fin: ['massa', 'tonificare'],
+    st: 'floor', fr: [[150, -100, {...LIE, th: 125, sh: 45}], [40, -210, {...LIE, t: 160, th: 125, sh: 45}]], cap: ['Sdraiato, manubrio tenuto al petto', 'Seduto con il manubrio sempre al petto'],
+    set: 'Tappetino, un manubrio tenuto con due mani sul petto (o un disco). Ginocchia piegate, piedi bloccati.', pos: 'Manubrio fermo contro lo sterno per tutta la serie.',
+    ese: ['Arrotola le spalle e sali fino a sederti.', 'Scendi lentamente in 2-3 secondi.', 'Aumenta il peso quando arrivi a 15 ripetizioni facili.'],
+    cue: 'Il manubrio serve a progredire: scegli un peso con cui le ultime ripetizioni sono difficili.', why: 'Sit-up con carico progressivo: fa crescere l’addome come un muscolo qualsiasi.', err: ['Portare il manubrio avanti per aiutarsi', 'Tirare con il collo', 'Cadere in discesa']});
+  // --- alla sbarra ---
+  const HANG = {t: 180, h: [150, 150]};
+  A({id: 'a-ginocchia-sbarra', n: 'Sollevamento ginocchia alla sbarra', m: 'Retto dell’addome (parte bassa), flessori anca', mm: 'retto addominale (fasci inferiori), ileopsoas, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['massa', 'tonificare'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [180, 180, {...HANG, th: 115, sh: 25}]], cap: ['Appeso, gambe distese', 'Ginocchia al petto, bacino arrotolato'],
+    set: 'Sbarra del powerrack, presa prona poco più larga delle spalle.', pos: 'Spalle attive (non appeso “morto”), gambe unite.',
+    ese: ['Parti appeso con le gambe distese e ferme.', 'Porta le ginocchia verso il petto arrotolando il bacino.', 'Scendi lentamente senza dondolare.'],
+    cue: 'Ferma il dondolio tra una ripetizione e l’altra.', why: 'Parte bassa dell’addome con il corpo libero in sospensione: allena anche la presa.', err: ['Dondolare', 'Muovere solo le gambe senza arrotolare il bacino', 'Spalle rilassate']});
+  A({id: 'a-gambe-sbarra', n: 'Sollevamento gambe tese alla sbarra', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, ileopsoas, retto femorale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['massa', 'tonificare'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [180, 180, {...HANG, th: 100, sh: 100}]], cap: ['Appeso, gambe tese', 'Gambe tese all’orizzontale (o più su)'],
+    set: 'Sbarra del powerrack, presa prona.', pos: 'Gambe tese e unite, spalle attive.',
+    ese: ['Dalle gambe distese, alzale tese fino all’orizzontale.', 'Se riesci continua fino alla sbarra.', 'Scendi lentamente.'],
+    cue: 'Prima arrotola il bacino, poi le gambe seguono.', why: 'Versione avanzata del sollevamento ginocchia: più leva, più lavoro.', err: ['Dondolare', 'Piegare le ginocchia', 'Scendere di colpo']});
+  A({id: 'a-toes-to-bar', n: 'Toes to bar (piedi alla sbarra)', m: 'Retto dell’addome, flessori anca, dorsali', mm: 'retto addominale, ileopsoas, gran dorsale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['forza', 'massa', 'tonificare'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [168, 168, {...HANG, th: 168, sh: 168, lift: 6}]], cap: ['Appeso, gambe tese', 'Piedi alla sbarra, bacino arrotolato'],
+    set: 'Sbarra del powerrack, presa prona.', pos: 'Spalle attive; si parte senza dondolio.',
+    ese: ['Alza le gambe tese portando i piedi a toccare la sbarra.', 'Usa anche i dorsali spingendo la sbarra verso il basso.', 'Scendi controllato.'],
+    cue: 'Spingi la sbarra verso le anche mentre le gambe salgono.', why: 'L’esercizio più completo alla sbarra: addome, flessori e dorsali.', err: ['Kipping incontrollato', 'Ginocchia piegate', 'Lasciarsi cadere']});
+  A({id: 'a-ginocchia-obliquo-sbarra', n: 'Sollevamento ginocchia obliquo alla sbarra', m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, ileopsoas, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['massa', 'tonificare'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [180, 180, {...HANG, th: 115, sh: 25, tw: -35}]], cap: ['Appeso, gambe distese', 'Ginocchia su e di lato, bacino ruotato'],
+    set: 'Sbarra del powerrack, presa prona.', pos: 'Spalle attive, gambe unite.',
+    ese: ['Porta le ginocchia verso una spalla ruotando il bacino.', 'Scendi e ripeti dall’altro lato.'],
+    cue: 'Le ginocchia vanno verso la spalla, non dritte.', why: 'Obliqui in sospensione: completa il lavoro dei sollevamenti classici.', err: ['Dondolare', 'Ruotare solo le gambe senza il bacino']});
+  // --- ai cavi ---
+  A({id: 'a-crunch-cavo-piedi', n: 'Crunch al cavo in piedi', a: 'Cavi', eq: 'cable', an: [205, 14], m: 'Retto dell’addome', mm: MM, fin: ['massa', 'tonificare'], st: 'stand',
+    fr: [[90, -125, {t: 180}], [125, -125, {t: 135, cu: 45}]], cap: ['In piedi, corda ai lati della testa', 'Colonna arrotolata, gomiti verso le cosce: il bacino resta fermo'],
+    trj: 'Come il crunch in ginocchio ma in piedi: il bacino non si muove, la colonna si arrotola portando le costole verso il bacino.',
+    set: 'Cavo ALTO con corda. In piedi davanti alla torre, un passo indietro, corda ai lati della testa.', pos: 'Ginocchia morbide, bacino fermo.',
+    ese: ['Parti con il busto dritto e la corda alla testa.', 'Arrotola la colonna portando i gomiti verso le cosce.', 'Risali lentamente.'],
+    cue: 'Non è un inchino: le anche restano ferme.', why: 'Stessa logica del crunch in ginocchio, comodo se le ginocchia a terra danno fastidio.', err: ['Piegarsi dalle anche', 'Tirare con le braccia', 'Peso eccessivo']});
+  A({id: 'a-crunch-cavo-obliquo', n: 'Crunch obliquo al cavo in ginocchio', a: 'Cavi', eq: 'cable', an: [205, 14], m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, trasverso', fin: ['massa', 'tonificare'], st: 'kneel',
+    fr: [[90, -125, {t: 180}], [125, -125, {t: 130, cu: 48, tw: 40}]], cap: ['In ginocchio, corda alla testa', 'Gomito verso il ginocchio opposto: colonna arrotolata e ruotata'],
+    set: 'Cavo ALTO con corda. In ginocchio davanti alla torre, corda ai lati della testa.', pos: 'Bacino fermo, schiena neutra in partenza.',
+    ese: ['Arrotola la colonna portando un gomito verso il ginocchio opposto.', 'Contrai 1 secondo.', 'Risali e alterna il lato.'],
+    cue: 'Ruota mentre scendi, non dopo.', why: 'Variante del crunch al cavo per gli obliqui con carico regolabile.', err: ['Piegarsi dalle anche', 'Ruotare solo le braccia']});
+  A({id: 'a-crunch-inverso-cavo', n: 'Crunch inverso al cavo (cavigliera)', a: 'Cavi', eq: 'cable', cp: 'ankle', an: [258, 212], m: 'Retto dell’addome (parte bassa)', mm: 'retto addominale (fasci inferiori), obliqui, ileopsoas', fin: ['massa', 'tonificare'], st: 'floor',
+    fr: [[90, 90, {h: [120, 210], t: 270, th: 100, sh: 100}], [90, 90, {h: [120, 210], t: 270, th: 170, sh: 170, lift: 6}]], cap: ['Sdraiato, cavigliera alle caviglie, gambe sollevate', 'Gambe verticali e bacino staccato'],
+    set: 'Cavo BASSO con cavigliera (o una cavigliera per gamba). Sdraiati a terra con i piedi verso la torre, mani sotto i glutei (o aggrappate a qualcosa dietro la testa).', pos: 'Schiena bassa a terra, gambe quasi tese.',
+    ese: ['Parti con le gambe sollevate e il cavo in tensione.', 'Alza le gambe arrotolando il bacino contro la resistenza.', 'Scendi lentamente.'],
+    cue: 'Il cavo tira verso il basso: resistigli nella discesa.', why: 'Leg raise con carico regolabile: progressione vera per la parte bassa dell’addome.', err: ['Schiena che si inarca', 'Slancio', 'Peso eccessivo']});
+  A({id: 'a-pallof-ginocchio', n: 'Pallof press in ginocchio', a: 'Cavi', eq: 'cable', an: [185, 110], tzf: 92, gz: 6, m: 'Core (anti-rotazione), obliqui', mm: 'obliqui esterni e interni, trasverso dell’addome, retto addominale, glutei', fin: ['tonificare'], st: 'kneel',
+    fr: [[45, -30, {t: 180}], [88, 90, {t: 180}]], cap: ['In ginocchio, mani al petto, il cavo tira di lato', 'Braccia distese: il busto non ruota'],
+    trj: 'Le mani vanno dritte in avanti dal petto; in ginocchio il bacino non può aiutare e il lavoro degli obliqui è maggiore.',
+    set: 'Cavo all’altezza del petto da inginocchiati, maniglia singola. In ginocchio di lato alla torre, su un tappetino.', pos: 'Ginocchia alla larghezza dei fianchi, glutei contratti, busto verticale.',
+    ese: ['Parti con le mani al petto.', 'Distendi le braccia davanti resistendo alla rotazione.', 'Tieni 2 secondi e torna.'],
+    cue: 'Stringi i glutei: il bacino è la base.', why: 'Più difficile del Pallof in piedi perché le gambe non compensano.', err: ['Busto che ruota verso la torre', 'Inarcare la schiena']});
+  A({id: 'a-pallof-rotazione', n: 'Pallof press con rotazione', a: 'Cavi', eq: 'cable', an: [185, 75], tzf: 92, gz: 6, m: 'Obliqui, core', mm: 'obliqui esterni e interni, trasverso dell’addome, retto addominale', fin: ['tonificare'], st: 'stand',
+    fr: [[88, 90, {t: 180, tw: 0}], [88, 90, {t: 180, tw: -40, zs: -34}]], cap: ['Braccia distese davanti, cavo di lato', 'Rotazione del busto lontano dalla torre, braccia sempre tese'],
+    trj: 'Dalla posizione a braccia tese del Pallof, il busto ruota lontano dalla torre e torna: le braccia restano tese e fanno da leva.',
+    set: 'Cavo MEDIO con maniglia. In piedi di lato alla torre, piedi larghi.', pos: 'Ginocchia morbide, braccia tese all’altezza del petto.',
+    ese: ['Distendi le braccia davanti al petto.', 'Ruota il busto lontano dalla torre, lentamente.', 'Torna al centro controllando: il cavo vuole riportarti indietro.'],
+    cue: 'Ruota con il tronco, i fianchi seguono poco.', why: 'Obliqui in rotazione con carico regolabile, più dinamico del Pallof classico.', err: ['Piegare le braccia', 'Ruotare solo i fianchi', 'Lasciarsi tirare indietro']});
+  A({id: 'a-rotazioni-cavo', n: 'Rotazioni del busto al cavo', a: 'Cavi', eq: 'cable', an: [185, 75], tzf: 92, gz: 7, m: 'Obliqui, core', mm: 'obliqui esterni e interni, trasverso dell’addome, retto addominale', fin: ['massa', 'tonificare'], st: 'stand',
+    fr: [[88, 90, {t: 180, tw: 40, zs: 48}], [88, 90, {t: 180, tw: -40, zs: -48}]], cap: ['Braccia tese verso la torre, busto girato', 'Busto girato dall’altra parte, braccia sempre tese'],
+    trj: 'Arco orizzontale all’altezza del petto: le mani passano da un lato all’altro con le braccia tese, muovendosi solo con la rotazione del busto.',
+    set: 'Cavo MEDIO con maniglia. In piedi di lato alla torre, piedi larghi, braccia tese all’altezza del petto.', pos: 'Ginocchia morbide, bacino quasi fermo.',
+    ese: ['Parti con le mani verso la torre.', 'Ruota il busto portando le mani dall’altra parte.', 'Torna lentamente.'],
+    cue: 'Le braccia sono solo una leva: il movimento è del tronco.', why: 'Rotazione pura per gli obliqui: complementare al woodchop (che è diagonale).', err: ['Piegare i gomiti', 'Ruotare le anche e le ginocchia', 'Troppo peso']});
+  A({id: 'a-situp-panca', n: 'Sit-up su panca con piedi bloccati', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, obliqui, ileopsoas', st: 'lie', nb: true, fin: ['massa', 'tonificare'],
+    fr: [[150, -100, {h: [185, 178], t: 270, th: 125, sh: 45}], [40, -210, {h: [185, 178], t: 160, th: 125, sh: 45}]], cap: ['Sdraiato sulla panca, ginocchia piegate, braccia al petto', 'Seduto: busto in alto'],
+    set: 'Panca piana con i piedi bloccati sotto i rulli (o sotto il bilanciere della Smith messo basso). Braccia incrociate al petto o manubrio sul petto.', pos: 'Mento dentro, piedi fermi.',
+    ese: ['Arrotola le spalle e sali fino a sederti.', 'Scendi lentamente fino a sfiorare la panca.', 'Per progredire tieni un disco o un manubrio al petto.'],
+    cue: 'Arrotolati, non alzarti rigido.', why: 'Sit-up più comodo e caricabile grazie ai piedi bloccati.', err: ['Schiena dritta come una tavola', 'Tirare il collo', 'Cadere in discesa']});
 })();
