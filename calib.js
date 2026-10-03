@@ -657,3 +657,70 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     err: ['Gomito che si muove', 'Spalla che sale', 'Dondolare']}));
   const h = EX.find(e => e.id === 'c-hammer-singolo'); if (h) { h.prio = true; }
 })();
+
+/* ===== Jammer Arms: tutti gli esercizi possibili con le braccia a leva del rack ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const J = (base, o) => Object.assign(cl(base, {a: 'Jammer', eq: 'jam', presa: 'neu', alt: undefined, due: undefined, unCavo: undefined, hs: undefined, he: undefined, vbar: undefined, vref: undefined, gz2: undefined, prio: undefined, g2: undefined}), o);
+  EX.push(J('s-jammer-press', {id: 'j-press-piedi', n: 'Jammer press in piedi a due braccia (spinta avanti-alto)', g: 'petto', g2: ['spalle', 'tricipiti'], one: false, tipo: 'comp', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Pettorale alto, deltoidi anteriori, tricipiti, core', mm: 'Grande pettorale (fasci clavicolari), deltoide anteriore, tricipite brachiale, core e glutei (stabilità)', an: [250, 195], lat: 0.8,
+    fr: [[60, 150, {t: 170}], [125, 125, {t: 170}]], cap: ['Impugnature alle spalle, un piede avanti', 'Braccia distese in avanti e in alto'],
+    trj: 'Le impugnature salgono in diagonale avanti-alto seguendo l’arco delle arms; il busto resta inclinato in avanti e fermo.',
+    set: 'Jammer arms agganciate in basso al rack, dischi sulle estremità. Stai di fronte, un piede avanti, impugnature all’altezza delle spalle.',
+    pos: 'Busto leggermente inclinato in avanti, core contratto, gomiti sotto le mani.',
+    ese: ['Parti con le impugnature alle spalle.', 'Spingi in avanti e in alto fino a distendere le braccia.', 'Controlla il ritorno alle spalle.', 'Puoi farlo anche esplosivo (push press) con una leggera spinta di gambe.'],
+    cue: 'Spingi “lontano da te”, non solo in alto.', why: 'È l’esercizio tipico delle jammer arms: spinta in sicurezza con carichi alti, petto alto e spalle insieme.',
+    err: ['Inarcare la schiena', 'Gomiti che si aprono', 'Fermarsi a metà corsa']}));
+  EX.push(J('s-jammer-press', {id: 'j-press-piedi-singolo', n: 'Jammer press in piedi a un braccio (tipo landmine)', g: 'petto', g2: ['spalle', 'tricipiti'], one: true, tipo: 'comp', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Pettorale alto, deltoide anteriore, tricipite, obliqui', mm: 'Grande pettorale (fasci clavicolari), deltoide anteriore, tricipite, obliqui e core (anti-rotazione)', an: [250, 195], lat: 0.8,
+    fr: [[60, 150, {t: 170}], [125, 125, {t: 170}]], cap: ['Impugnatura alla spalla, piede opposto avanti', 'Braccio disteso avanti-alto'],
+    trj: 'L’impugnatura sale in diagonale avanti-alto; il busto non ruota.',
+    set: 'Una jammer arm caricata. Stai di fronte, piede opposto al braccio che lavora avanti.', pos: 'Core contratto, bacino fermo, l’altra mano sul fianco.',
+    ese: ['Parti con l’impugnatura alla spalla.', 'Spingi avanti e in alto fino a braccio disteso.', 'Torna controllato.', 'Alterna le braccia.'],
+    cue: 'Il busto non gira: lavora anche il core.', why: 'Versione unilaterale: corregge le differenze tra i due lati e allena l’anti-rotazione.',
+    err: ['Ruotare il busto', 'Inarcare la schiena']}));
+  EX.push(J('p-jammer-press', {id: 'j-press-stretta', n: 'Jammer press presa stretta su panca (tricipiti)', g: 'tricipiti', g2: ['petto'], gz: 18, tipo: 'comp', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Tricipiti, pettorali, deltoidi anteriori', mm: 'Tricipite brachiale, grande pettorale, deltoide anteriore',
+    cap: ['Impugnature vicine ai lati del petto, gomiti stretti', 'Braccia distese'],
+    set: 'Panca piana tra le jammer arms, impugnature alla larghezza delle spalle o più strette.', pos: 'Gomiti vicini al busto per tutta la spinta, scapole addotte.',
+    ese: ['Parti con le impugnature ai lati del petto basso.', 'Spingi tenendo i gomiti stretti fino a distendere le braccia.', 'Contrai i tricipiti 1 secondo.', 'Scendi controllato.'],
+    cue: 'Gomiti stretti: è una spinta per i tricipiti.', why: 'Come la panca presa stretta ma guidata dalle arms: più sicura senza spotter e indipendente per lato.',
+    err: ['Gomiti che si aprono', 'Rimbalzare in basso']}));
+  EX.push(J('g-front-squat', {id: 'j-squat', n: 'Squat con Jammer Arms (impugnature alle spalle)', g: 'gambe', tipo: 'comp', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Quadricipiti, glutei, core', mm: 'Quadricipite, grande gluteo, adduttori, core, schiena alta (postura)', an: [250, 195], lat: 0.5, ko: 9, vbar: undefined,
+    fr: [[70, 160, {t: 178}], [70, 160, {t: 165, h: [118, 163], th: 80, sh: -15}]], cap: ['In piedi, impugnature alle spalle', 'Cosce parallele, busto quasi verticale'],
+    trj: 'Il bacino scende e sale in verticale; le impugnature seguono l’arco delle arms e aiutano l’equilibrio.',
+    set: 'Jammer arms agganciate in basso, impugnature all’altezza delle spalle. Stai di fronte al rack, piedi alla larghezza delle spalle.', pos: 'Petto alto, gomiti sotto le mani, peso sui talloni.',
+    ese: ['Parti in piedi con le impugnature alle spalle.', 'Scendi piegando le ginocchia fino a cosce parallele.', 'Risali spingendo i talloni nel pavimento.', 'Le arms salgono con te: tienile vicine al corpo.'],
+    cue: 'Petto alto, gomiti alti.', why: 'Alternativa allo squat frontale: il carico è guidato e lo schema del movimento resta naturale.',
+    err: ['Talloni che si alzano', 'Ginocchia che cedono verso l’interno', 'Busto che crolla in avanti']}));
+  EX.push(J('g-rdl', {id: 'j-stacco', n: 'Stacco rumeno con Jammer Arms', g: 'gambe', tipo: 'comp', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Femorali, glutei, erettori spinali', mm: 'Bicipite femorale, semitendinoso, grande gluteo, erettori spinali, presa', an: [250, 205], lat: 0.4, vbar: undefined,
+    fr: [[25, 25, {t: 178}], [25, 25, {t: 135, h: [115, 120], th: 25, sh: -5}]], cap: ['In piedi, impugnature davanti alle cosce', 'Fianchi indietro, busto inclinato, impugnature alle ginocchia'],
+    trj: 'Le impugnature scendono lungo le cosce seguendo l’arco delle arms; i fianchi vanno indietro.',
+    set: 'Jammer arms agganciate in basso, impugnature all’altezza delle cosce. Di fronte al rack, piedi alla larghezza delle anche.', pos: 'Schiena neutra, ginocchia morbide, scapole basse.',
+    ese: ['Parti in piedi con le impugnature davanti alle cosce.', 'Porta i fianchi indietro inclinando il busto, braccia distese.', 'Scendi fino alle ginocchia o poco sotto, femorali in tensione.', 'Risali contraendo i glutei.'],
+    cue: 'Fianchi indietro, non ginocchia avanti.', why: 'Stacco rumeno guidato: il carico segue un arco fisso e la presa neutra è comoda per polsi e schiena.',
+    err: ['Schiena che si arrotonda', 'Piegare troppo le ginocchia', 'Impugnature lontane dalle gambe']}));
+  EX.push(J('b-scrollate', {id: 'j-shrug', n: 'Scrollate con Jammer Arms', g: 'schiena', tipo: 'iso', fin: ['massa', 'tonificare'],
+    m: 'Trapezio superiore', mm: 'Trapezio superiore, elevatore della scapola', an: [250, 205], lat: 0.4,
+    fr: [[20, 20], [20, 20, {tl: 64}]], cap: ['Impugnature davanti alle cosce, spalle rilassate', 'Spalle alzate verso le orecchie'],
+    set: 'Jammer arms agganciate in basso, impugnature all’altezza delle cosce. Di fronte al rack, presa neutra.', pos: 'Braccia distese, busto dritto.',
+    ese: ['Parti con le spalle rilassate in basso.', 'Alza le spalle verso le orecchie senza piegare i gomiti.', 'Tieni 1 secondo in alto.', 'Scendi lentamente.'],
+    cue: 'Su e giù: niente rotazioni delle spalle.', why: 'Scrollate con presa neutra e carico guidato: polsi e spalle in posizione comoda.',
+    err: ['Ruotare le spalle', 'Piegare i gomiti']}));
+  EX.push(J('c-curl-bar', {id: 'j-curl', n: 'Curl con Jammer Arms', g: 'bicipiti', tipo: 'iso', fin: ['forza', 'massa', 'tonificare'],
+    m: 'Bicipiti, brachiale', mm: 'Bicipite brachiale, brachiale, brachioradiale (presa neutra)', an: [250, 205], lat: 0.4,
+    fr: [[15, 15], [15, 150]], cap: ['Impugnature davanti alle cosce, braccia distese', 'Impugnature alle spalle, gomiti fermi'],
+    set: 'Jammer arms agganciate in basso, impugnature all’altezza delle cosce. Di fronte al rack, presa neutra (o supina se le impugnature lo permettono).', pos: 'Gomiti ai fianchi e fermi, busto dritto.',
+    ese: ['Parti a braccia distese.', 'Fletti i gomiti portando le impugnature verso le spalle.', 'Contrai 1 secondo.', 'Scendi controllato.'],
+    cue: 'Gomiti fermi: muovi solo l’avambraccio.', why: 'Il carico segue l’arco delle arms e resta in tensione anche in alto, a differenza del bilanciere.',
+    err: ['Dondolare', 'Gomiti che avanzano']}));
+  EX.push(J('b-row-jammer', {id: 'j-row-alto', n: 'Rematore alto con Jammer Arms (gomiti larghi, parte alta della schiena)', g: 'schiena', g2: ['spalle'], tipo: 'semi', fin: ['massa', 'tonificare'], lat: 1.6, gz: 36,
+    m: 'Trapezio medio, romboidi, deltoide posteriore', mm: 'Trapezio medio, romboidi, deltoide posteriore, gran dorsale (fasci alti)',
+    fr: [[35, 40, {t: 128}], [-70, -20, {t: 128}]], cap: ['Impugnature davanti, braccia distese', 'Gomiti alti e larghi, impugnature al petto'],
+    set: 'Jammer arms caricate, impugnature all’altezza delle ginocchia. Busto inclinato a 45-60°.', pos: 'Schiena neutra, ginocchia morbide, gomiti che vanno in fuori.',
+    ese: ['Parti con le braccia distese verso le arms.', 'Tira con i gomiti alti e larghi fino a portare le impugnature al petto.', 'Stringi le scapole 1 secondo.', 'Ritorna lentamente.'],
+    cue: 'Gomiti in fuori, verso l’alto: lavora la parte alta della schiena.', why: 'Variante del rematore con jammer arms che sposta il lavoro su trapezio medio e deltoidi posteriori.',
+    err: ['Busto che si alza', 'Gomiti stretti (diventa il rematore classico)']}));
+})();
