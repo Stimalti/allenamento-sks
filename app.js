@@ -345,27 +345,35 @@ const mondayOf = d => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate
 const PUSH = ['petto', 'spalle', 'tricipiti'], PULL = ['schiena', 'bicipiti', 'avambracci'];
 const SKIP_G = ['gambe', 'addome'];   // per scelta dell'utente gambe e addome non entrano nelle valutazioni
 const gName = g => GRUPPI[g].toLowerCase();
+// spalle: solo i press contano come "spinta"; alzate, face pull e deltoidi posteriori sono neutri (stanno bene sia con spinta sia con tirata)
+const shPress = e => e.g === 'spalle' && /press|military|arnold|spinta/i.test(e.n);
+const isPush = e => e.g === 'petto' || e.g === 'tricipiti' || shPress(e);
+const isPull = e => PULL.includes(e.g) || (e.g === 'spalle' && /face pull|posterior|rear|reverse/i.test(e.n));
+const classG = e => e.g === 'spalle' && !shPress(e) ? null : e.g;   // gruppo ai fini dell'abbinamento
+const weekHas = (set, notPid) => plannedDays().some(pid => pid !== notPid && rtList(pid).some(x => byId[x.e] && (set === PUSH ? isPush(byId[x.e]) : isPull(byId[x.e]))));
 // giudizio sull'abbinamento dei gruppi muscolari di una giornata (solo parte alta)
 function pairing(pid) {
-  const L = rtList(pid).filter(x => byId[x.e]); const G = [...new Set(L.map(x => byId[x.e].g).filter(g => !SKIP_G.includes(g)))]; if (!G.length) return null;
+  const L = rtList(pid).filter(x => byId[x.e]); const Gall = [...new Set(L.map(x => byId[x.e].g).filter(g => !SKIP_G.includes(g)))]; if (!Gall.length) return null;
+  const G = [...new Set(L.map(x => classG(byId[x.e])).filter(g => g && !SKIP_G.includes(g)))]; const shAcc = Gall.includes('spalle') && !G.includes('spalle');
+  if (!G.length) return {ok: true, title: 'spalle (alzate, face pull): giornata di rifinitura', why: 'Solo esercizi accessori per le spalle: vanno bene da soli o aggiunti a qualunque altro giorno.', alt: '', G: Gall, near: [], kind: 'split'};
   const sub = (a, set) => a.every(g => set.includes(g)), has = g => G.includes(g);
-  const list = G.map(gName).join(' + ');
-  let ok = true, title, why, alt = '';
+  const list = Gall.map(gName).join(' + '), accNote = shAcc ? ' Le spalle qui sono alzate/face pull: accessori che stanno bene con qualsiasi abbinamento.' : '';
+  let ok = true, title, why, alt = '', kind = 'split';
   if (G.length === 1) { const g = G[0]; const best = {petto: 'tricipiti o spalle (stessa spinta)', schiena: 'bicipiti (stessa tirata) o petto (antagonisti)', spalle: 'petto e tricipiti, oppure da sole con braccia', bicipiti: 'schiena o tricipiti', tricipiti: 'petto o bicipiti', avambracci: 'schiena e bicipiti'}[g];
     title = `${list}: giornata dedicata, va bene`; why = `Un solo gruppo con più esercizi: ottimo per concentrarsi. Se vuoi accorciare la settimana si abbina bene con ${best}.`; }
-  else if (sub(G, PUSH)) { title = `${list}: abbinamento classico di spinta`; why = 'Petto, spalle e tricipiti spingono insieme: il tricipite e il deltoide anteriore sono già caldi dopo le spinte, quindi li finisci con pochi esercizi. Giorno dopo: schiena e bicipiti.'; }
-  else if (sub(G, PULL)) { title = `${list}: abbinamento classico di tirata`; why = 'Schiena, bicipiti e avambracci tirano insieme: il bicipite lavora già nei rematori e nelle trazioni, lo chiudi con 1-2 curl. Giorno dopo: petto, spalle, tricipiti.'; }
-  else if (sub(G, ['bicipiti', 'tricipiti', 'avambracci'])) { title = `${list}: giornata braccia`; why = 'Bicipiti e tricipiti sono antagonisti: alternarli tiene il braccio irrorato e il recupero breve. Mettila a distanza di un giorno da spinta e tirata.'; }
-  else if (sub(G, ['petto', 'schiena']) || sub(G, ['petto', 'schiena', 'spalle'])) { title = `${list}: antagonisti, abbinamento ottimo`; why = 'Petto e schiena sono antagonisti: puoi alternare una spinta e una tirata (superserie) con recuperi brevi, le spalle restano equilibrate.'; }
-  else if (G.length >= 4) { title = `${list}: parte alta completa`; why = 'Tutta la parte alta in un giorno va bene se ti alleni 2-3 volte a settimana e tieni 6-8 esercizi: uno-due per gruppo, prima i multiarticolari.'; if (L.length > 8) { ok = false; alt = 'Con più di 8 esercizi conviene dividere: spinta (petto, spalle, tricipiti) in un giorno e tirata (schiena, bicipiti) in un altro.'; } }
-  else { ok = false; const push = G.filter(g => PUSH.includes(g)), pull = G.filter(g => PULL.includes(g));
+  else if (sub(G, PUSH)) { title = `${list}: abbinamento classico di spinta`; why = 'Petto, spalle e tricipiti spingono insieme: il tricipite e il deltoide anteriore sono già caldi dopo le spinte, quindi li finisci con pochi esercizi. Giorno dopo: schiena e bicipiti.' + accNote; }
+  else if (sub(G, PULL)) { title = `${list}: abbinamento classico di tirata`; why = 'Schiena, bicipiti e avambracci tirano insieme: il bicipite lavora già nei rematori e nelle trazioni, lo chiudi con 1-2 curl. Giorno dopo: petto, spalle, tricipiti.' + accNote; }
+  else if (sub(G, ['bicipiti', 'tricipiti', 'avambracci'])) { title = `${list}: giornata braccia`; why = 'Bicipiti e tricipiti sono antagonisti: alternarli tiene il braccio irrorato e il recupero breve. Mettila a distanza di un giorno da spinta e tirata.' + accNote; }
+  else if (sub(G, ['petto', 'schiena']) || sub(G, ['petto', 'schiena', 'spalle'])) { title = `${list}: antagonisti, abbinamento ottimo`; why = 'Petto e schiena sono antagonisti: puoi alternare una spinta e una tirata (superserie) con recuperi brevi, le spalle restano equilibrate.' + accNote; }
+  else if (G.length >= 4) { kind = 'full'; title = `${list}: parte alta completa`; why = 'Tutta la parte alta in un giorno va bene se ti alleni 2-3 volte a settimana e tieni 6-8 esercizi: uno-due per gruppo, prima i multiarticolari.'; if (L.length > 8) { ok = false; alt = 'Con più di 8 esercizi conviene dividere: spinta (petto, spalle, tricipiti) in un giorno e tirata (schiena, bicipiti) in un altro.'; } }
+  else { ok = false; kind = 'mixed'; const push = G.filter(g => PUSH.includes(g)), pull = G.filter(g => PULL.includes(g));
     title = `${list}: abbinamento misto, si può fare meglio`;
     why = `${push.map(gName).join(' e ')} ${push.length > 1 ? 'spingono' : 'spinge'}, ${pull.map(gName).join(' e ')} ${pull.length > 1 ? 'tirano' : 'tira'}: nessuna interferenza grave, ma non sfrutti il “pre-riscaldamento” che hai quando abbini muscoli che lavorano insieme.`;
     alt = 'Abbinamenti consigliati: petto + tricipiti (+ spalle), schiena + bicipiti, oppure petto + schiena come antagonisti. ' + (has('petto') && has('bicipiti') ? 'Qui: sposta i bicipiti nel giorno della schiena e metti i tricipiti con il petto.' : has('schiena') && has('tricipiti') ? 'Qui: sposta i tricipiti nel giorno del petto e metti i bicipiti con la schiena.' : has('spalle') && has('schiena') && !has('petto') ? 'Qui: le spalle rendono di più con il petto; con la schiena vanno bene solo deltoidi posteriori e face pull.' : 'Sposta il gruppo “fuori posto” in un altro giorno.'); }
   // stesso gruppo il giorno prima o dopo
   const idx = DAYS.findIndex(([t]) => dayPid(t) === pid), near = [];
   if (idx >= 0) [idx - 1, idx + 1].forEach(j => { const d = DAYS[(j + 7) % 7]; const pid2 = dayPid(d[0]); if (pid2 === pid) return; const G2 = new Set(rtList(pid2).filter(x => byId[x.e]).map(x => byId[x.e].g)); G.filter(g => G2.has(g)).forEach(g => { if (!near.some(n => n.g === g)) near.push({g, day: d[2]}); }); });
-  return {ok, title, why, alt, G, near};
+  return {ok, title, why, alt, G: Gall, near, kind};
 }
 const dayPid = tid => tabPlan(tid);
 const plannedDays = () => DAYS.filter(([tid]) => rtList(dayPid(tid)).length).map(([tid]) => dayPid(tid));
@@ -378,7 +386,7 @@ function evalDay(pid) {
   const tot = L.reduce((t, x) => t + sets(x), 0), mins = Math.round(L.reduce((t, x) => t + sets(x) * (40 + secs(x.rec)), 0) / 60);
   const gs = {}; L.forEach(x => { const e = byId[x.e]; gs[e.g] = (gs[e.g] || 0) + sets(x); (e.g2 || []).forEach(g => { gs[g] = (gs[g] || 0) + sets(x) / 2; }); });
   const groups = Object.keys(gs), upper = groups.filter(g => PUSH.includes(g) || PULL.includes(g)).length > 0;
-  const push = PUSH.reduce((t, g) => t + (gs[g] || 0), 0), pull = PULL.reduce((t, g) => t + (gs[g] || 0), 0);
+  const push = L.reduce((t, x) => t + (isPush(byId[x.e]) ? sets(x) : 0), 0), pull = L.reduce((t, x) => t + (isPull(byId[x.e]) ? sets(x) : 0), 0);
   const n = L.length;
   if (n >= 4 && n <= 8) pros.push(`${n} esercizi: numero giusto per una seduta completa ma gestibile.`);
   else if (n < 3) { cons.push(`Solo ${n} esercizi: seduta corta, difficile coprire bene i muscoli.`); score -= 2; tips.push('Aggiungi almeno un esercizio multiarticolare (es. panca Smith, lat machine, rematore) per arrivare a 4-6.'); }
@@ -388,12 +396,12 @@ function evalDay(pid) {
   else if (tot > 28) { cons.push(`${tot} serie: volume alto, servono più di ${mins} minuti.`); score -= 1.5; tips.push('Riduci a 3 serie per esercizio o sposta qualcosa in un altro giorno.'); }
   if (mins > 80) { cons.push(`Durata stimata ~${mins} minuti: lunga per mantenere intensità.`); score -= 1; }
   else if (mins >= 25) pros.push(`Durata stimata ~${mins} minuti.`);
-  const pr = pairing(pid);
+  const pr = pairing(pid), mixed = pr && (pr.kind === 'full' || pr.kind === 'mixed');
   if (pr) { if (pr.ok) pros.push(pr.title + '. ' + pr.why); else { cons.push(pr.title + '. ' + pr.why); score -= 1; if (pr.alt) tips.push(pr.alt); }
     pr.near.forEach(z => { cons.push(`${GRUPPI[z.g]} anche ${z.day.toLowerCase()}: due giorni di fila sullo stesso muscolo, servono 48 ore di recupero.`); score -= 0.5; tips.push(`Sposta ${gName(z.g)} in un giorno non consecutivo oppure lascia un giorno di pausa.`); }); }
   else pros.push(`Giornata di ${groups.map(gName).join(' e ')} (non valutata: gambe e addome sono esclusi per tua scelta).`);
-  if (upper && push && pull) { const r = push / pull; if (r >= 0.5 && r <= 2) pros.push('Spinta e tirata in equilibrio (petto/spalle/tricipiti contro schiena/bicipiti): bene per postura e spalle.'); else { cons.push(r > 2 ? 'Molta più spinta che tirata: con il tempo le spalle vanno avanti.' : 'Molta più tirata che spinta.'); score -= 1; tips.push(r > 2 ? 'Aggiungi un rematore o un face pull.' : 'Aggiungi una spinta (panca Smith, press con manubri o chest press al cavo).'); } }
-  else if (upper && (push || pull) && n >= 4) { cons.push(push ? 'Solo esercizi di spinta, nessuna tirata.' : 'Solo esercizi di tirata, nessuna spinta.'); score -= 1; tips.push(push ? 'Metti almeno un rematore o una lat machine, anche nello stesso giorno.' : 'Metti almeno una spinta per il petto o le spalle.'); }
+  if (mixed && push && pull) { const r = push / pull; if (r >= 0.5 && r <= 2) pros.push('Spinta e tirata in equilibrio (petto/spalle/tricipiti contro schiena/bicipiti): bene per postura e spalle.'); else { cons.push(r > 2 ? 'Molta più spinta che tirata: con il tempo le spalle vanno avanti.' : 'Molta più tirata che spinta.'); score -= 1; tips.push(r > 2 ? 'Aggiungi un rematore o un face pull, oppure togli una spinta.' : 'Aggiungi una spinta per il gruppo che già alleni qui (es. press per le spalle) oppure togli una tirata.'); } }
+  else if (upper && (push || pull) && n >= 4 && !weekHas(push ? PULL : PUSH, pid)) { cons.push(push ? 'In tutta la settimana ci sono solo spinte, nessuna tirata.' : 'In tutta la settimana ci sono solo tirate, nessuna spinta.'); score -= 1; tips.push(push ? 'Metti almeno un rematore o una lat machine in uno dei giorni.' : 'Metti almeno una spinta (panca Smith o press con manubri) in uno dei giorni.'); }
   const fi = L.findIndex(x => byId[x.e].tipo === 'iso'), fc = L.findIndex(x => byId[x.e].tipo === 'comp');
   if (fc >= 0 && fi >= 0 && fi < fc) { cons.push(`“${byId[L[fi].e].n}” (isolamento) viene prima dei multiarticolari.`); score -= 1; tips.push('Metti prima i multiarticolari (quando sei fresco), poi gli esercizi di isolamento.'); }
   else if (fc >= 0) pros.push('Ordine giusto: multiarticolari prima, isolamento dopo.');
@@ -424,10 +432,11 @@ function proposeDay(pid) {
   if (n > 9) { L.filter(x => !removed.has(x.e)).map(x => byId[x.e]).sort((a, b) => TIER(b) - TIER(a) || exScore(a) - exScore(b)).slice(0, n - 8).forEach(e => { removed.add(e.id); out.push({t: 'remove', id: e.id, title: `Togli “${e.n}”`, why: 'Con più di 9 esercizi la qualità delle ultime serie cala: questo è il meno prioritario.'}); }); n = L.length - removed.size; }
   // 4. equilibrio spinta/tirata e gambe
   const live = L.filter(x => !removed.has(x.e)).map(x => byId[x.e]), has = g => live.some(e => e.g === g || (e.g2 || []).includes(g));
-  const push = live.some(e => PUSH.includes(e.g)), pull = live.some(e => PULL.includes(e.g));
-  if (push && !pull && live.length >= 3) { const c = best('schiena', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Solo spinte (petto/spalle/tricipiti): una tirata per la schiena protegge le spalle e la postura.'}); }
-  if (pull && !push && live.length >= 3) { const c = best('petto', e => e.tipo !== 'iso') || best('spalle', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Solo tirate: manca una spinta per petto o spalle.'}); }
-  if (push && pull) { const ps = live.filter(e => PUSH.includes(e.g)).length, pl = live.filter(e => PULL.includes(e.g)).length;
+  const push = live.some(isPush), pull = live.some(isPull);
+  const prk = pairing(pid), mixedP = prk && (prk.kind === 'full' || prk.kind === 'mixed');
+  if (push && !pull && live.length >= 3 && !weekHas(PULL, pid)) { const c = best('schiena', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'In tutta la settimana ci sono solo spinte: una tirata per la schiena protegge le spalle e la postura.'}); }
+  if (pull && !push && live.length >= 3 && !weekHas(PUSH, pid)) { const c = best('petto', e => e.tipo !== 'iso') || best('spalle', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'In tutta la settimana ci sono solo tirate: manca una spinta per petto o spalle.'}); }
+  if (mixedP && push && pull) { const ps = live.filter(isPush).length, pl = live.filter(isPull).length;
     if (ps >= pl * 2 + 1) { const c = best('schiena'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${ps} esercizi di spinta contro ${pl} di tirata: riequilibra con un altro esercizio per la schiena.`}); }
     if (pl >= ps * 2 + 1) { const c = best('petto') || best('spalle'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${pl} esercizi di tirata contro ${ps} di spinta: aggiungi una spinta.`}); } }
   if (false && has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
