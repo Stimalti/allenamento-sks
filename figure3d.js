@@ -258,6 +258,8 @@ const FIG3 = (() => {
       zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
     } else if (ex.eq === 'hb') {
       P.push(cyl(pt3([150, 20], -62), pt3([150, 20], 62), 3, STEEL), cyl(pt3([150, 20], -62), pt3([150, FLOOR], -62), 4, TW), cyl(pt3([150, 20], 62), pt3([150, FLOOR], 62), 4, TW));
+    } else if (ex.eq === 'dip') {   // parallele per i dip: due barre all'altezza delle mani, ai lati del corpo
+      const y = ex.dipY || 131; [-GZ, GZ].forEach(z => { P.push(cyl(pt3([112, y], z), pt3([196, y], z), 2.6, STEEL), cyl(pt3([120, y], z), pt3([120, FLOOR], z), 3.2, TW), cyl(pt3([188, y], z), pt3([188, FLOOR], z), 3.2, TW)); });
     } else if (ex.eq === 'pad') {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
@@ -284,7 +286,7 @@ const FIG3 = (() => {
         hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz)), L: W3(pt3(K2, (ex.rl || ex.sup) ? LF : LF - kz0))}, an: {R: W3(pt3(A, LN + kz * .6)), L: W3(pt3(A2, (ex.rl || ex.sup) ? LF : LF - kz0 * .6))},
         toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
-      const holds = ['bar', 'db', 'jam', 'hb'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
+      const holds = ['bar', 'db', 'jam', 'hb', 'dip'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
       if (holds) { J.obj = {R: W3(g3n)}; if (!ex.one) J.obj.L = W3(g3f); }
       if (ex.hand) J.tip = {R: W3(g3n), L: W3(g3f)};   // polso flesso/esteso: la mano punta verso l'impugnatura
       P.J = J;

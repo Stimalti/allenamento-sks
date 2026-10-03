@@ -534,3 +534,92 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => { const e = EX.find(x => x.id === 's-facepull'); if (!e) return; e.g2 = ['schiena']; e.m = 'Deltoide posteriore, romboidi, trapezio medio, cuffia dei rotatori';
   Object.assign(e, {lin: true, lat: 3.2, gz: 18, gz2: 40, az: 0.7, fr: [[92, 95, {t: 176}], [85, -108, {t: 182}]], cap: ['Braccia distese verso la puleggia alta, corda chiusa', 'Gomiti alti e larghi, corda ai lati del viso, mani aperte']});
 })();
+
+/* ===== dip alle parallele, curl con manubri, varianti di trazioni ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  const base = (o) => Object.assign({fin: ['massa', 'tonificare'], tipo: 'iso'}, o);
+  // --- dip ---
+  EX.push(base({id: 't-dip', n: 'Dip alle parallele (tricipiti)', g: 'tricipiti', g2: ['petto'], a: 'Corpo libero', m: 'Tricipiti, pettorale inferiore, deltoide anteriore', mm: 'Tricipite brachiale (tutti i capi), grande pettorale (fasci inferiori), deltoide anteriore, core',
+    tipo: 'comp', fin: ['forza', 'massa', 'tonificare'], presa: 'neu', st: 'hang', eq: 'dip', gz: 28, az: 0.6,
+    dipY: 106, fr: [[0, 0, {h: [150, 95], t: 180, th: 25, sh: -70}], [-60, 63, {h: [150, 131], t: 172, th: 25, sh: -70}]],
+    cap: ['Braccia distese sulle parallele, corpo verticale', 'Gomiti piegati a 90° dietro, busto quasi verticale'],
+    trj: 'Il corpo scende e sale quasi in verticale: più il busto resta dritto, più lavorano i tricipiti; inclinandolo in avanti lavora di più il petto.',
+    set: 'Parallele (o le jammer arms bloccate alla stessa altezza, o due panche). Mani alla larghezza delle spalle, presa neutra, braccia distese.',
+    pos: 'Spalle basse e lontane dalle orecchie, core contratto, gambe piegate dietro o incrociate, sguardo avanti.',
+    ese: ['Parti a braccia distese, senza bloccare i gomiti con violenza.', 'Scendi piegando i gomiti all’indietro finché il braccio è circa a 90°.', 'Spingi sulle mani e risali fino a distendere le braccia.', 'Se è troppo duro usa un elastico sotto le ginocchia o i piedi su una panca.'],
+    cue: 'Gomiti che vanno indietro, non in fuori: busto dritto per i tricipiti.',
+    why: 'Il miglior esercizio a corpo libero per i tricipiti: carichi alti, si progredisce con una cintura per la zavorra.',
+    err: ['Scendere troppo con le spalle rilassate', 'Gomiti che si aprono in fuori', 'Spalle alle orecchie', 'Mezze ripetizioni']}));
+  EX.push(cl('t-dip', {id: 't-dip-panca', n: 'Dip tra due panche (tricipiti)', a: 'Corpo libero', eq: 'dip', dipY: 160, gz: 24, mm: 'Tricipite brachiale, deltoide anteriore',
+    fr: [[-10, -10, {h: [150, 150], t: 184, th: 95, sh: 0}], [-70, 50, {h: [150, 178], t: 186, th: 95, sh: 0}]],
+    cap: ['Mani sul bordo della panca dietro di te, gambe avanti', 'Gomiti piegati a 90°, bacino vicino alla panca'],
+    trj: 'Il bacino scende e sale in verticale, vicino al bordo della panca.',
+    set: 'Una panca dietro di te con le mani sul bordo (dita in avanti); i talloni a terra o su una seconda panca per renderlo più duro.',
+    pos: 'Schiena vicina alla panca, spalle basse, sguardo avanti.',
+    ese: ['Parti a braccia distese con il bacino fuori dalla panca.', 'Piega i gomiti all’indietro finché il braccio è a 90°.', 'Risali spingendo con i tricipiti.', 'Per aumentare: piedi su una panca o un disco sulle cosce.'],
+    cue: 'Gomiti dritti dietro, bacino che sfiora la panca.',
+    why: 'Versione più facile dei dip alle parallele: stessa estensione del gomito con meno carico, utile per iniziare o per molte ripetizioni.',
+    err: ['Bacino lontano dalla panca (stress alle spalle)', 'Scendere troppo', 'Gomiti in fuori']}));
+  // --- bicipiti con manubri ---
+  const dbCurl = (o) => Object.assign(cl('c-curl-bar', {a: 'Manubri', eq: 'db', gz: 24, tipo: 'iso', fin: ['forza', 'massa', 'tonificare'], alt: undefined, due: undefined, unCavo: undefined}), o);
+  EX.push(dbCurl({id: 'c-curl-db', n: 'Curl con manubri in piedi (alternato)', presa: 'sup', m: 'Bicipiti, brachiale', mm: 'Bicipite brachiale (capo lungo e breve), brachiale, brachioradiale',
+    fr: [[5, 5], [8, 150]], cap: ['Braccia distese lungo i fianchi, palmi in avanti', 'Manubri alle spalle, mignolo verso l’alto'],
+    set: 'Due manubri, in piedi. Puoi alternare le braccia o salire insieme.', pos: 'Piedi alla larghezza del bacino, gomiti ai fianchi, petto alto, busto fermo.',
+    ese: ['Parti a braccia distese con i palmi in avanti (o neutri, ruotandoli salendo).', 'Fletti il gomito portando il manubrio alla spalla, ruotando il mignolo verso l’alto in cima.', 'Contrai 1 secondo.', 'Scendi in 2-3 secondi fino a braccio disteso.'],
+    cue: 'Gomito fermo al fianco, mignolo in alto a fine curl.', why: 'Il curl con manubri permette la supinazione completa (il bicipite è anche un supinatore) e lavora ogni braccio da solo.', err: ['Dondolare', 'Gomiti che avanzano', 'Scendere a metà']}));
+  EX.push(dbCurl({id: 'c-hammer-db', n: 'Curl a martello con manubri', presa: 'neu', m: 'Brachiale, brachioradiale, bicipiti', mm: 'Brachiale, brachioradiale, bicipite brachiale',
+    fr: [[5, 5], [8, 150]], cap: ['Manubri lungo i fianchi, palmi che si guardano', 'Manubri alle spalle, presa neutra'],
+    set: 'Due manubri, in piedi, presa neutra (pollici in alto).', pos: 'Gomiti ai fianchi, polsi dritti, busto fermo.',
+    ese: ['Parti a braccia distese, palmi verso le cosce.', 'Fletti il gomito tenendo la presa neutra fino alla spalla.', 'Contrai 1 secondo.', 'Scendi lentamente.'],
+    cue: 'Pollici verso l’alto per tutto il movimento.', why: 'La presa neutra sposta il lavoro sul brachiale e sul brachioradiale: braccio più spesso e avambraccio più forte.', err: ['Ruotare il polso', 'Dondolare', 'Gomiti che avanzano']}));
+  EX.push(dbCurl({id: 'c-curl-db-seduto', n: 'Curl con manubri seduto su panca', presa: 'sup', st: 'seat', m: 'Bicipiti, brachiale', mm: 'Bicipite brachiale, brachiale',
+    fr: [[5, 5, {t: 182}], [8, 150, {t: 182}]], cap: ['Seduto, braccia distese ai lati', 'Manubri alle spalle'],
+    set: 'Panca con schienale a 80-90°, due manubri.', pos: 'Schiena appoggiata, gomiti ai fianchi: lo schienale impedisce di dondolare.',
+    ese: ['Parti a braccia distese.', 'Fletti i gomiti (insieme o alternando) ruotando il mignolo in alto.', 'Contrai 1 secondo.', 'Scendi controllato.'],
+    cue: 'Schiena incollata allo schienale: lavorano solo i bicipiti.', why: 'Da seduto non puoi aiutarti con il busto: esecuzione più pulita, ideale per massa e tonificazione.', err: ['Staccare la schiena', 'Gomiti in avanti']}));
+  EX.push(dbCurl({id: 'c-zottman', n: 'Curl Zottman con manubri', presa: 'sup', m: 'Bicipiti, brachiale, brachioradiale, estensori', mm: 'Bicipite brachiale, brachiale, brachioradiale, estensori dell’avambraccio',
+    fr: [[5, 5], [8, 150]], cap: ['Braccia distese, palmi in avanti', 'Manubri alle spalle: qui ruota i palmi in giù prima di scendere'],
+    set: 'Due manubri più leggeri del curl normale.', pos: 'Gomiti ai fianchi, busto fermo.',
+    ese: ['Sali con i palmi in su come in un curl normale.', 'In cima ruota i polsi: palmi verso il basso.', 'Scendi lentamente in presa prona (3 secondi).', 'In basso ruota di nuovo i palmi in su e ripeti.'],
+    cue: 'Su supino, giù prono: la discesa lenta fa lavorare l’avambraccio.', why: 'Unisce curl e reverse curl: bicipiti in salita, brachioradiale ed estensori in discesa.', err: ['Scendere veloce', 'Carico troppo alto per la fase prona']}));
+  EX.push(dbCurl({id: 'c-reverse-db', n: 'Curl con manubri presa prona (reverse curl)', presa: 'pro', m: 'Brachioradiale, estensori, brachiale', mm: 'Brachioradiale, estensori dell’avambraccio, brachiale', g: 'bicipiti', g2: ['avambracci'],
+    fr: [[5, 5], [8, 150]], cap: ['Braccia distese, palmi verso le cosce/indietro', 'Manubri alle spalle, dorso della mano in alto'],
+    set: 'Due manubri leggeri, presa prona (palmi in giù).', pos: 'Gomiti ai fianchi, polsi dritti e fermi.',
+    ese: ['Parti a braccia distese con i palmi in giù.', 'Fletti i gomiti tenendo i polsi dritti.', 'Contrai 1 secondo.', 'Scendi lentamente.'],
+    cue: 'Polsi fermi, non “tirare” con le dita.', why: 'Rinforza avambracci e brachioradiale, rende più forte la presa in trazioni e rematori.', err: ['Polso che si piega', 'Carico eccessivo', 'Gomiti che si alzano']}));
+  EX.push(dbCurl({id: 'c-hammer-cross', n: 'Curl a martello incrociato (cross-body) con manubrio', presa: 'neu', one: true, m: 'Brachiale, brachioradiale, bicipiti', mm: 'Brachiale, brachioradiale, bicipite brachiale (capo lungo)',
+    fr: [[5, 5], [12, 140]], cap: ['Manubrio lungo il fianco, presa neutra', 'Manubrio verso la spalla opposta'],
+    set: 'Un manubrio, in piedi, presa neutra. Un braccio alla volta.', pos: 'Gomito al fianco, busto fermo e non ruotato.',
+    ese: ['Parti a braccio disteso lungo il fianco.', 'Porta il manubrio in diagonale verso la spalla opposta, come a toccare il petto.', 'Contrai 1 secondo.', 'Scendi lentamente e alterna.'],
+    cue: 'Diagonale verso il petto, gomito che resta vicino al fianco.', why: 'La traiettoria incrociata accentua il brachiale e il capo lungo del bicipite: ottimo per lo spessore del braccio.', err: ['Ruotare il busto', 'Gomito che si allontana dal fianco']}));
+  // --- trazioni: varianti ---
+  const tr = (o) => Object.assign(cl('b-trazioni', {tipo: 'comp', fin: ['forza', 'massa', 'tonificare']}), o);
+  EX.push(tr({id: 'b-trazioni-larga', n: 'Trazioni a presa larga', presa: 'pro', gz: 48, m: 'Gran dorsale (fasci alti), grande rotondo, romboidi', mm: 'Gran dorsale, grande rotondo, romboidi, trapezio medio, bicipiti',
+    fr: [[180, 180], [40, 160, {h: [150, 92]}]], cap: ['Sospeso a braccia distese, mani larghe', 'Petto alla sbarra, gomiti in basso e larghi'],
+    set: 'Sbarra del powerrack. Presa prona ben più larga delle spalle (circa 1,5 volte).', pos: 'Corpo teso, scapole attive, gambe leggermente piegate dietro.',
+    ese: ['Parti sospeso, spalle attive.', 'Tira i gomiti in basso e in fuori portando il petto alla sbarra.', 'Mento sopra la sbarra, contrai 1 secondo.', 'Scendi in 2-3 secondi fino a braccia distese.'],
+    cue: 'Gomiti verso il pavimento, petto in alto.', why: 'La presa larga accorcia la corsa ma accentua i dorsali alti e il grande rotondo: la schiena “a V”.', err: ['Dondolare', 'Collo in avanti', 'Mezze ripetizioni']}));
+  EX.push(tr({id: 'b-trazioni-stretta', n: 'Trazioni a presa stretta prona', presa: 'pro', gz: 16, m: 'Gran dorsale (fasci bassi), bicipiti, avambracci', mm: 'Gran dorsale, bicipiti, brachiale, brachioradiale, romboidi',
+    cap: ['Sospeso, mani vicine', 'Mento sopra la sbarra, gomiti stretti davanti'],
+    set: 'Sbarra del powerrack. Presa prona con le mani a 15-20 cm.', pos: 'Corpo teso, gomiti che restano davanti al busto.',
+    ese: ['Parti sospeso a braccia distese.', 'Tira portando i gomiti in basso e davanti, petto verso la sbarra.', 'Mento sopra la sbarra, contrai.', 'Scendi lentamente.'],
+    cue: 'Gomiti stretti e davanti: lavorano i dorsali bassi e le braccia.', why: 'La presa stretta allunga la corsa e sposta il lavoro sui fasci bassi del dorsale e sulle braccia.', err: ['Dondolare', 'Spalle alle orecchie']}));
+  EX.push(tr({id: 'b-trazioni-neutra', n: 'Trazioni a presa neutra (maniglie parallele)', presa: 'neu', gz: 22, m: 'Gran dorsale, brachiale, bicipiti, romboidi', mm: 'Gran dorsale, brachiale, bicipite brachiale, romboidi, trapezio medio',
+    cap: ['Sospeso alle maniglie parallele', 'Mento sopra le mani, gomiti ai fianchi'],
+    set: 'Maniglie parallele agganciate alla sbarra del rack (o una corda/asciugamano). Palmi che si guardano, larghezza spalle.', pos: 'Corpo teso, scapole attive.',
+    ese: ['Parti sospeso a braccia distese.', 'Tira i gomiti in basso lungo i fianchi.', 'Mento sopra le mani, contrai 1 secondo.', 'Scendi controllato.'],
+    cue: 'Gomiti lungo i fianchi, petto alto.', why: 'La presa neutra è la più comoda per spalle e gomiti e permette di usare più carico: ideale per la forza.', err: ['Dondolare', 'Non scendere del tutto']}));
+  EX.push(tr({id: 'b-trazioni-negative', n: 'Trazioni negative (solo discesa)', presa: 'pro', fin: ['forza', 'massa', 'tonificare'], m: 'Gran dorsale, bicipiti, romboidi, core', mm: 'Gran dorsale, bicipiti, romboidi, trapezio, core',
+    fr: [[25, 170, {h: [150, 88]}], [180, 180]], cap: ['Mento sopra la sbarra (salito con un salto o una panca)', 'Braccia distese dopo una discesa lenta'],
+    set: 'Sbarra del powerrack con una panca o un box sotto. Sali con un salto o un passo, scendi in 4-6 secondi.', pos: 'Corpo teso, core contratto, scapole attive fino all’ultimo centimetro.',
+    ese: ['Sali con l’aiuto della panca fino al mento sopra la sbarra.', 'Scendi il più lentamente possibile (4-6 secondi).', 'Arriva a braccia distese con le spalle ancora attive.', 'Rimetti i piedi sulla panca e ripeti.'],
+    cue: 'Frena la discesa: conta fino a 5.', why: 'La fase eccentrica costruisce la forza per arrivare alle trazioni complete: è il modo migliore per impararle.', err: ['Lasciarsi cadere', 'Rilassare le spalle in basso']}));
+  EX.push(tr({id: 'b-trazioni-elastico', n: 'Trazioni assistite con elastico', presa: 'pro', m: 'Gran dorsale, bicipiti, romboidi', mm: 'Gran dorsale, bicipiti, romboidi, trapezio medio',
+    cap: ['Sospeso, ginocchio nell’elastico', 'Mento sopra la sbarra'],
+    set: 'Elastico agganciato alla sbarra, un ginocchio o un piede nell’anello. Più l’elastico è spesso, più aiuta.', pos: 'Corpo teso, scapole attive.',
+    ese: ['Parti sospeso con l’elastico in tensione.', 'Tira i gomiti in basso portando il petto alla sbarra.', 'Mento sopra la sbarra.', 'Scendi controllato: col tempo passa a elastici più sottili.'],
+    cue: 'Stessa tecnica delle trazioni complete, l’elastico aiuta solo in basso.', why: 'Permette di fare volume con la tecnica corretta mentre costruisci la forza per le trazioni libere.', err: ['Dondolare', 'Usare un elastico troppo spesso per sempre']}));
+  // presa per il rig e wizard
+  ['t-dip', 't-dip-panca', 'b-trazioni-neutra', 'c-hammer-db', 'c-hammer-cross'].forEach(id => { const e = EX.find(x => x.id === id); if (e) e.presa = e.presa || 'neu'; });
+})();
