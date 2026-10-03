@@ -285,10 +285,11 @@ function filters(st, sid, qid) {
   const atts = ATT_AV();
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
   <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti (' + Object.keys(DB.fav).length + ')', sid)}</div>
+  <div class="chips">${chip('a', '', '🏋️ Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
   <div class="chips">${chip('f', '', 'Ogni obiettivo', sid)}${Object.entries(FIN).map(([k, v]) => chip('f', k, v === 'Tonificare' ? 'Per tonificare' : v === 'Forza' ? 'Per la forza' : 'Per la massa', sid)).join('')}</div>
   <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
-  <div class="chips">${chip('a', '', 'Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a, sid)).join('')}</div>`;
+`;
 }
 const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`; };
