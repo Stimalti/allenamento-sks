@@ -460,6 +460,45 @@ function proposeApply(pid, chosen) {
   const ord = chosen.find(o => o.t === 'order'); if (ord) { L.sort((a, b) => TIER(byId[a.e]) - TIER(byId[b.e])); done.push('Riordinati'); }
   DB.rt[pid] = L; save(); return done;
 }
+/* ---------- riorganizza la settimana: quali gruppi allenare insieme e in quale giorno ---------- */
+const SPLITS = {1: [['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'avambracci']], 2: [['petto', 'spalle', 'tricipiti'], ['schiena', 'bicipiti', 'avambracci']], 3: [['petto', 'tricipiti'], ['schiena', 'bicipiti'], ['spalle', 'avambracci']], 4: [['petto'], ['schiena'], ['spalle'], ['bicipiti', 'tricipiti', 'avambracci']]};
+const SPLIT_NAMES = {1: ['Parte alta completa'], 2: ['Spinta', 'Tirata'], 3: ['Petto + Tricipiti', 'Schiena + Bicipiti', 'Spalle + Avambracci'], 4: ['Petto', 'Schiena', 'Spalle', 'Braccia']};
+const SPLIT_WHY = {1: 'Con un solo giorno fai tutta la parte alta: multiarticolari prima (panca, lat machine, rematore), poi spalle e braccia.',
+  2: 'Con due giorni il migliore abbinamento è spinta / tirata: petto, spalle e tricipiti lavorano insieme quando spingi; schiena, bicipiti e avambracci quando tiri. Ogni muscolo ha giorni di recupero tra una seduta e l’altra.',
+  3: 'Con tre giorni: petto con tricipiti e schiena con bicipiti (il braccio è già caldo dopo il gruppo grande e lo finisci con pochi esercizi); spalle in un giorno a parte, riposate, insieme agli avambracci.',
+  4: 'Con quattro giorni ogni gruppo grande ha la sua seduta (petto, schiena, spalle) e un giorno è per le braccia: bicipiti e tricipiti alternati, tutto il resto riposa.'};
+const permute = a => a.length <= 1 ? [a] : a.flatMap((x, i) => permute([...a.slice(0, i), ...a.slice(i + 1)]).map(p => [x, ...p]));
+function proposeWeek() {
+  const upperOf = pid => rtList(pid).filter(x => byId[x.e] && !SKIP_G.includes(byId[x.e].g));
+  const pids = DAYS.map(([t]) => dayPid(t)).filter(pid => upperOf(pid).length); if (!pids.length) return null;
+  const D = Math.min(4, pids.length);
+  const keep = pids.length > D ? pids.slice().sort((a, b) => upperOf(b).length - upperOf(a).length).slice(0, D).sort((a, b) => pids.indexOf(a) - pids.indexOf(b)) : pids;
+  const blocks = SPLITS[D], names = SPLIT_NAMES[D];
+  const cnt = keep.map(pid => { const m = {}; upperOf(pid).forEach(x => { m[byId[x.e].g] = (m[byId[x.e].g] || 0) + 1; }); return m; });
+  let best = null, bestS = -1;
+  permute(keep.map((_, i) => i)).forEach(perm => { let sc = 0; blocks.forEach((b, i) => b.forEach(g => { sc += cnt[perm[i]][g] || 0; })); if (sc > bestS) { bestS = sc; best = perm; } });
+  const target = {}, plan = keep.map(pid => ({pid, name: '', groups: []}));
+  blocks.forEach((b, i) => { const pid = keep[best[i]]; b.forEach(g => { target[g] = pid; }); plan[best[i]].name = names[i]; plan[best[i]].groups = b; });
+  const moves = []; pids.forEach(pid => upperOf(pid).forEach(x => { const to = target[byId[x.e].g]; if (to && to !== pid) moves.push({e: x.e, from: pid, to}); }));
+  plan.forEach(d => { d.n = upperOf(d.pid).filter(x => target[byId[x.e].g] === d.pid).length + moves.filter(m => m.to === d.pid).length; d.gl = d.groups.filter(g => pids.some(pid => upperOf(pid).some(x => byId[x.e].g === g))); });
+  return {D, plan, moves, why: SPLIT_WHY[D], dropped: pids.filter(pid => !keep.includes(pid))};
+}
+function weekPropHtml() {
+  const w = proposeWeek(); if (!w) return `<h2 style="padding-right:44px">🔀 Riorganizza i muscoli per giorno</h2><p class="vnote">Nessun esercizio per la parte alta nelle schede: aggiungi prima gli esercizi.</p>`;
+  const dn = pid => planOf(pid).nome;
+  return `<h2 style="padding-right:44px">🔀 Riorganizza i muscoli per giorno</h2>
+   <p class="vnote">Ho guardato tutti gli esercizi scelti nei ${w.D} giorni di allenamento${w.dropped.length ? ' (' + w.dropped.map(dn).join(', ') + ': i loro esercizi per la parte alta vengono spostati, gambe e addome restano)' : ''}. ${esc(w.why)}</p>
+   <h3 style="margin:12px 0 6px">Come diventerebbe</h3>
+   ${w.plan.map(d => `<div class="dayrow" style="cursor:default"><span class="dn">${esc(dn(d.pid).slice(0, 3))}</span><span class="t"><b>${esc(dn(d.pid))} → ${esc(d.name)}</b><small>${d.gl.map(gName).join(', ') || 'nessun esercizio al momento'} · ${d.n} esercizi</small></span></div>`).join('')}
+   ${w.moves.length ? `<h3 style="margin:12px 0 6px">Spostamenti (${w.moves.length})</h3><ul class="evl tip">${w.moves.map(m => `<li>“${esc(byId[m.e].n)}” (${gName(byId[m.e].g)}): da <b>${esc(dn(m.from))}</b> a <b>${esc(dn(m.to))}</b></li>`).join('')}</ul>
+   <p class="vnote">Gambe e addome non si toccano. Pesi, note e storico restano. Dopo lo spostamento ogni giorno viene riordinato (multiarticolari prima) e prende il nome del gruppo.</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="weekapply">✓ Sì, sposta gli esercizi</button><button class="ghost" data-act="no">No, lascia così</button></div>` : '<p class="gn" style="margin-top:10px">✅ La settimana è già organizzata così: niente da spostare.</p>'}`;
+}
+function applyWeek(w) {
+  w.moves.forEach(m => { const L = rtList(m.from), i = L.findIndex(x => x.e === m.e); if (i < 0) return; const [it] = L.splice(i, 1); if (!rtList(m.to).some(x => x.e === m.e)) rtList(m.to).push(it); });
+  w.plan.forEach(d => { rtList(d.pid).sort((a, b) => TIER(byId[a.e]) - TIER(byId[b.e])); const old = DB.names[d.pid] || {}; DB.names[d.pid] = {n: old.n || dayName(d.pid), m: d.gl.map(g => GRUPPI[g]).join(', ')}; });
+  save(); return w.moves.length;
+}
 function evalHtml(pid) {
   const v = evalDay(pid), p = planOf(pid); if (!v) return '';
   if (v.skip) return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.grade}</h2><p class="vnote">${esc(v.pros[0])}</p><div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
@@ -471,7 +510,7 @@ function evalHtml(pid) {
    ${(() => { PROP.pid = pid; PROP.list = proposeDay(pid); if (!PROP.list.length) return '<p class="gn" style="margin-top:12px">✅ Ordine ed esercizi vanno bene così: nessuna modifica da proporre.</p>';
      return `<h3 style="margin:14px 0 6px">Proposte di modifica <small style="font-weight:600;color:var(--mut)">(scegli quali seguire)</small></h3>${PROP.list.map((o, i) => `<label class="wzrow on"><input type="checkbox" data-prop="${i}" checked><span class="t"><b>${esc(o.title)}</b><small>${esc(o.why)}</small></span>${o.nid ? `<button class="ghost" data-act="open" data-id="${o.nid}" style="padding:6px 10px">3D</button>` : ''}</label>`).join('')}
      <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="propapply" data-pid="${pid}">✓ Applica le modifiche scelte</button></div>`; })()}
-   <div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
+   <div class="sbar" style="padding:12px 0 0">${v.pair && !v.pair.ok ? '<button class="primary" style="width:auto;padding:10px 16px" data-act="weekprop">🔀 Riorganizza i muscoli per giorno</button>' : ''}<button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
 }
 // qualità dell'allenamento dallo storico
 function quality() {
@@ -498,7 +537,7 @@ function tipsFor(q) {
   if (q.prog !== null && q.prog >= 0.6) tips.push({i: '🔥', t: `Stai progredendo su ${q.imp} esercizi su ${q.cmp}: continua così e ricordati di dormire e mangiare abbastanza proteine.`});
   if (q.compl !== null && q.compl < 0.7) tips.push({i: '✂️', t: 'Nelle ultime sedute hai completato meno del 70% delle serie: scheda troppo lunga o troppo poco tempo. Togli 1-2 esercizi per giorno.'});
   if (q.missing.length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.map(gName).join(', ')}. Aggiungi almeno un esercizio per ciascuno in uno dei giorni.`});
-  plannedDays().forEach(pid => { const pr = pairing(pid); if (pr && !pr.ok) tips.push({i: '🔀', t: `${planOf(pid).nome}: ${pr.title}.`, pid}); });
+  plannedDays().forEach(pid => { const pr = pairing(pid); if (pr && !pr.ok) tips.push({i: '🔀', t: `${planOf(pid).nome}: ${pr.title}. Posso spostare i gruppi in altri giorni.`, week: true}); });
   const cons = plannedDays().map(pid => ({pid, v: evalDay(pid)})).filter(x => x.v && x.v.score !== null && x.v.score < 7 && !(x.v.pair && !x.v.pair.ok));
   cons.forEach(x => tips.push({i: '🛠', t: `${planOf(x.pid).nome}: ${x.v.cons[0] || 'da sistemare'} Tocca la valutazione per i dettagli.`, pid: x.pid}));
   // esercizi pronti per aumentare il carico
@@ -527,8 +566,9 @@ function homeView() {
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
     <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = nelle ultime 5 sedute. Equilibrio = gruppi della parte alta coperti nella settimana (gambe e addome esclusi per tua scelta).</p></div>
-   <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : ''}</div></li>`).join('')}</ul></div>
+   <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : x.week ? ' <button class="tlink" data-act="weekprop">Proponi</button>' : ''}</div></li>`).join('')}</ul></div>
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
+    ${(() => { const w = proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
     ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? (e.skip ? `<span class="sc s10" style="background:var(--in);color:var(--mut)">${e.icon}</span>` : `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>`) : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
 }
 
@@ -860,6 +900,8 @@ document.addEventListener('click', e => {
   else if (a === 'hist') histView(k);
   else if (a === 'train') trainStart(b.dataset.pid);
   else if (a === 'evalday') modal(evalHtml(b.dataset.pid));
+  else if (a === 'weekprop') { modal(weekPropHtml()); const no = $('#mbody [data-act=no]'); if (no) no.onclick = closeModal; }
+  else if (a === 'weekapply') { const w = proposeWeek(); if (!w || !w.moves.length) { closeModal(); return; } ask('Spostare ' + w.moves.length + ' esercizi tra i giorni come proposto?', 'Sposta', () => { const n = applyWeek(w); prepEdit = false; go('home'); flash('✓ ' + n + ' esercizi spostati: settimana riorganizzata'); }); }
   else if (a === 'propapply') { const pid = b.dataset.pid, chosen = [...document.querySelectorAll('#mbody [data-prop]')].filter(c => c.checked).map(c => PROP.list[+c.dataset.prop]); if (!chosen.length) { flash('Nessuna modifica selezionata'); return; }
     ask('Applicare ' + chosen.length + (chosen.length === 1 ? ' modifica' : ' modifiche') + ' a ' + planOf(pid).nome + '? Pesi, note e storico restano salvati.', 'Applica', () => { const done = proposeApply(pid, chosen); prepEdit = false; go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + done.length + ' modifiche applicate'); setTimeout(() => modal(evalHtml(pid)), 80); }); }
   else if (a === 'godayedit') { closeModal(); go(b.dataset.id); prepEdit = true; render(); }
