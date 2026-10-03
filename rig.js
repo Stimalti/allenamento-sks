@@ -178,8 +178,8 @@ const RIG = (() => {
     // J: {H,S,up,front, sh:{L,R}, el, wr(palma), armF, hip, kn, an, toe, legF, footUp}
     function pose(J) {
       const up = J.up, H = J.H, S = J.S, front = J.front;
-      const N = S.clone().addScaledVector(up, 0.6 * K), Pm = H.clone().lerp(S, .468), HB = N.clone().addScaledVector(up, 1.0 * K), HT = HB.clone().addScaledVector(up, 2.4 * K);
-      setBone('pelvis', H, Pm, front); setBone('chest', Pm, N, front); setBone('neck', N, HB, front); setBone('head', HB, HT, J.headFront || front);
+      const N = S.clone().addScaledVector(up, 0.6 * K), Pm = J.Pm || H.clone().lerp(S, .468), HB = N.clone().addScaledVector(up, 1.0 * K), HT = HB.clone().addScaledVector(up, 2.4 * K), fc = J.frontCh || front;   // J.Pm: colonna flessa (crunch); J.frontCh: torace ruotato (woodchop)
+      setBone('pelvis', H, Pm, front); setBone('chest', Pm, N, fc); setBone('neck', N, HB, fc); setBone('head', HB, HT, J.headFront || fc);
       ['L', 'R'].forEach(s => {
         const sh = J.sh[s], el = J.el[s], wr = J.wr[s], u = wr.clone().sub(el).normalize();
         const wrist = el.clone().lerp(wr, .84); /* wr = centro del pugno (attrezzo); il polso sta 5-6 cm prima */ let tip = wrist.clone().addScaledVector(u, 1.95 * K);

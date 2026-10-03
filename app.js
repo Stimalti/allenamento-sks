@@ -244,7 +244,7 @@ const planTot = (p, prof) => { let tot = 0, dn = 0, mins = 0; p.ex.forEach(x => 
 function exRowPlan(x, i, prof) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s), d = c.sets.filter(s => s.done).length, h = lastHist(k);
   const kg = h ? h.sets.map(s => s.kg).filter(Boolean) : [], kgTxt = kg.length ? ' · ultima ' + (kg.every(v => v === kg[0]) ? kg[0] : kg.join('/')) + ' kg' : '';
-  return `<button class="li plan" style="--gc:${GCOL[ex.g]}" data-act="open" data-id="${ex.id}" id="c-${k.replace(':', '-')}"><span class="num ${d >= c.sets.length ? 'done' : d ? 'part' : ''}">${i + 1}</span>${cov(ex.id, 'thumb') || ''}<span class="t"><b>${esc(ex.n)}</b><small>${c.sets.length} × ${esc(x.r)} · rec. ${esc(x.rec)}${kgTxt}${avail(ex) ? '' : ' · <span style="color:#b91c1c">attrezzo non disponibile</span>'}</small></span><span class="chev">›</span></button>`;
+  return `<button class="li plan" style="--gc:${GCOL[ex.g]}" data-act="open" data-id="${ex.id}" id="c-${k.replace(':', '-')}"><span class="num ${d >= c.sets.length ? 'done' : d ? 'part' : ''}">${i + 1}</span>${cov(ex.id, 'thumb') || ''}<span class="t"><b>${esc(ex.n)}</b><small class="mm">💪 ${esc(ex.mm || ex.m)}</small><small>${c.sets.length} × ${esc(x.r)} · rec. ${esc(x.rec)}${kgTxt}${avail(ex) ? '' : ' · <span style="color:#b91c1c">attrezzo non disponibile</span>'}</small></span><span class="chev">›</span></button>`;
 }
 function planView(p, prof) {
   const {tot, dn, mins} = planTot(p, prof);

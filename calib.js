@@ -727,3 +727,18 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 /* ===== esercizi che richiedono la panca (attrezzo scegliibile in programmi, proposte e filtri) ===== */
 (() => { const no = new Set(['b-lat-larga', 'b-row-cavo', 'b-row-corda', 'b-row-cavo-singolo', 'w-wrist-curl', 'b-trazioni-negative', 'b-trazioni-negative-2', 't-over-db']);   // la panca è solo un'alternativa
   EX.forEach(e => { if (e.a === 'Panca' || (!no.has(e.id) && /panca/i.test(e.n + ' ' + (e.set || '') + ' ' + (e.pos || '')))) e.bench = true; }); })();
+/* ===== core: torsione del busto (woodchop), cavo laterale (Pallof), flessione della colonna (crunch) ===== */
+(() => { const g = id => EX.find(e => e.id === id);
+  let e = g('a-woodchop'); if (e) Object.assign(e, {an: [185, 18], tzf: 92, gz: 7, az: 1.1, fr: [[150, 150, {t: 182, tw: 45, zs: 58}], [22, 4, {t: 160, tw: -42, zs: -58}]],
+    cap: ['Mani in alto sopra la spalla destra, busto girato verso la torre', 'Mani in basso al ginocchio sinistro, busto girato dall’altra parte'],
+    trj: 'Diagonale dall’alto verso il basso attraverso il corpo: le mani partono sopra la spalla vicina alla torre e finiscono fuori dal ginocchio opposto. Il busto ruota, le braccia restano quasi tese.'});
+  e = g('a-woodchop-basso'); if (e) Object.assign(e, {an: [185, 212], tzf: 92, gz: 7, az: 1.1, fr: [[22, 4, {t: 160, tw: 45, zs: 58}], [150, 150, {t: 182, tw: -42, zs: -58}]],
+    cap: ['Mani in basso fuori dal ginocchio destro, busto girato verso la torre', 'Mani in alto sopra la spalla sinistra, busto girato dall’altra parte'],
+    trj: 'Diagonale dal basso verso l’alto attraverso il corpo: dal ginocchio vicino alla torre fino sopra la spalla opposta, ruotando il busto.'});
+  e = g('a-pallof'); if (e) Object.assign(e, {an: [185, 75], tzf: 92, gz: 6, az: 0.75, fr: [[45, -30, {t: 180}], [88, 90, {t: 180}]],
+    cap: ['Mani al petto, il cavo tira di lato', 'Braccia distese davanti: il busto NON ruota'],
+    trj: 'Le mani vanno dritte in avanti dal petto. Il cavo, che arriva di lato, cerca di girarti verso la torre: il lavoro è restare fermi con il busto.'});
+  e = g('a-crunch-cavo'); if (e) Object.assign(e, {fr: [[90, -125, {t: 180}], [125, -125, {t: 128, cu: 50}]],
+    cap: ['In ginocchio, corda ai lati della testa, schiena dritta', 'Colonna arrotolata, gomiti verso le ginocchia: il bacino resta fermo'],
+    trj: 'Non è un inchino dalle anche: il bacino resta fermo e la colonna si arrotola, portando le costole verso il bacino e i gomiti verso le ginocchia.'});
+})();

@@ -15,7 +15,7 @@ const FIG3 = (() => {
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab'];
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu'];   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
   const resolve = (ex, fr) => { const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && !(fr[2] && fr[2].t !== undefined)) r.t = 270 - ex.inc; return r; };   // ex.inc = inclinazione della panca in gradi dall'orizzontale: il busto la segue
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
@@ -194,8 +194,9 @@ const FIG3 = (() => {
   function geoSide(ex, p, rig) {
     p = verticalBar(ex, anchorFeet(ex, p, rig), rig);
     const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
-    const H = [p.h[0], p.h[1] - p.lift], S = add(H, p.tl, p.t), head = add(S, 22, p.t);
+    const H = [p.h[0], p.h[1] - p.lift], Pm2 = p.cu ? add(H, p.tl * .5, p.t + p.cu) : null, S = Pm2 ? add(Pm2, p.tl * .5, p.t) : add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
+    const twr = (p.tw || 0) * R, ZS = p.zs || 0, SN = [S[0] - ZN * Math.sin(twr), S[1], ZN * Math.cos(twr)], SF = [S[0] + ZN * Math.sin(twr), S[1], -ZN * Math.cos(twr)];   // spalle ruotate dalla torsione del busto
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
     const GZ0 = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), GZ = ex.gz2 !== undefined && p.k !== undefined ? GZ0 + (ex.gz2 - GZ0) * p.k : GZ0, presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
@@ -206,9 +207,9 @@ const FIG3 = (() => {
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
     else {
-      W3n = [W[0], W[1], GZ]; E3n = ik3(pt3(S, ZN), W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1], GZ];
+      W3n = [W[0], W[1], GZ + ZS]; E3n = ik3(SN, W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1], GZ + ZS];
       if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF); W3f = pt3(Wf, ZF); g3f = g3n; }
-      else { W3f = [W[0], W[1], -GZ]; E3f = ik3(pt3(S, ZF), W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1], -GZ]; }
+      else { W3f = [W[0], W[1], -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1], -GZ + ZS]; }
     }
     benchPrims(P, ex);
     // gamba lontana
@@ -241,6 +242,7 @@ const FIG3 = (() => {
       const an = Array.isArray(ex.an[0]) ? ex.an[0] : ex.an;
       if (ex.cp === 'ankle') { cableTo(P, pt3(A, LN), an, tzSide(an, 1)); P.push(cyl(pt3(A, LN - 4), pt3(A, LN + 4), 6.6, BLK)); }
       else if (ex.one) cableTo(P, g1, an, tzSide(an, 1));
+      else if (ex.tzf !== undefined) { const m = [(g1[0] + g2[0]) / 2, (g1[1] + g2[1]) / 2, (g1[2] + g2[2]) / 2]; cableTo(P, m, an, ex.tzf); P.push(cyl(g1, g2, 1.4, BLK)); }   // una sola torre di lato (woodchop, Pallof): le due mani sulla stessa maniglia
       else { cableTo(P, g1, an, tzSide(an, 1)); cableTo(P, g2, an, tzSide(an, -1)); P.push(cyl(g1, g2, 1.4, BLK)); }
     } else if (ex.eq === 'jam' && ex.an) {
       const pv = pt3(ex.an, 0);
@@ -281,9 +283,9 @@ const FIG3 = (() => {
       const aimF = (a, b) => { const d = W3(b).sub(W3(a)).normalize(); return Wv(-d.y, d.x, 0); };
       const thF = Wv(...fw2(p.th + 90)), shF = Wv(...fw2(p.sh + 90)), up0 = Wv(0, 1, 0);
       const sFar = ex.one ? 5 : p.ua, fFar = ex.one ? 5 : p.fa;
-      const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, 0)), up, front: fT,
-        sh: {R: W3(pt3(S, ZN)), L: W3(pt3(S, ZF))}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
-        armF: {R: fS(pt3(S, ZN), E3n, W3n, fwd(p.ua)), L: fS(pt3(S, ZF), E3f, W3f, fwd(sFar))},
+      const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, 0)), up, front: fT, Pm: Pm2 ? W3(pt3(Pm2, 0)) : null, frontCh: p.tw ? fT.clone().applyAxisAngle(up, -twr) : null,
+        sh: {R: W3(SN), L: W3(SF)}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
+        armF: {R: fS(SN, E3n, W3n, fwd(p.ua)), L: fS(SF, E3f, W3f, fwd(sFar))},
         presa: ex.presa,
         hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz)), L: W3(pt3(K2, (ex.rl || ex.sup) ? LF : LF - kz0))}, an: {R: W3(pt3(A, LN + kz * .6)), L: W3(pt3(A2, (ex.rl || ex.sup) ? LF : LF - kz0 * .6))},
         toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
