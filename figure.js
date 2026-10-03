@@ -15,9 +15,10 @@ const FIG = (() => {
     lie:   {h:[215,178], t:-90, th:100, sh:2, bench:'flat'},
     inc:   {h:[190,170], t:225, th:95, sh:2, bench:'inc'},
     kneel: {h:[150,162], t:180, th:0, sh:-90, bench:'kneel'},
-    hang:  {h:[150,150], t:180, th:10, sh:-70}
+    hang:  {h:[150,150], t:180, th:10, sh:-70},
+    floor: {h:[112,210], t:180, th:90, sh:82, bench:'floor'}
   };
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab'];
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu'];
 
   function resolve(ex, fr) {
     const b = ST[ex.st];
@@ -69,6 +70,7 @@ const FIG = (() => {
     let s = '';
     const c = 'var(--bench)';
     if (ex.benchSt) st = ex.benchSt;
+    if (st === 'floor') { s += `<rect x="50" y="${FLOOR-3}" width="180" height="5" rx="2" fill="#2a7fb8"/>`; }
     if (st === 'ht') {
       s += `<rect x="56" y="186" width="84" height="9" rx="3" fill="${c}"/>` + line([68,195],[68,FLOOR],5,c) + line([128,195],[128,FLOOR],5,c);
     } else if (st === 'seat') {
