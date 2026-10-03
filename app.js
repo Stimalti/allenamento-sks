@@ -581,8 +581,11 @@ function ask(msg, label, cb) {
   $('#mbody [data-act=yes]').onclick = () => { closeModal(); cb(); };
   $('#mbody [data-act=no]').onclick = closeModal;
 }
-function modal(html) { $('#mbody').innerHTML = html; $('#modal').hidden = false; document.body.style.overflow = 'hidden'; $('.sheet').scrollTop = 0; }
-function closeModal() { $('#modal').hidden = true; $('#mbody').innerHTML = ''; document.body.style.overflow = ''; if (tab === 'lib') render(true); }
+const MSTACK = [];   // finestre aperte una sopra l'altra (es. 3D di un esercizio dentro una proposta): la X torna a quella sotto
+function modal(html, push) { if (push && !$('#modal').hidden) MSTACK.push({html: $('#mbody').innerHTML, y: $('.sheet').scrollTop}); else MSTACK.length = 0; $('#mbody').innerHTML = html; $('#modal').hidden = false; document.body.style.overflow = 'hidden'; $('.sheet').scrollTop = 0; $('#mx').textContent = MSTACK.length ? '←' : '✕'; }
+function closeModal() {
+  if (MSTACK.length) { const prev = MSTACK.pop(); $('#mbody').innerHTML = prev.html; $('.sheet').scrollTop = prev.y; $('#mx').textContent = MSTACK.length ? '←' : '✕'; const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount); loadMine($('#mbody')); return; }
+  $('#modal').hidden = true; $('#mbody').innerHTML = ''; document.body.style.overflow = ''; $('#mx').textContent = '✕'; if (tab === 'lib') render(true); }
 $('#mx').onclick = closeModal;
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
@@ -592,7 +595,7 @@ function openEx(id) {
   modal(`<h2 style="padding-right:44px">${esc(ex.n)}</h2><p style="color:var(--mut);margin:0 0 8px">${esc(GRUPPI[ex.g])} · ${esc(ex.a)}</p>
    <div class="card" style="padding:8px">${techHtml(ex)}</div>
    <div class="card"><button class="ghost" data-act="mtog" data-id="${ex.id}">${inAny(id) ? '✓ Nelle tue schede · modifica' : '＋ Aggiungi a una scheda'}</button></div>
-   <div class="card"><h2>I tuoi pesi</h2>${setsHtml(k, 3, '')}${lastLine(k)}</div>`);
+   <div class="card"><h2>I tuoi pesi</h2>${setsHtml(k, 3, '')}${lastLine(k)}</div>`, true);
   const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, ex, FIG.mount);
   loadMine($('#mbody'));
 }
@@ -602,7 +605,7 @@ function histView(k) {
   modal(`<h2 style="padding-right:44px">Storico · ${esc(ex.n)}</h2>
    <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
    ${DB.notes[id] ? `<p class="gn">📝 ${esc(DB.notes[id])}</p>` : ''}
-   <div class="card hist">${h.map(e => `<div><b>${wdOf(e.d).slice(0, 3)} ${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`);
+   <div class="card hist">${h.map(e => `<div><b>${wdOf(e.d).slice(0, 3)} ${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`, true);
 }
 /* ---------- storico: stampa / PDF / condivisione ---------- */
 function reportData() {
