@@ -370,7 +370,7 @@ function evalDay(pid) {
   const fi = L.findIndex(x => byId[x.e].tipo === 'iso'), fc = L.findIndex(x => byId[x.e].tipo === 'comp');
   if (fc >= 0 && fi >= 0 && fi < fc) { cons.push(`“${byId[L[fi].e].n}” (isolamento) viene prima dei multiarticolari.`); score -= 1; tips.push('Metti prima i multiarticolari (quando sei fresco), poi gli esercizi di isolamento.'); }
   else if (fc >= 0) pros.push('Ordine giusto: multiarticolari prima, isolamento dopo.');
-  const keys = {}; L.forEach(x => { const k = mkey(byId[x.e]); (keys[k] = keys[k] || []).push(byId[x.e].n); });
+  const keys = {}; L.forEach(x => { const k = mkey(byId[x.e]) + '|' + byId[x.e].tipo; (keys[k] = keys[k] || []).push(byId[x.e].n); });
   Object.values(keys).filter(a => a.length > 1).forEach(a => { cons.push(`Doppione: ${a.join(' e ')} lavorano esattamente gli stessi muscoli.`); score -= 0.5; });
   const na = L.filter(x => !avail(byId[x.e])); if (na.length) { cons.push(`${na.length} esercizi con attrezzi che hai segnato come non disponibili.`); score -= 1; tips.push('Sostituiscili in Modifica → Aggiungi esercizi (filtra per attrezzo).'); }
   const longRec = L.filter(x => secs(x.rec) >= 150).length; if (longRec && longRec === n && L.some(x => byId[x.e].tipo === 'iso')) tips.push('Sugli esercizi di isolamento bastano 60-90 secondi di recupero.');
@@ -378,13 +378,62 @@ function evalDay(pid) {
   const grade = score >= 9 ? 'ottima' : score >= 7 ? 'buona' : score >= 5 ? 'da sistemare' : 'da rivedere', icon = score >= 9 ? '🏆' : score >= 7 ? '👍' : score >= 5 ? '🛠' : '⚠️';
   return {score, grade, icon, pros, cons, tips, n, tot, mins, groups};
 }
+/* proposte concrete per un giorno: riordino, esercizi da togliere, sostituire o aggiungere (si applicano solo dopo conferma) */
+const TIER = e => e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;
+const POST = /stacco|rdl|pull-?through|hip thrust|leg curl|kickback/i, KNEE = /squat|affond|bulgar|leg extension|split/i;
+const exScore = e => (DB.fav[e.id] ? 80 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
+const PROP = {pid: null, list: []};
+function proposeDay(pid) {
+  const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return [];
+  const out = [], ids = () => L.map(x => x.e), keys = () => new Set(L.map(x => mkey(byId[x.e])));
+  const best = (g, test) => EX.filter(e => avail(e) && e.g === g && !ids().includes(e.id) && !keys().has(mkey(e)) && (!test || test(e))).sort((a, b) => exScore(b) - exScore(a))[0];
+  const item = e => { const pr = presOf(e, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: e.id, s: pr.s, r: pr.r, rec: pr.rec, obj: (e.fin || []).includes('massa') ? 'massa' : undefined}; };
+  // 1. doppioni → togli il secondo (non preferito)
+  const seen = {}; L.forEach(x => { const e = byId[x.e], k = mkey(e) + '|' + e.tipo; if (seen[k]) { const keep = (!avail(seen[k]) && avail(e)) || (DB.fav[e.id] && !DB.fav[seen[k].id]) ? seen[k] : e; out.push({t: 'remove', id: keep.id, title: `Togli “${keep.n}”`, why: `Lavora esattamente gli stessi muscoli di “${(keep === e ? seen[k] : e).n}”: basta uno dei due.`}); } else seen[k] = e; });
+  // 2. attrezzi non disponibili → sostituisci
+  L.forEach(x => { const e = byId[x.e]; if (avail(e) || out.some(o => o.t === 'remove' && o.id === e.id)) return; const sub = best(e.g, c => (c.fin || []).some(f => (e.fin || []).includes(f)) || true); if (sub) out.push({t: 'swap', id: e.id, nid: sub.id, title: `Sostituisci “${e.n}” con “${sub.n}”`, why: `${e.a}: attrezzo segnato come non disponibile. ${sub.n} allena gli stessi muscoli con ${sub.a.toLowerCase()}.`}); else out.push({t: 'remove', id: e.id, title: `Togli “${e.n}”`, why: `${e.a}: attrezzo non disponibile e nessuna alternativa trovata.`}); });
+  // 3. troppi esercizi → togli gli isolamenti meno importanti oltre l'ottavo
+  const removed = new Set(out.filter(o => o.t === 'remove').map(o => o.id)); let n = L.length - removed.size;
+  if (n > 9) { L.filter(x => !removed.has(x.e)).map(x => byId[x.e]).sort((a, b) => TIER(b) - TIER(a) || exScore(a) - exScore(b)).slice(0, n - 8).forEach(e => { removed.add(e.id); out.push({t: 'remove', id: e.id, title: `Togli “${e.n}”`, why: 'Con più di 9 esercizi la qualità delle ultime serie cala: questo è il meno prioritario.'}); }); n = L.length - removed.size; }
+  // 4. equilibrio spinta/tirata e gambe
+  const live = L.filter(x => !removed.has(x.e)).map(x => byId[x.e]), has = g => live.some(e => e.g === g || (e.g2 || []).includes(g));
+  const push = live.some(e => PUSH.includes(e.g)), pull = live.some(e => PULL.includes(e.g));
+  if (push && !pull && live.length >= 3) { const c = best('schiena', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Solo spinte (petto/spalle/tricipiti): una tirata per la schiena protegge le spalle e la postura.'}); }
+  if (pull && !push && live.length >= 3) { const c = best('petto', e => e.tipo !== 'iso') || best('spalle', e => e.tipo !== 'iso'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Solo tirate: manca una spinta per petto o spalle.'}); }
+  if (push && pull) { const ps = live.filter(e => PUSH.includes(e.g)).length, pl = live.filter(e => PULL.includes(e.g)).length;
+    if (ps >= pl * 2 + 1) { const c = best('schiena'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${ps} esercizi di spinta contro ${pl} di tirata: riequilibra con un altro esercizio per la schiena.`}); }
+    if (pl >= ps * 2 + 1) { const c = best('petto') || best('spalle'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${pl} esercizi di tirata contro ${ps} di spinta: aggiungi una spinta.`}); } }
+  if (has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
+    if (knee && !post) { const c = best('gambe', e => POST.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo squat/affondi: manca un esercizio per femorali e glutei (catena posteriore).'}); }
+    if (post && !knee) { const c = best('gambe', e => KNEE.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo stacchi/femorali: manca uno squat o un affondo per i quadricipiti.'}); } }
+  // 5. pochi esercizi → aggiungi un multiarticolare per il gruppo principale
+  if (n + out.filter(o => o.t === 'add').length < 4) { const main = Object.entries(live.reduce((m, e) => { m[e.g] = (m[e.g] || 0) + 1; return m; }, {})).sort((a, b) => b[1] - a[1])[0]; const g = main ? main[0] : 'schiena'; const c = best(g, e => e.tipo === 'comp') || best(g); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `Con meno di 4 esercizi la seduta è corta: un altro esercizio per ${GRUPPI[g].toLowerCase()}.`}); }
+  // 6. ordine: gambe e multiarticolari grandi prima, poi spalle/braccia, semi, isolamento, addome
+  const finalIds = L.filter(x => !removed.has(x.e)).map(x => { const sw = out.find(o => o.t === 'swap' && o.id === x.e); return sw ? sw.nid : x.e; }).concat(out.filter(o => o.t === 'add').map(o => o.nid));
+  const sorted = finalIds.slice().sort((a, b) => TIER(byId[a]) - TIER(byId[b]));
+  const curOrder = L.filter(x => !removed.has(x.e)).map(x => x.e), curSorted = curOrder.slice().sort((a, b) => TIER(byId[a]) - TIER(byId[b]));
+  if (curOrder.join() !== curSorted.join()) out.push({t: 'order', order: sorted, title: 'Riordina gli esercizi', why: 'Prima gambe e multiarticolari grandi (schiena, petto), poi spalle e spinte minori, poi isolamento e addome: così fai gli esercizi pesanti quando sei fresco. Nuovo ordine: ' + sorted.map((id, i) => (i + 1) + '. ' + byId[id].n.split(' (')[0]).join(' · ')});
+  else if (out.some(o => o.t === 'add' || o.t === 'swap') && finalIds.join() !== sorted.join()) out.push({t: 'order', order: sorted, title: 'Metti i nuovi esercizi al posto giusto', why: 'Nuovo ordine: ' + sorted.map((id, i) => (i + 1) + '. ' + byId[id].n.split(' (')[0]).join(' · ')});
+  return out;
+}
+function proposeApply(pid, chosen) {
+  let L = rtList(pid).slice(); const done = [];
+  chosen.forEach(o => { if (o.t === 'remove') { L = L.filter(x => x.e !== o.id); done.push(o.title); }
+    else if (o.t === 'swap') { const i = L.findIndex(x => x.e === o.id); const e = byId[o.nid], pr = presOf(e, (L[i] || {}).obj || 'massa') || presOf(e, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; const it = {e: o.nid, s: pr.s, r: pr.r, rec: pr.rec, obj: L[i] && L[i].obj && presOf(e, L[i].obj) ? L[i].obj : undefined}; if (i >= 0) L[i] = it; else L.push(it); done.push(o.title); }
+    else if (o.t === 'add') { if (!L.some(x => x.e === o.nid)) { const e = byId[o.nid], pr = presOf(e, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; L.push({e: o.nid, s: pr.s, r: pr.r, rec: pr.rec, obj: (e.fin || []).includes('massa') ? 'massa' : undefined}); } done.push(o.title); } });
+  const ord = chosen.find(o => o.t === 'order'); if (ord) { L.sort((a, b) => TIER(byId[a.e]) - TIER(byId[b.e])); done.push('Riordinati'); }
+  DB.rt[pid] = L; save(); return done;
+}
 function evalHtml(pid) {
   const v = evalDay(pid), p = planOf(pid); if (!v) return '';
   return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.score}/10, ${v.grade}</h2><p class="vnote">${v.n} esercizi · ${v.tot} serie · ~${v.mins} minuti. Giudizio automatico sull'insieme degli esercizi che hai scelto (non sul peso che usi).</p>
    ${v.pros.length ? `<h3 style="margin:12px 0 6px">Cosa va bene</h3><ul class="evl ok">${v.pros.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
    ${v.cons.length ? `<h3 style="margin:12px 0 6px">Cosa migliorare</h3><ul class="evl no">${v.cons.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '<p class="vnote">Nessun punto debole trovato.</p>'}
    ${v.tips.length ? `<h3 style="margin:12px 0 6px">Consigli</h3><ul class="evl tip">${v.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-   <div class="sbar" style="padding:12px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica questa scheda</button></div>`;
+   ${(() => { PROP.pid = pid; PROP.list = proposeDay(pid); if (!PROP.list.length) return '<p class="gn" style="margin-top:12px">✅ Ordine ed esercizi vanno bene così: nessuna modifica da proporre.</p>';
+     return `<h3 style="margin:14px 0 6px">Proposte di modifica <small style="font-weight:600;color:var(--mut)">(scegli quali seguire)</small></h3>${PROP.list.map((o, i) => `<label class="wzrow on"><input type="checkbox" data-prop="${i}" checked><span class="t"><b>${esc(o.title)}</b><small>${esc(o.why)}</small></span>${o.nid ? `<button class="ghost" data-act="open" data-id="${o.nid}" style="padding:6px 10px">3D</button>` : ''}</label>`).join('')}
+     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="propapply" data-pid="${pid}">✓ Applica le modifiche scelte</button></div>`; })()}
+   <div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
 }
 // qualità dell'allenamento dallo storico
 function quality() {
@@ -772,6 +821,8 @@ document.addEventListener('click', e => {
   else if (a === 'hist') histView(k);
   else if (a === 'train') trainStart(b.dataset.pid);
   else if (a === 'evalday') modal(evalHtml(b.dataset.pid));
+  else if (a === 'propapply') { const pid = b.dataset.pid, chosen = [...document.querySelectorAll('#mbody [data-prop]')].filter(c => c.checked).map(c => PROP.list[+c.dataset.prop]); if (!chosen.length) { flash('Nessuna modifica selezionata'); return; }
+    ask('Applicare ' + chosen.length + (chosen.length === 1 ? ' modifica' : ' modifiche') + ' a ' + planOf(pid).nome + '? Pesi, note e storico restano salvati.', 'Applica', () => { const done = proposeApply(pid, chosen); prepEdit = false; go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + done.length + ' modifiche applicate'); setTimeout(() => modal(evalHtml(pid)), 80); }); }
   else if (a === 'godayedit') { closeModal(); go(b.dataset.id); prepEdit = true; render(); }
   else if (a === 'pedit') { prepEdit = !prepEdit; pick.open = false; render(true); }
   else if (a === 'trexit') trainExit();
@@ -818,7 +869,7 @@ document.addEventListener('click', e => {
   else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, notes: DB.notes, fav: DB.fav, seeds: DB.seeds, noatt: DB.noatt, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
-document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.act === 'wzkeep') { const id = t.dataset.id, i = WZ.keep.indexOf(id); if (t.checked && i < 0) WZ.keep.push(id); if (!t.checked && i >= 0) WZ.keep.splice(i, 1); wizRender(); } });
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.prop !== undefined) { t.closest('.wzrow').classList.toggle('on', t.checked); return; } if (t.dataset && t.dataset.act === 'wzkeep') { const id = t.dataset.id, i = WZ.keep.indexOf(id); if (t.checked && i < 0) WZ.keep.push(id); if (!t.checked && i >= 0) WZ.keep.splice(i, 1); wizRender(); } });
 document.addEventListener('change', async e => {
   const t = e.target; if (!t.dataset || !t.dataset.vfile) return; const f = t.files && t.files[0]; if (!f) return;
   if (f.size > 400 * 1024 * 1024) { flash('⚠ Video troppo grande (max 400 MB)'); return; }
