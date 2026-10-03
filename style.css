@@ -171,3 +171,12 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 #timer.warn .tclock{color:var(--acc)}#timer.over{border-color:var(--ok)}#timer.over .tclock{color:var(--ok)}#timer.over .tbar i{background:var(--ok)}
 .tlink{border:0;background:none;color:var(--acc2);font-weight:700;font-size:inherit;padding:0;text-decoration:underline}
 .altc{background:var(--accbg);border-radius:12px;padding:8px 12px;font-size:14px}
+/* note per serie e note generali dell'esercizio */
+.set .snote{grid-column:1/-1;border:1px dashed var(--line);background:transparent;border-radius:8px;padding:5px 8px;font-size:13px;color:var(--tx);width:100%;min-width:0;margin-top:-3px}
+.set .snote:focus{border-style:solid;outline:none;border-color:var(--acc)}
+.set .snote::placeholder{color:var(--mut);opacity:.8}
+.gnote{display:block;padding:4px 14px 8px}
+.gnote span{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}
+.gnote textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--in);color:var(--tx);padding:8px 10px;font:inherit;font-size:14px;resize:vertical}
+.gn{background:var(--accbg);border-radius:10px;padding:8px 10px;font-size:14px;white-space:pre-wrap}
+.hist i{color:var(--mut);font-style:italic}

@@ -12,7 +12,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }
@@ -199,9 +199,12 @@ function setsHtml(k, n, target) {
     return `<div class="set"><span>${i + 1}</span>
       <label class="f"><input inputmode="decimal" data-k="${k}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(ph.kg || '0')}" aria-label="Peso serie ${i + 1}"><u>kg</u></label>
       <label class="f"><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="Ripetizioni serie ${i + 1}"><u>rip</u></label>
-      <button class="chk ${s.done ? 'on' : ''}" data-k="${k}" data-i="${i}" data-act="done" aria-label="Serie completata">✓</button></div>`;
+      <button class="chk ${s.done ? 'on' : ''}" data-k="${k}" data-i="${i}" data-act="done" aria-label="Serie completata">✓</button>
+      <input class="snote" data-k="${k}" data-i="${i}" data-f="note" value="${esc(s.note || '')}" placeholder="${h && h.sets[i] && h.sets[i].note ? 'ultima volta: ' + esc(h.sets[i].note) : 'nota serie ' + (i + 1) + ' (es. presa, sensazione, dolore)'}" maxlength="140" aria-label="Nota serie ${i + 1}"></div>`;
   }).join('');
+  const id = k.split(':')[1], gn = DB.notes[id] || '';
   return `<div class="sets" data-sets="${k}">${rows}</div>
+    <label class="gnote"><span>📝 Note sull’esercizio (restano salvate per sempre)</span><textarea data-gnote="${id}" rows="${gn.length > 60 ? 3 : 2}" placeholder="Es. altezza del cavo, regolazione della panca, cosa funziona meglio…" maxlength="600">${esc(gn)}</textarea></label>
     <div class="sbar"><button data-act="addset" data-k="${k}" data-n="${n}">+ serie</button><button data-act="delset" data-k="${k}" data-n="${n}">− serie</button>
     <button data-act="hist" data-k="${k}">Storico</button></div>`;
 }
@@ -308,7 +311,8 @@ function histView(k) {
   const best = h.reduce((m, e) => Math.max(m, ...e.sets.map(s => num(s.kg))), 0);
   modal(`<h2 style="padding-right:44px">Storico · ${esc(ex.n)}</h2>
    <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
-   <div class="card hist">${h.map(e => `<div><b>${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}`).join(' · ')}</div>`).join('')}</div>`);
+   ${DB.notes[id] ? `<p class="gn">📝 ${esc(DB.notes[id])}</p>` : ''}
+   <div class="card hist">${h.map(e => `<div><b>${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`);
 }
 /* ---------- storico: stampa / PDF / condivisione ---------- */
 function reportData() {
@@ -320,13 +324,13 @@ function reportData() {
 const fmtFull = d => d.split('-').reverse().join('/');
 function reportText(data) {
   let t = 'STORICO ALLENAMENTI · ' + fmtFull(today()) + '\n';
-  data.forEach(({ex, h}) => { t += '\n' + ex.n + ' (' + GRUPPI[ex.g] + ')\n'; h.forEach(e => { t += '  ' + fmtFull(e.d) + ': ' + e.sets.map(s => (s.kg || '–') + ' kg × ' + (s.reps || '–')).join(' · ') + '\n'; }); });
+  data.forEach(({ex, h}) => { t += '\n' + ex.n + ' (' + GRUPPI[ex.g] + ')\n'; if (DB.notes[ex.id]) t += '  Note: ' + DB.notes[ex.id] + '\n'; h.forEach(e => { t += '  ' + fmtFull(e.d) + ': ' + e.sets.map(s => (s.kg || '–') + ' kg × ' + (s.reps || '–') + (s.note ? ' (' + s.note + ')' : '')).join(' · ') + '\n'; }); });
   return t;
 }
 function reportHtml(data) {
   if (!data.length) return '<p>Nessun allenamento archiviato: usa “Fine allenamento” per salvarlo nello storico.</p>';
   return data.map(({ex, h}) => { const best = Math.max(0, ...h.flatMap(e => e.sets.map(s => num(s.kg))));
-    return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3><table>${h.map(e => `<tr><td>${fmtFull(e.d)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
+    return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3>${DB.notes[ex.id] ? `<p class="gn">📝 ${esc(DB.notes[ex.id])}</p>` : ''}<table>${h.map(e => `<tr><td>${fmtFull(e.d)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
 }
 function reportView() {
   const data = reportData();
@@ -587,7 +591,8 @@ document.addEventListener('input', e => {
   if (t.id === 'pq') { pick.q = t.value; const r = $('#pkres'); if (r) r.innerHTML = pickRes(r.dataset.pid); return; } // aggiorna solo i risultati: la casella resta attiva (tastiera del telefono)
   if (t.id === 'q') { lib.q = t.value; const r = $('#libres'); if (r) r.innerHTML = libRes(); return; }
   if (t.dataset.mf) { const x = rtList(t.dataset.pid).find(m => m.e === t.dataset.id); if (x) { x[t.dataset.mf] = t.value.slice(0, 12); save(); } return; }
-  if (t.dataset.f) { const s = DB.cur[t.dataset.k].sets[+t.dataset.i]; s[t.dataset.f] = t.value.replace(/[^\d.,]/g, ''); if (t.value !== s[t.dataset.f]) t.value = s[t.dataset.f]; save(); }
+  if (t.dataset.gnote !== undefined) { DB.notes[t.dataset.gnote] = t.value.slice(0, 600); save(); return; }
+  if (t.dataset.f) { const s = DB.cur[t.dataset.k].sets[+t.dataset.i]; if (t.dataset.f === 'note') { s.note = t.value.slice(0, 140); save(); return; } s[t.dataset.f] = t.value.replace(/[^\d.,]/g, ''); if (t.value !== s[t.dataset.f]) t.value = s[t.dataset.f]; save(); }
 });
 document.addEventListener('toggle', e => {
   const d = e.target; if (!d.matches || !d.matches('details.tech') || !d.open) return;
@@ -608,13 +613,13 @@ function finish(pid, prof) {
   const p = planOf(pid); let n = 0;
   p.ex.forEach(x => {
     const k = pk(prof, x.e), c = DB.cur[k]; if (!c) return;
-    const sets = c.sets.filter(s => s.kg || s.reps).map(s => ({kg: s.kg, reps: s.reps}));
+    const sets = c.sets.filter(s => s.kg || s.reps || s.note).map(s => ({kg: s.kg, reps: s.reps, note: s.note || undefined}));
     if (!sets.length) return;
     (DB.hist[k] = DB.hist[k] || []).push({d: today(), sets}); n++;
     c.sets.forEach(s => { s.done = false; });
   });
   if (!n) { flash('Compila almeno una serie'); return; }
-  save(); render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi e ripetizioni restano per la prossima volta');
+  save(); render(true); flash('✓ Archiviato (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
 }
 const blobToDataUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 async function exportData(full) {
