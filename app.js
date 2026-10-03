@@ -74,7 +74,8 @@ const finLine = (ex, f) => { const p = presOf(ex, f); return p ? `<li><b>${FIN[f
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const DAYS = [['g1', 'Lun', 'Lunedì'], ['g2', 'Mar', 'Martedì'], ['g3', 'Mer', 'Mercoledì'], ['g4', 'Gio', 'Giovedì'], ['giulia', 'Ven', 'Venerdì'], ['mia', 'Sab', 'Sabato'], ['dom', 'Dom', 'Domenica']];
-const TABS = [{id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'}, ...DAYS.map(([id, sh, full], i) => ({id, a:[sh], b:String(i + 1), full}))];
+const ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>';
+const TABS = [{id:'home', a:['Home'], b:ICON_HOME, full:'Home'}, {id:'lib', a:['Esercizi'], b:ICON_LIB, full:'Esercizi'}, ...DAYS.map(([id, sh, full], i) => ({id, a:[sh], b:String(i + 1), full}))];
 const dayName = id => (DAYS.find(d => d[0] === (id === 'gA' ? 'giulia' : id)) || [])[2] || 'Scheda';
 const tabPlan = id => id === 'giulia' ? 'gA' : id;
 
@@ -104,7 +105,7 @@ function pickRt(id) {
   pickRt.rows = rows;
 }
 const todayTabId = () => DAYS[(new Date().getDay() + 6) % 7][0];
-let tab = (location.hash || '#' + todayTabId()).slice(1); if (!TABS.some(t => t.id === tab)) tab = todayTabId();
+let tab = (location.hash || '#home').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'home';
 let prepEdit = false;   // scheda del giorno: vista semplice (false) o modifica (true)
 let giuliaSub = 'gA';
 const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
@@ -249,6 +250,7 @@ function planView(p, prof) {
   return `<section class="hero"><div class="eyebrow">${isToday ? 'Oggi · ' : ''}${esc(dayName(p.id))}${last ? ' · ultima seduta ' + esc(fmtWd(last.d)) : ''}</div><h2>${esc(p.nome)}</h2>${p.sotto ? `<div class="sub">${esc(p.sotto)}</div>` : ''}
    ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
+   ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} Valutazione ${evalDay(p.id).score}/10 · ${evalDay(p.id).grade} ›</button>` : ''}
    <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button>` : `<p>Scheda vuota. Qui sotto scegli un <b>programma pronto</b>, fatti <b>proporre</b> esercizi oppure aggiungili uno a uno.</p>`}</section>
    <div class="prepH"><h3>${edit ? '✏️ Modifica scheda' : 'Esercizi'}</h3>${p.custom && p.ex.length ? `<button class="ghost small" data-act="pedit">${edit ? '✓ Fine modifiche' : '✏️ Modifica'}</button>` : ''}</div>
    ${edit ? custTools(p) + p.ex.map((x, i) => exCard(x, i, prof, p)).join('') + (p.ex.length ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : '')
@@ -316,13 +318,14 @@ const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<
 function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
-  $('#ttl').innerHTML = tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : esc(planOf(tabPlan(tab)).nome) + '<small>' + (planOf(tabPlan(tab)).sotto ? esc(planOf(tabPlan(tab)).sotto) + ' · ' : '') + rtList(tabPlan(tab)).length + ' esercizi scelti da te</small>';
+  $('#ttl').innerHTML = tab === 'home' ? 'Allenamento SKS<small>' + esc(fmtLong(today())) + '</small>' : tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : esc(planOf(tabPlan(tab)).nome) + '<small>' + (planOf(tabPlan(tab)).sotto ? esc(planOf(tabPlan(tab)).sotto) + ' · ' : '') + rtList(tabPlan(tab)).length + ' esercizi scelti da te</small>';
   $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[tabPlan(x.id)]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); if (!nm.m && nm.n.length > 7) a = [nm.n.slice(0, 7) + '.']; }
     return `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${esc(full)}"><i>${x.b}</i><span>${a.map(esc).join('<br>')}</span></button>`; }).join('');
   let h;
   const training = TR.on && CUST.includes(TR.pid) && tab === (TR.pid === 'gA' ? 'giulia' : TR.pid) && planOf(TR.pid).ex.length;
   document.body.classList.toggle('training', !!training);
   if (training) { const p = planOf(TR.pid); $('#ttl').innerHTML = esc(p.nome) + '<small>Allenamento in corso · esercizio ' + (Math.min(TR.i, p.ex.length - 1) + 1) + ' di ' + p.ex.length + '</small>'; h = trainView(); }
+  else if (tab === 'home') h = homeView();
   else if (tab === 'lib') h = libView();
   else if (tab === 'giulia') {
     h = custView(planOf('gA'));
@@ -334,6 +337,112 @@ function render(keep) {
   if (keep) window.scrollTo(0, y);
 }
 function go(id) { if (TR.on && id !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } if (id !== tab) { prepEdit = false; pick.open = false; } tab = id; location.hash = id; render(); window.scrollTo(0, 0); }
+
+/* ---------- Home: oggi, andamento, qualità, consigli, valutazione delle giornate ---------- */
+const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+const fmtLong = d => { const t = new Date(d + 'T12:00:00'); return WD[t.getDay()] + ' ' + t.getDate() + ' ' + MESI[t.getMonth()]; };
+const mondayOf = d => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const PUSH = ['petto', 'spalle', 'tricipiti'], PULL = ['schiena', 'bicipiti'];
+const dayPid = tid => tabPlan(tid);
+const plannedDays = () => DAYS.filter(([tid]) => rtList(dayPid(tid)).length).map(([tid]) => dayPid(tid));
+// valuta l'insieme di esercizi scelti per un giorno: muscoli coperti, equilibrio spinta/tirata, ordine, volume, durata, doppioni, attrezzi
+function evalDay(pid) {
+  const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return null;
+  const p = planOf(pid), prof = p.profilo || 'io', pros = [], cons = [], tips = []; let score = 10;
+  const sets = x => (DB.cur[pk(prof, x.e)] || {sets: []}).sets.length || x.s;
+  const tot = L.reduce((t, x) => t + sets(x), 0), mins = Math.round(L.reduce((t, x) => t + sets(x) * (40 + secs(x.rec)), 0) / 60);
+  const gs = {}; L.forEach(x => { const e = byId[x.e]; gs[e.g] = (gs[e.g] || 0) + sets(x); (e.g2 || []).forEach(g => { gs[g] = (gs[g] || 0) + sets(x) / 2; }); });
+  const groups = Object.keys(gs), upper = groups.filter(g => PUSH.includes(g) || PULL.includes(g)).length > 0;
+  const push = PUSH.reduce((t, g) => t + (gs[g] || 0), 0), pull = PULL.reduce((t, g) => t + (gs[g] || 0), 0);
+  const n = L.length;
+  if (n >= 4 && n <= 8) pros.push(`${n} esercizi: numero giusto per una seduta completa ma gestibile.`);
+  else if (n < 3) { cons.push(`Solo ${n} esercizi: seduta corta, difficile coprire bene i muscoli.`); score -= 2; tips.push('Aggiungi almeno un esercizio multiarticolare (es. panca Smith, lat machine, rematore) per arrivare a 4-6.'); }
+  else if (n > 9) { cons.push(`${n} esercizi sono tanti: la qualità delle ultime serie cala.`); score -= 1.5; tips.push('Togli gli esercizi che lavorano gli stessi muscoli e tieni 6-8 esercizi.'); }
+  if (tot >= 12 && tot <= 24) pros.push(`${tot} serie totali: volume adatto per progredire senza sfinirsi.`);
+  else if (tot < 10) { cons.push(`${tot} serie in tutto: volume basso.`); score -= 1; tips.push('Porta le serie a 3-4 per esercizio.'); }
+  else if (tot > 28) { cons.push(`${tot} serie: volume alto, servono più di ${mins} minuti.`); score -= 1.5; tips.push('Riduci a 3 serie per esercizio o sposta qualcosa in un altro giorno.'); }
+  if (mins > 80) { cons.push(`Durata stimata ~${mins} minuti: lunga per mantenere intensità.`); score -= 1; }
+  else if (mins >= 25) pros.push(`Durata stimata ~${mins} minuti.`);
+  const names = groups.map(g => GRUPPI[g]).join(', ');
+  if (groups.length >= 3) pros.push(`Lavora ${groups.length} gruppi: ${names}.`); else pros.push(`Giornata mirata: ${names}.`);
+  if (upper && push && pull) { const r = push / pull; if (r >= 0.5 && r <= 2) pros.push('Spinta e tirata in equilibrio (petto/spalle/tricipiti contro schiena/bicipiti): bene per postura e spalle.'); else { cons.push(r > 2 ? 'Molta più spinta che tirata: con il tempo le spalle vanno avanti.' : 'Molta più tirata che spinta.'); score -= 1; tips.push(r > 2 ? 'Aggiungi un rematore o un face pull.' : 'Aggiungi una spinta (panca Smith, press con manubri o chest press al cavo).'); } }
+  else if (upper && (push || pull) && n >= 4) { cons.push(push ? 'Solo esercizi di spinta, nessuna tirata.' : 'Solo esercizi di tirata, nessuna spinta.'); score -= 1; tips.push(push ? 'Metti almeno un rematore o una lat machine, anche nello stesso giorno.' : 'Metti almeno una spinta per il petto o le spalle.'); }
+  const fi = L.findIndex(x => byId[x.e].tipo === 'iso'), fc = L.findIndex(x => byId[x.e].tipo === 'comp');
+  if (fc >= 0 && fi >= 0 && fi < fc) { cons.push(`“${byId[L[fi].e].n}” (isolamento) viene prima dei multiarticolari.`); score -= 1; tips.push('Metti prima i multiarticolari (quando sei fresco), poi gli esercizi di isolamento.'); }
+  else if (fc >= 0) pros.push('Ordine giusto: multiarticolari prima, isolamento dopo.');
+  const keys = {}; L.forEach(x => { const k = mkey(byId[x.e]); (keys[k] = keys[k] || []).push(byId[x.e].n); });
+  Object.values(keys).filter(a => a.length > 1).forEach(a => { cons.push(`Doppione: ${a.join(' e ')} lavorano esattamente gli stessi muscoli.`); score -= 0.5; });
+  const na = L.filter(x => !avail(byId[x.e])); if (na.length) { cons.push(`${na.length} esercizi con attrezzi che hai segnato come non disponibili.`); score -= 1; tips.push('Sostituiscili in Modifica → Aggiungi esercizi (filtra per attrezzo).'); }
+  const longRec = L.filter(x => secs(x.rec) >= 150).length; if (longRec && longRec === n && L.some(x => byId[x.e].tipo === 'iso')) tips.push('Sugli esercizi di isolamento bastano 60-90 secondi di recupero.');
+  score = Math.max(1, Math.min(10, Math.round(score * 2) / 2));
+  const grade = score >= 9 ? 'ottima' : score >= 7 ? 'buona' : score >= 5 ? 'da sistemare' : 'da rivedere', icon = score >= 9 ? '🏆' : score >= 7 ? '👍' : score >= 5 ? '🛠' : '⚠️';
+  return {score, grade, icon, pros, cons, tips, n, tot, mins, groups};
+}
+function evalHtml(pid) {
+  const v = evalDay(pid), p = planOf(pid); if (!v) return '';
+  return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.score}/10, ${v.grade}</h2><p class="vnote">${v.n} esercizi · ${v.tot} serie · ~${v.mins} minuti. Giudizio automatico sull'insieme degli esercizi che hai scelto (non sul peso che usi).</p>
+   ${v.pros.length ? `<h3 style="margin:12px 0 6px">Cosa va bene</h3><ul class="evl ok">${v.pros.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+   ${v.cons.length ? `<h3 style="margin:12px 0 6px">Cosa migliorare</h3><ul class="evl no">${v.cons.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '<p class="vnote">Nessun punto debole trovato.</p>'}
+   ${v.tips.length ? `<h3 style="margin:12px 0 6px">Consigli</h3><ul class="evl tip">${v.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+   <div class="sbar" style="padding:12px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica questa scheda</button></div>`;
+}
+// qualità dell'allenamento dallo storico
+function quality() {
+  const sess = DB.sess || [], t = today(), wk0 = mondayOf(t), weeks = [];
+  for (let i = 7; i >= 0; i--) { const d = new Date(wk0 + 'T12:00:00'); d.setDate(d.getDate() - 7 * i); const key = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); weeks.push({key, n: sess.filter(x => mondayOf(x.d) === key).length}); }
+  const planned = plannedDays().length || 1, last4 = weeks.slice(-4).reduce((t, w) => t + w.n, 0);
+  const cost = Math.min(1, last4 / (planned * 4));
+  let imp = 0, cmp = 0; Object.values(DB.hist).forEach(h => { if (!h || h.length < 2) return; const a = h[h.length - 2], b = h[h.length - 1]; const mx = e => Math.max(0, ...e.sets.map(s => num(s.kg))), rp = e => Math.max(0, ...e.sets.map(s => num(s.reps))), vol = e => e.sets.reduce((t, s) => t + num(s.kg) * num(s.reps), 0); cmp++; if (mx(b) > mx(a) || (mx(b) === mx(a) && rp(b) > rp(a)) || vol(b) > vol(a)) imp++; });
+  const prog = cmp ? imp / cmp : null;
+  const recent = sess.slice(-5).filter(x => x.st), compl = recent.length ? recent.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / recent.length : null;
+  const cov = new Set(); plannedDays().forEach(pid => rtList(pid).forEach(x => { const e = byId[x.e]; if (e) { cov.add(e.g); (e.g2 || []).forEach(g => cov.add(g)); } }));
+  const main = ['petto', 'schiena', 'spalle', 'gambe', 'bicipiti', 'tricipiti', 'addome'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
+  let streak = 0; for (let i = weeks.length - 1; i >= 0; i--) { if (weeks[i].n) streak++; else if (i < weeks.length - 1) break; }
+  const thisWeek = weeks[weeks.length - 1].n, lastSess = sess[sess.length - 1];
+  const daysSince = lastSess ? Math.round((new Date(t + 'T12:00:00') - new Date(lastSess.d + 'T12:00:00')) / 864e5) : null;
+  return {weeks, planned, cost, prog, compl, bal, missing, streak, thisWeek, lastSess, daysSince, imp, cmp, nsess: sess.length};
+}
+function tipsFor(q) {
+  const tips = [];
+  if (!q.nsess) tips.push({i: '🚀', t: 'Parti oggi: scegli il giorno, tocca Allenati e segna le serie con ✓. Il timer di recupero parte da solo.'});
+  if (q.daysSince !== null && q.daysSince >= 7) tips.push({i: '📅', t: `Sono passati ${q.daysSince} giorni dall'ultima seduta: riprendi con pesi un po' più leggeri (-10%) e risali in 1-2 settimane.`});
+  if (q.nsess && q.cost < 0.6 && q.planned > 1) tips.push({i: '🎯', t: `Hai ${q.planned} giorni programmati ma nelle ultime 4 settimane hai fatto ${q.weeks.slice(-4).reduce((t, w) => t + w.n, 0)} sedute. Meglio 2-3 giorni fatti davvero che 5 saltati: riduci la scheda se serve.`});
+  if (q.prog !== null && q.cmp >= 3 && q.prog < 0.3) tips.push({i: '📈', t: 'Pochi esercizi sono migliorati rispetto alla volta prima: quando chiudi tutte le serie al numero di ripetizioni previsto, la volta dopo aggiungi 2,5 kg (sui cavi una tacca).'});
+  if (q.prog !== null && q.prog >= 0.6) tips.push({i: '🔥', t: `Stai progredendo su ${q.imp} esercizi su ${q.cmp}: continua così e ricordati di dormire e mangiare abbastanza proteine.`});
+  if (q.compl !== null && q.compl < 0.7) tips.push({i: '✂️', t: 'Nelle ultime sedute hai completato meno del 70% delle serie: scheda troppo lunga o troppo poco tempo. Togli 1-2 esercizi per giorno.'});
+  if (q.missing.length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.map(g => GRUPPI[g].toLowerCase()).join(', ')}. ${q.missing.includes('gambe') ? 'Le gambe sono metà del corpo: anche un solo giorno con squat alla Smith, stacco rumeno e leg extension fa la differenza.' : 'Aggiungi almeno un esercizio per ciascuno in uno dei giorni.'}`});
+  const cons = plannedDays().map(pid => ({pid, v: evalDay(pid)})).filter(x => x.v && x.v.score < 7);
+  cons.forEach(x => tips.push({i: '🛠', t: `${planOf(x.pid).nome}: ${x.v.cons[0] || 'da sistemare'} Tocca la valutazione per i dettagli.`, pid: x.pid}));
+  // esercizi pronti per aumentare il carico
+  const up = []; plannedDays().forEach(pid => { const p = planOf(pid); rtList(pid).forEach(x => { const k = pk(p.profilo || 'io', x.e), h = lastHist(k), u = upper(x.r); if (h && u && h.sets.length && h.sets.every(s => num(s.reps) >= u && num(s.kg) > 0) && !up.some(z => z.e === x.e)) up.push({e: x.e, kg: Math.max(...h.sets.map(s => num(s.kg)))}); }); });
+  if (up.length) tips.push({i: '⬆️', t: 'Pronto per aumentare il peso: ' + up.slice(0, 3).map(z => byId[z.e].n.split(' (')[0] + ' (' + z.kg + ' → ' + (z.kg + 2.5) + ' kg)').join(', ') + '.'});
+  if (q.streak >= 3) tips.push({i: '🏅', t: `${q.streak} settimane di fila con almeno una seduta: la costanza è ciò che conta di più.`});
+  if (!tips.length) tips.push({i: '✅', t: 'Tutto in ordine: scheda equilibrata e sedute regolari. Ogni 6-8 settimane cambia qualche esercizio per non annoiarti.'});
+  return tips.slice(0, 6);
+}
+const qbar = (lab, v, txt) => `<div class="qrow"><span>${lab}</span><div class="qb"><i style="width:${v === null ? 0 : Math.round(v * 100)}%;background:${v === null ? 'transparent' : v >= .7 ? 'var(--ok)' : v >= .4 ? '#f59e0b' : '#ef4444'}"></i></div><b>${txt}</b></div>`;
+function homeView() {
+  const q = quality(), t = today(), tid = todayTabId(), pid = dayPid(tid), p = planOf(pid), prof = p.profilo || 'io';
+  const {tot, dn, mins} = planTot(p, prof), v = evalDay(pid);
+  const next = plannedDays().length ? DAYS.map(([x]) => x).map((x, i, arr) => arr[(arr.indexOf(tid) + 1 + i) % 7]).find(x => rtList(dayPid(x)).length) : null;
+  const hello = new Date().getHours() < 13 ? 'Buongiorno' : new Date().getHours() < 19 ? 'Buon pomeriggio' : 'Buonasera';
+  const vals = [q.cost, q.prog, q.compl, q.bal].filter(x => x !== null), avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  const verdict = !q.nsess ? 'Ancora nessuna seduta salvata: i giudizi arrivano dopo le prime sedute.' : avg >= .75 ? '👍 Ti stai allenando bene: costante, in progressione ed equilibrato.' : avg >= .5 ? '🙂 Vai abbastanza bene: guarda i consigli qui sotto per migliorare il punto più debole.' : '⚠️ C’è da sistemare: leggi i consigli e parti dalla costanza.';
+  const max = Math.max(1, q.planned, ...q.weeks.map(w => w.n));
+  return `<section class="hero home"><div class="eyebrow">${hello}</div><h2>${esc(WD[new Date().getDay()])}</h2><div class="sub">${esc(fmtLong(t).replace(/^\S+ /, ''))}${q.lastSess ? ' · ultima seduta ' + esc(fmtWd(q.lastSess.d)) : ''}</div>
+   ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
+   <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
+   : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
+   <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana, ultime 8 settimane${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
+    <div class="bars">${q.weeks.map((w, i) => `<div class="bar"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === 7 ? 'ora' : fmtD(w.key)}</small></div>`).join('')}</div>
+    <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
+   <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
+    ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 7) + '/7')}
+    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = nelle ultime 5 sedute. Equilibrio = gruppi muscolari coperti nella settimana.</p></div>
+   <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : ''}</div></li>`).join('')}</ul></div>
+   <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
+    ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>` : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
+}
 
 /* ---------- modali ---------- */
 function ask(msg, label, cb) {
@@ -662,6 +771,8 @@ document.addEventListener('click', e => {
     (DB.myv[id] = DB.myv[id] || []).push({t: 'u', k: 'u' + Date.now(), u: p.href, n: p.hostname.replace(/^www\./, '')}); save(); inp.value = ''; flash('✓ Link aggiunto'); loadMine(b.closest('.tb, #mbody') || document); }
   else if (a === 'hist') histView(k);
   else if (a === 'train') trainStart(b.dataset.pid);
+  else if (a === 'evalday') modal(evalHtml(b.dataset.pid));
+  else if (a === 'godayedit') { closeModal(); go(b.dataset.id); prepEdit = true; render(); }
   else if (a === 'pedit') { prepEdit = !prepEdit; pick.open = false; render(true); }
   else if (a === 'trexit') trainExit();
   else if (a === 'trprev' || a === 'trnext') { TR.i += a === 'trnext' ? 1 : -1; trSave(); render(); window.scrollTo(0, 0); }
@@ -764,7 +875,8 @@ function finishDo(pid, prof, d) {
     c.sets.forEach(s => { s.done = false; });
   });
   if (!n) { flash('Compila almeno una serie'); return; }
-  DB.sess.push({d, pid, n, name: p.nome + (p.sotto ? ' · ' + p.sotto : '')}); DB.sess.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); if (DB.sess.length > 400) DB.sess.splice(0, DB.sess.length - 400);
+  const sd = p.ex.reduce((t, x) => t + ((DB.cur[pk(prof, x.e)] || {sets: []}).sets.filter(z => z.kg || z.reps).length), 0), st = p.ex.reduce((t, x) => t + ((DB.cur[pk(prof, x.e)] || {sets: []}).sets.length || x.s), 0);
+  DB.sess.push({d, pid, n, tot: p.ex.length, sd, st, name: p.nome + (p.sotto ? ' · ' + p.sotto : '')}); DB.sess.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); if (DB.sess.length > 400) DB.sess.splice(0, DB.sess.length - 400);
   closeModal(); save(); if (TR.on) { TR.on = false; TR.i = 0; trSave(); render(); window.scrollTo(0, 0); } else render(true); flash('✓ Salvato per ' + wdOf(d) + ' ' + fmtD(d) + ' (' + n + ' esercizi): pesi, ripetizioni e note restano per la prossima volta');
 }
 const blobToDataUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
