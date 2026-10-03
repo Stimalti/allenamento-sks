@@ -261,12 +261,12 @@ function filters(st, sid, qid) {
 }
 const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.length} esercizi</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`; };
-function libView() { return `${filters(lib, 'lib', 'q')}<div id="libres">${libRes()}</div>`; }
+function libView() { return `<div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="presets">📋 Programmi pronti (forza · massa · tonificare)</button></div>${filters(lib, 'lib', 'q')}<div id="libres">${libRes()}</div>`; }
 const pickRes = pid => { const list = filt(pick); return `<div class="count">${list.length} di ${EX.length} esercizi</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
 const custView = cp => cp.ex.length ? planView(cp, cp.profilo) : `<section class="hero"><div class="eyebrow">Allenamento</div><h2>${esc(cp.nome)}</h2><div class="sub">${esc(cp.sotto)}</div><p>Scheda vuota: scegli il muscolo e l'attrezzo qui sotto e tocca + sugli esercizi che vuoi fare. Puoi anche rinominarla (es. “Pausa”).</p></section>${custTools(cp)}`;
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
-  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button></div>` +
+  return `<div class="ctools"><button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina scheda</button><button class="ghost" data-act="presets" data-pid="${cp.id}">📋 Programmi pronti</button><button class="ghost" data-act="ptoggle">${open && cp.ex.length ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button><button class="ghost" data-act="week">📅 Piano della settimana</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button></div>` +
     (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div id="pkres" data-pid="${cp.id}">${pickRes(cp.id)}</div></section>` : '');
 }
 const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
@@ -454,6 +454,34 @@ function wizHtml() {
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
 }
+
+/* ---------- programmi pronti: allenamento completo e veloce (petto, schiena, spalle, bicipiti, tricipiti) ---------- */
+const PRESETS = [
+  {key: 'forza', fin: 'forza', n: '💪 Forza · corpo intero (parte alta)', d: 'Esercizi fondamentali con bilanciere, sbarra e parallele. Serie pesanti e recuperi lunghi: circa 50-60 minuti.',
+   ex: ['p-panca', 'b-row-bar', 's-military', 'b-trazioni-neutra', 't-dip', 'c-curl-bar', 'b-rackpull']},
+  {key: 'massa', fin: 'massa', n: '🏋️ Massa · corpo intero (parte alta)', d: 'Un esercizio per ogni gruppo con manubri e un cavo, 8-12 ripetizioni: circa 45-55 minuti.',
+   ex: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
+  {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare · corpo intero (parte alta)', d: 'Tutto ai cavi con una sola torre, 12-15 ripetizioni e recuperi brevi: circa 35-40 minuti.',
+   ex: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
+function presetItems(P) { return P.ex.filter(id => byId[id]).map(id => { const ex = byId[id], pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
+function presetsHtml(pid) {
+  const dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
+  return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
+   <p class="vnote">Allenamenti completi e veloci: petto, schiena, spalle, bicipiti e tricipiti in 7-8 esercizi. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
+   ${PRESETS.map(P => `<div class="card preset"><h3>${esc(P.n)}</h3><p class="vnote">${esc(P.d)}</p><ol>${presetItems(P).map(x => `<li>${esc(byId[x.e].n)} <small>${x.s} × ${x.r} · rec. ${x.rec}</small></li>`).join('')}</ol>
+     <div class="sbar" style="padding:6px 0 0"><button class="primary" style="width:auto;padding:9px 16px" data-act="preset" data-key="${P.key}"${pid ? ` data-pid="${pid}"` : ''}>${pid ? 'Usa questo programma' : 'Scegli il giorno…'}</button></div></div>`).join('')}`;
+}
+function presetDayHtml(key) {
+  const P = PRESETS.find(p => p.key === key), dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
+  return `<h2 style="padding-right:44px">In quale giorno?</h2><p class="vnote">${esc(P.n)}: gli esercizi del giorno scelto verranno sostituiti.</p>
+   <div class="chips wrap">${CUST.map(id => `<button class="chip" data-act="preset" data-key="${key}" data-pid="${id}">${esc(dayN(id))}${rtList(id).length ? ' (' + rtList(id).length + ')' : ''}</button>`).join('')}</div>
+   <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="presets">← Programmi</button></div>`;
+}
+function presetApply(key, pid) {
+  const P = PRESETS.find(p => p.key === key), items = presetItems(P), run = () => { DB.rt[pid] = items; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
+  if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + P.n + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
+}
+
 function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; modal(wizHtml()); }
 function wizRender() { $('#mbody').innerHTML = wizHtml(); }
 function wizAdd() {
@@ -567,6 +595,8 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
+  else if (a === 'presets') modal(presetsHtml(b.dataset.pid));
+  else if (a === 'preset') { if (b.dataset.pid) presetApply(b.dataset.key, b.dataset.pid); else modal(presetDayHtml(b.dataset.key)); }
   else if (a === 'sksreset') window.sksReset();
   else if (a === 'fav') { if (DB.fav[b.dataset.id]) delete DB.fav[b.dataset.id]; else DB.fav[b.dataset.id] = 1; save(); render(true); flash(DB.fav[b.dataset.id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
   else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
