@@ -212,13 +212,8 @@ const VIDEOS = {
 },
 {
 "u": "https://www.facebook.com/share/r/1D5NS5by1v/",
-"n": "lat machine, tutto il video",
+"n": "lat machine con barra larga, presa prona: esecuzione e scapole, tutto il video",
 "v": "26"
-},
-{
-"u": "https://www.facebook.com/share/r/1Dmd2SkRDp/",
-"n": "circa 0:00-0:12",
-"v": "31"
 },
 {
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
@@ -241,11 +236,6 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1JY7HNGZjV/",
 "n": "lat machine con triangolo (presa neutra stretta), circa 0:11-0:13",
 "v": "34"
-},
-{
-"u": "https://www.facebook.com/share/r/1Dmd2SkRDp/",
-"n": "pulldown con presa stretta",
-"v": "31"
 },
 {
 "u": "https://www.youtube.com/watch?v=fMkkJBD47bU",
@@ -1257,6 +1247,11 @@ const VIDEOS = {
 }
 ],
 "b-rope-lat-terra": [
+{
+"u": "https://www.facebook.com/share/r/1Dmd2SkRDp/",
+"n": "pulldown alla corda seduto a terra, gomiti che scendono ai fianchi, circa 0:00-0:12",
+"v": "31"
+},
 {
 "u": "https://www.facebook.com/share/r/1YmuzqE61B/",
 "n": "tre varianti alla corda seduto a terra: prima parte (dorsali), circa 0:00-0:07",
