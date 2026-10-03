@@ -1,5 +1,26 @@
 /* Video di riferimento (solo link alla fonte originale: nessun video e' incluso nell'app). Tempi indicativi. */
 const VIDEOS = {
+"c-hammer-singolo": [
+{
+"u": "https://www.facebook.com/share/r/1A1L5kPx6u/",
+"n": "curl a martello con maniglia singola al cavo (spessore del braccio), circa 0:42-0:48",
+"v": "46"
+}
+],
+"c-curl-davanti": [
+{
+"u": "https://www.facebook.com/share/r/1A1L5kPx6u/",
+"n": "curl con maniglia singola, cavo di fronte, gomito davanti (capo breve), circa 0:28-0:41",
+"v": "46"
+}
+],
+"c-curl-dietro": [
+{
+"u": "https://www.facebook.com/share/r/1A1L5kPx6u/",
+"n": "curl con maniglia singola, cavo dietro, gomito che resta dietro il busto (capo lungo), circa 0:13-0:27",
+"v": "46"
+}
+],
 "b-row-corda": [
 {
 "u": "https://www.facebook.com/share/r/19hPF7X2xA/",

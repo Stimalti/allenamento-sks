@@ -12,11 +12,14 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {};
+  if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
+    d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
+    ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }
-fixDB(DB);
+fixDB(DB); try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {}   // le migrazioni (preferiti, scheda del lunedì) si salvano subito
 let saveTimer;
 let remote = null, cloudTimer;
 function save() {
@@ -102,7 +105,7 @@ function pickRt(id) {
 }
 let tab = (location.hash || '#lib').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'lib';
 let giuliaSub = 'gA';
-const lib = {q: '', g: '', a: '', f: '', l: ''};
+const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
@@ -219,7 +222,7 @@ function exCard(x, idx, prof, pl) {
   const done = c.sets.filter(s => s.done).length;
   return `<article class="card ex" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
    ${cov(ex.id, 'cover')}${cu ? `<div class="mctl"><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>↑</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù">↓</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">Togli</button></div>` : ''}<div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>
-    <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}</div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
+    <div style="min-width:0"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
    ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>recupero</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
    ${cu && ex.fin ? `<div class="objrow"><span>Obiettivo</span>${ex.fin.map(f => `<button class="${x.obj === f ? 'on' : ''}" data-act="objset" data-pid="${pid}" data-id="${ex.id}" data-f="${f}">${FIN[f]}</button>`).join('')}</div>${x.obj && presOf(ex, x.obj) ? `<div class="objtip">Consigliato per ${FIN[x.obj].toLowerCase()}: ${presOf(ex, x.obj).sr} × ${presOf(ex, x.obj).r}, recupero ${presOf(ex, x.obj).rec} · ${esc(pesoTxt(ex, x.obj))}</div>` : ''}` : `<div class="role">${esc(x.ruolo)}</div>`}
    ${setsHtml(k, x.s, x.r)}${lastLine(k)}${hintLine(k, x.r)}
@@ -243,13 +246,14 @@ function planView(p, prof) {
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
-  return EX.filter(e => { if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
-    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }); };
+  return EX.filter(e => { if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && e.a !== st.a) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = [...new Set(EX.map(e => e.a))];
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti (' + Object.keys(DB.fav).length + ')', sid)}</div>
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
   <div class="chips">${chip('f', '', 'Ogni obiettivo', sid)}${Object.entries(FIN).map(([k, v]) => chip('f', k, v === 'Tonificare' ? 'Per tonificare' : v === 'Forza' ? 'Per la forza' : 'Per la massa', sid)).join('')}</div>
   <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
@@ -426,7 +430,7 @@ function wizPropose() {
   const covered = new Set(out.map(e => e.g));
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
-      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; return s; };
+      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += 80; return s; };
     pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
   WZ.cur = out.map(e => e.id); return out;
@@ -445,7 +449,7 @@ function wizHtml() {
   const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">Proposta</h2>
     <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati.</p>
-    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
+    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
     <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
@@ -564,6 +568,7 @@ document.addEventListener('click', e => {
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
   else if (a === 'sksreset') window.sksReset();
+  else if (a === 'fav') { if (DB.fav[b.dataset.id]) delete DB.fav[b.dataset.id]; else DB.fav[b.dataset.id] = 1; save(); render(true); flash(DB.fav[b.dataset.id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
   else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
   else if (a === 'wzgo') { WZ.step = 2; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
   else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }

@@ -631,3 +631,29 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => { ['b-trazioni', 'c-chinup', 'b-trazioni-larga', 'b-trazioni-stretta', 'b-trazioni-neutra', 'b-trazioni-negative', 'b-trazioni-elastico'].forEach(id => { const e = EX.find(x => x.id === id); if (!e) return;
   e.lat = id === 'b-trazioni-larga' ? 2.6 : id === 'b-trazioni-stretta' || id === 'c-chinup' || id === 'b-trazioni-neutra' ? 0.9 : 1.6;
   e.fr = e.fr.map(f => [f[0], f[1], Object.assign({}, f[2] || {}, {t: 180, th: 22, sh: -88})]); }); })();
+
+/* ===== i 3 curl al cavo del video "STOP doing this for biceps" (gomito dietro, gomito davanti, martello) ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('c-curl-singolo', {id: 'c-curl-dietro', n: 'Curl al cavo a un braccio con gomito dietro (cavo alle spalle)', presa: 'sup', one: true, unCavo: true, prio: true, tipo: 'iso', fin: ['massa', 'tonificare'],
+    m: 'Bicipiti (capo lungo), brachiale', mm: 'Bicipite brachiale (capo lungo in allungamento), brachiale', an: [45, 212], lat: 0.5, az: 0.75,
+    fr: [[-28, -28, {t: 178}], [-28, 125, {t: 178}]], cap: ['Spalle alla torre, braccio dietro il busto e disteso', 'Maniglia alla spalla, gomito che resta dietro'],
+    trj: 'Il gomito resta fermo dietro la linea del busto: la mano disegna un arco dal basso-dietro fino alla spalla.',
+    set: 'Cavo BASSO con maniglia singola. Dai le spalle alla torre e fai un passo avanti: il cavo tira il braccio indietro e il bicipite parte in allungamento.',
+    pos: 'Busto fermo e dritto, gomito dietro il fianco per tutta la serie, polso neutro o leggermente supinato.',
+    ese: ['Parti con il braccio disteso dietro il busto, in tensione.', 'Fletti il gomito portando la maniglia verso la spalla senza far avanzare il gomito.', 'Contrai 1 secondo.', 'Scendi lentamente fino ad allungare di nuovo il bicipite.'],
+    cue: 'Gomito dietro il fianco: se avanza lavora la spalla, non il bicipite.',
+    why: 'Con il cavo che tira da dietro il bicipite lavora in allungamento (capo lungo): è lo stimolo più efficace per la crescita e per il picco.',
+    err: ['Gomito che avanza (deltoide anteriore)', 'Busto che si piega in avanti', 'Carico eccessivo con mezze ripetizioni']}));
+  EX.push(cl('c-curl-singolo', {id: 'c-curl-davanti', n: 'Curl al cavo a un braccio con gomito davanti (cavo di fronte)', presa: 'sup', one: true, unCavo: true, prio: true, tipo: 'iso', fin: ['massa', 'tonificare'],
+    m: 'Bicipiti (capo breve), brachiale', mm: 'Bicipite brachiale (capo breve in accorciamento), brachiale', an: [250, 212], lat: 0.5,
+    fr: [[30, 30, {t: 178}], [30, 150, {t: 178}]], cap: ['Di fronte alla torre, braccio disteso davanti al corpo', 'Maniglia alla spalla, gomito davanti e fermo'],
+    trj: 'Il gomito resta fermo davanti al busto: la mano sale dal basso-davanti fino alla spalla.',
+    set: 'Cavo BASSO con maniglia singola. Di fronte alla torre, un passo indietro: il braccio parte leggermente davanti al corpo.',
+    pos: 'Gomito davanti al fianco e fermo, busto dritto, l’altra mano sul fianco o sulla torre.',
+    ese: ['Parti a braccio disteso, davanti al corpo.', 'Fletti il gomito tenendolo fermo davanti, maniglia alla spalla.', 'Contrai forte 1 secondo (picco).', 'Scendi controllato.'],
+    cue: 'Gomito davanti e fermo, stringi in alto.',
+    why: 'Con il gomito davanti il bicipite lavora in accorciamento (capo breve): completa il curl con gomito dietro e dà spessore al braccio visto di fronte.',
+    err: ['Gomito che si muove', 'Spalla che sale', 'Dondolare']}));
+  const h = EX.find(e => e.id === 'c-hammer-singolo'); if (h) { h.prio = true; }
+})();
