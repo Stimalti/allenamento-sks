@@ -12,7 +12,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {}; if (!Array.isArray(d.sess)) d.sess = []; if (!d.prof || typeof d.prof !== 'object') d.prof = {}; const P0 = d.prof; if (!['m', 'f'].includes(P0.sex)) P0.sex = ''; P0.kg = parseFloat(P0.kg) || 0; if (!['principiante', 'intermedio', 'avanzato'].includes(P0.lvl)) P0.lvl = 'principiante'; if (!['forza', 'massa', 'tonificare'].includes(P0.fin)) P0.fin = 'massa'; if (!Array.isArray(P0.mus)) P0.mus = []; if (!Array.isArray(P0.att)) P0.att = []; /* profilo: genere, peso corporeo, livello, obiettivo, muscoli e attrezzi preferiti */
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {}; if (!Array.isArray(d.sess)) d.sess = []; if (!d.prof || typeof d.prof !== 'object') d.prof = {}; const P0 = d.prof; if (!['m', 'f'].includes(P0.sex)) P0.sex = ''; P0.kg = parseFloat(P0.kg) || 0; P0.h = parseFloat(P0.h) || 0; if (!['ecto', 'meso', 'endo'].includes(P0.tipo)) P0.tipo = ''; if (!['principiante', 'intermedio', 'avanzato'].includes(P0.lvl)) P0.lvl = 'principiante'; if (!['forza', 'massa', 'tonificare'].includes(P0.fin)) P0.fin = 'massa'; if (!Array.isArray(P0.mus)) P0.mus = []; if (!Array.isArray(P0.att)) P0.att = []; /* profilo: genere, peso corporeo, livello, obiettivo, muscoli e attrezzi preferiti */
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
@@ -56,7 +56,7 @@ const PRESC = {
   pol: {massa: {s: 4, sr: '4', r: '10-15', rec: '60 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
   core: {tonificare: {s: 3, sr: '3', r: '12-20', rec: '30-45 s', pct: 'solo corpo libero o carico leggero', p: 0, rir: '2-3'}, massa: {s: 3, sr: '3-4', r: '8-12', rec: '60-90 s', pct: 'carico medio', p: 0, rir: '1-2'}}
 };
-const presOf = (ex, f) => (PRESC[ex.tipo] || PRESC.iso)[f] || null;
+const presOf = (ex, f) => { const p = (PRESC[ex.tipo] || PRESC.iso)[f] || null; return p && ex.isom ? Object.assign({}, p, {r: ex.hold || '30-45 s'}) : p; };   /* isometria: le “ripetizioni” sono secondi di tenuta */
 // massimale stimato (formula di Epley) dalle serie che hai già registrato
 function est1RM(id) {
   let best = 0;
@@ -77,7 +77,17 @@ const profOk = () => !!(DB.prof && DB.prof.done);
 const profMus = () => (DB.prof && DB.prof.mus || []).filter(g => GRUPPI[g]);
 const profAtt = () => (DB.prof && DB.prof.att || []).filter(a => ATT_AV().includes(a));
 const profFin = () => (DB.prof && FIN[DB.prof.fin]) ? DB.prof.fin : 'massa';
-const profTxt = () => { const P = DB.prof; if (!profOk()) return ''; return [P.sex === 'f' ? 'donna' : P.sex === 'm' ? 'uomo' : '', P.kg ? P.kg + ' kg' : '', LVL[P.lvl].toLowerCase(), 'obiettivo ' + FIN[P.fin].toLowerCase(), profMus().length ? profMus().map(gName).join(' + ') : 'tutti i muscoli', profAtt().length ? profAtt().join(', ') : 'tutti gli attrezzi'].filter(Boolean).join(' · '); };
+const TIPO = {ecto: 'Longilineo (ectomorfo)', meso: 'Atletico (mesomorfo)', endo: 'Robusto (endomorfo)'};
+const TIPO_D = {ecto: 'esile, polsi e caviglie sottili, spalle strette, fatica a mettere peso e muscolo', meso: 'spalle larghe e vita stretta, muscolo che cresce facilmente, struttura media', endo: 'ossatura larga, fianchi e tronco ampi, tende ad accumulare grasso con facilità'};
+const BMI_T = {ecto: [19.5, 22], meso: [21.5, 24], endo: [23, 25.5], '': [20.5, 24]};   // indice di massa corporea di forma per tipo di fisico (uomo; donna −1)
+// peso forma per altezza, genere e tipo di fisico (stima: l'indice non distingue muscolo e grasso, chi ha molta massa muscolare può stare sopra)
+function pesoForma(h, sex, tipo, kg) {
+  if (!h) return null; const hm = h / 100, t = BMI_T[tipo] || BMI_T[''], d = sex === 'f' ? 1 : 0;
+  const lo = (t[0] - d) * hm * hm, hi = (t[1] - d) * hm * hm, mid = (lo + hi) / 2, bmi = kg ? kg / (hm * hm) : null;
+  return {lo: Math.round(lo), hi: Math.round(hi), mid: Math.round(mid), bmi: bmi && Math.round(bmi * 10) / 10, diff: kg ? Math.round(kg - mid) : null, over: kg ? kg > hi : false, under: kg ? kg < lo : false};
+}
+const pfTxt = () => { const P = DB.prof, f = pesoForma(P.h, P.sex, P.tipo, P.kg); if (!f) return ''; return `Peso forma per ${P.h} cm${P.tipo ? ', fisico ' + TIPO[P.tipo].split(' (')[0].toLowerCase() : ''}: <b>${f.lo}-${f.hi} kg</b> (ideale ~${f.mid} kg)${f.bmi ? ` · il tuo indice di massa corporea è ${f.bmi}: ${f.over ? `sei circa ${f.diff} kg sopra` : f.under ? `sei circa ${-f.diff} kg sotto` : 'sei nel tuo peso forma'}` : ''}.`; };
+const profTxt = () => { const P = DB.prof; if (!profOk()) return ''; return [P.sex === 'f' ? 'donna' : P.sex === 'm' ? 'uomo' : '', P.h ? P.h + ' cm' : '', P.kg ? P.kg + ' kg' : '', P.tipo ? TIPO[P.tipo].split(' (')[0].toLowerCase() : '', LVL[P.lvl].toLowerCase(), 'obiettivo ' + FIN[P.fin].toLowerCase(), profMus().length ? profMus().map(gName).join(' + ') : 'tutti i muscoli', profAtt().length ? profAtt().join(', ') : 'tutti gli attrezzi'].filter(Boolean).join(' · '); };
 // peso di partenza: frazione del peso corporeo per schema di movimento (uomo, livello intermedio, 8-12 ripetizioni), corretta per genere, livello e obiettivo. Rack con rapporto 1:1 sui cavi: il numero sul pacco pesi è il carico vero.
 const START_C = [[/trazion|pull-?up|\bchin|\bdip|parallele|plank|crunch inverso|leg raise|toes|mountain|bicycle|sit-?up|hollow|dead bug|bird|superman|flutter|scissor|v-?up|hanging|gambe alla sbarra/i, 0],
   [/panca piana|chest press.*smith|floor press/i, .55], [/panca inclinata|incl/i, .45], [/panca declinata|decl/i, .5], [/chest press|spinta.*petto|press.*petto|jammer press/i, .3], [/croci|fly|pec/i, .12],
@@ -108,7 +118,10 @@ function profHtml(first) {
   return `<h2 style="padding-right:44px">${first ? '👋 Benvenuto! Dimmi di te' : '👤 Il mio profilo'}</h2>
    <p class="vnote">${first ? 'Prima di cominciare, poche domande: ' : ''}con queste informazioni le proposte, i programmi pronti e i consigli in Home tengono conto di te, e per ogni esercizio ti indico un peso di partenza.</p>
    <h3>Genere</h3><div class="chips wrap">${chip2('sex', 'm', P.sex === 'm', 'Uomo')}${chip2('sex', 'f', P.sex === 'f', 'Donna')}</div>
-   <h3>Peso corporeo</h3><div class="pfkg"><input id="pfkg" inputmode="decimal" value="${P.kg || ''}" placeholder="es. 75" maxlength="5" aria-label="Peso corporeo in kg"><span>kg</span><small>serve per calcolare i pesi di partenza (il tuo rack ha un rapporto 1:1 sui cavi: il numero sul pacco pesi è il carico che sollevi davvero)</small></div>
+   <h3>Altezza e peso</h3><div class="pfkg"><input id="pfh" inputmode="numeric" value="${P.h || ''}" placeholder="es. 175" maxlength="3" aria-label="Altezza in cm"><span>cm</span><input id="pfkg" inputmode="decimal" value="${P.kg || ''}" placeholder="es. 75" maxlength="5" aria-label="Peso corporeo in kg"><span>kg</span><small>il peso serve per i pesi di partenza (il tuo rack ha un rapporto 1:1 sui cavi: il numero sul pacco pesi è il carico che sollevi davvero); con l’altezza calcolo il peso forma.</small></div>
+   <h3>Tipo di fisico</h3><div class="chips wrap">${Object.entries(TIPO).map(([k, v]) => chip2('tipo', k, P.tipo === k, v)).join('')}</div>
+   <p class="vnote">${P.tipo ? TIPO[P.tipo] + ': ' + TIPO_D[P.tipo] + '.' : 'Scegli quello che ti somiglia di più: ' + Object.entries(TIPO_D).map(([k, v]) => TIPO[k].split(' (')[0].toLowerCase() + ' = ' + v.split(',')[0]).join('; ') + '.'}</p>
+   ${P.h ? `<div class="pfbox">${pfTxt()}<div class="pftab">${[160, 165, 170, 175, 180, 185, 190, 195].map(h => { const f = pesoForma(h, P.sex, P.tipo, 0); return `<span class="${Math.abs(h - P.h) <= 2 ? 'me' : ''}"><b>${h} cm</b>${f.lo}-${f.hi} kg</span>`; }).join('')}</div><small>Stima dall’indice di massa corporea per genere e tipo di fisico: non distingue muscolo e grasso, quindi chi ha molta massa muscolare sta bene anche qualche chilo sopra. Vale come riferimento, non come diagnosi.</small></div>` : '<p class="vnote">Scrivi l’altezza per vedere il tuo peso forma in base al tipo di fisico.</p>'}
    <h3>Livello</h3><div class="chips wrap">${Object.entries(LVL).map(([k, v]) => chip2('lvl', k, P.lvl === k, v)).join('')}</div>
    <p class="vnote">Principiante: meno di 6 mesi di pesi con regolarità. Intermedio: 6 mesi - 2 anni. Avanzato: oltre.</p>
    <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, P.fin === k, v)).join('')}</div>
@@ -119,7 +132,7 @@ function profHtml(first) {
    <p class="vnote">Proposte e programmi pronti partono da questi gruppi (puoi sempre cambiarli al momento); in Home ti avviso se nella settimana non li alleni.</p>
    <div class="sbar" style="padding:12px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="pfsave">${first ? 'Salva e inizia' : 'Salva'}</button>${first ? '<button class="ghost" data-act="pflater">Più tardi</button>' : ''}</div>`;
 }
-function profRead() { const i = $('#pfkg'); if (i) { const v = num(i.value); if (v >= 30 && v <= 250) DB.prof.kg = Math.round(v * 2) / 2; } }
+function profRead() { const i = $('#pfkg'); if (i) { const v = num(i.value); if (v >= 30 && v <= 250) DB.prof.kg = Math.round(v * 2) / 2; } const j = $('#pfh'); if (j) { const v = num(j.value); if (v >= 120 && v <= 230) DB.prof.h = Math.round(v); } }
 const finLine = (ex, f) => { const p = presOf(ex, f); return p ? `<li><b>${FIN[f]}</b>: ${p.sr} serie × ${p.r} ripetizioni, recupero ${p.rec}. ${esc(pesoTxt(ex, f))}.</li>` : ''; };
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
@@ -167,7 +180,7 @@ const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.nb) :
 const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.nb || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
 const attLabel = a => a === 'Panca' ? 'Panca (serve in ' + attCount(a) + ' esercizi)' : a;
 const AB_N = {alta: 'addome alto', bassa: 'addome basso', obliqui: 'obliqui (fianchi)', profonda: 'addome profondo / stabilità'};
-const abTxt = e => e.ab ? e.ab.map(z => AB_N[z] || z).join(' + ') : '';
+const abTxt = e => (e.ab ? e.ab.map(z => AB_N[z] || z).join(' + ') : '') + (e.isom ? (e.ab ? ' · ' : '') + 'in tenuta (isometria)' : '');
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
@@ -262,12 +275,12 @@ function hintLine(k, target) {
   return ok ? `<div class="hint">↑ Hai chiuso tutte le serie a ${u} ripetizioni: oggi prova +2,5 kg.</div>` : '';
 }
 function setsHtml(k, n, target) {
-  const c = curFor(k, n), h = lastHist(k), sk0 = !h && startKg(byId[k.split(':')[1]]);
+  const ex0 = byId[k.split(':')[1]], isom = !!(ex0 && ex0.isom), c = curFor(k, n), h = lastHist(k), sk0 = !h && startKg(ex0);
   const rows = c.sets.map((s, i) => {
     const ph = h && h.sets[i] ? h.sets[i] : (h && h.sets.length ? h.sets[h.sets.length - 1] : (sk0 ? {kg: String(sk0.kg)} : {}));
     return `<div class="set"><span>${i + 1}</span>
       <label class="f"><input inputmode="decimal" data-k="${k}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(ph.kg || '0')}" aria-label="Peso serie ${i + 1}"><u>kg</u></label>
-      <label class="f"><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="Ripetizioni serie ${i + 1}"><u>rip</u></label>
+      <label class="f"><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="${isom ? 'Secondi di tenuta' : 'Ripetizioni'} serie ${i + 1}"><u>${isom ? 'sec' : 'rip'}</u></label>
       <button class="chk ${s.done ? 'on' : ''}" data-k="${k}" data-i="${i}" data-act="done" aria-label="Serie completata">✓</button>
       <input class="snote" data-k="${k}" data-i="${i}" data-f="note" value="${esc(s.note || '')}" placeholder="${h && h.sets[i] && h.sets[i].note ? 'ultima volta: ' + esc(h.sets[i].note) : 'nota serie ' + (i + 1) + ' (es. presa, sensazione, dolore)'}" maxlength="140" aria-label="Nota serie ${i + 1}"></div>`;
   }).join('');
@@ -480,7 +493,7 @@ function evalDay(pid) {
 /* proposte concrete per un giorno: riordino, esercizi da togliere, sostituire o aggiungere (si applicano solo dopo conferma) */
 const TIER = e => e.g === 'addome' ? 5 : e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;   // addome sempre in coda
 const POST = /stacco|rdl|pull-?through|hip thrust|leg curl|kickback/i, KNEE = /squat|affond|bulgar|leg extension|split/i;
-const exScore = e => (DB.fav[e.id] ? 12 : 0) + (profAtt().includes(e.a) ? 5 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
+const exScore = e => (DB.fav[e.id] ? 12 : 0) + (e.isom ? 10 : 0) + (profAtt().includes(e.a) ? 5 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
 const PROP = {pid: null, list: []};
 function proposeDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return [];
@@ -618,6 +631,9 @@ function tipsFor(q) {
   if (q.prog !== null && q.cmp >= 3 && q.prog < 0.3) tips.push({i: '📈', t: 'Pochi esercizi sono migliorati rispetto alla volta prima: quando chiudi tutte le serie al numero di ripetizioni previsto, la volta dopo aggiungi 2,5 kg (sui cavi una tacca).'});
   if (q.prog !== null && q.prog >= 0.6) tips.push({i: '🔥', t: `Stai progredendo su ${q.imp} esercizi su ${q.cmp}: continua così e ricordati di dormire e mangiare abbastanza proteine.`});
   if (q.compl !== null && q.compl < 0.7) tips.push({i: '✂️', t: 'Nelle ultime sedute hai completato meno del 70% delle serie: scheda troppo lunga o troppo poco tempo. Togli 1-2 esercizi per giorno.'});
+  const pf = profOk() ? pesoForma(DB.prof.h, DB.prof.sex, DB.prof.tipo, DB.prof.kg) : null;
+  if (pf && pf.diff >= 5) tips.push({i: '⚖️', t: `Sei circa ${pf.diff} kg sopra il peso forma per il tuo fisico (${pf.lo}-${pf.hi} kg). Per scendere conta soprattutto l’alimentazione; in palestra tieni recuperi brevi, multiarticolari e 2-3 sedute a settimana, e aggiorna il peso nel profilo quando cambia.`});
+  if (pf && pf.diff <= -5) tips.push({i: '⚖️', t: `Sei circa ${-pf.diff} kg sotto il peso forma per il tuo fisico (${pf.lo}-${pf.hi} kg): per mettere massa mangia di più (proteine a ogni pasto) e punta su pochi esercizi pesanti con progressione.`});
   const missP = profMus().filter(g => q.missing.includes(g) || (g === 'avambracci' && !plannedDays().some(pid => rtList(pid).some(x => byId[x.e] && inG(byId[x.e], g)))));
   if (missP.length && q.planned) tips.push({i: '🎯', t: `Nel profilo vuoi concentrarti su ${profMus().map(gName).join(', ')}, ma nella settimana non alleni: ${missP.map(gName).join(', ')}. Aggiungili con “Proponimi esercizi” o un programma pronto.`});
   if (q.missing.filter(g => !missP.includes(g)).length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.filter(g => !missP.includes(g)).map(gName).join(', ')}. Aggiungi almeno un esercizio per ciascuno in uno dei giorni.`});
@@ -644,7 +660,7 @@ function homeView() {
    ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
-   ${profOk() ? `<div class="card prof"><h2 class="ht">👤 Il mio profilo</h2><p class="vnote" style="margin:0 0 8px">${esc(profTxt())}.</p><div class="sbar" style="padding:0"><button class="ghost" data-act="profopen">✏️ Modifica profilo</button></div></div>` : `<div class="card prof"><h2 class="ht">👤 Completa il profilo</h2><p class="vnote" style="margin:0 0 8px">Genere, peso, livello, obiettivo, attrezzi e muscoli preferiti: così proposte, programmi e consigli sono fatti per te e ogni esercizio ha un peso di partenza.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="profopen">Compila il profilo</button></div></div>`}
+   ${profOk() ? `<div class="card prof"><h2 class="ht">👤 Il mio profilo</h2><p class="vnote" style="margin:0 0 8px">${esc(profTxt())}.</p>${DB.prof.h ? `<p class="vnote" style="margin:0 0 8px">⚖️ ${pfTxt()}</p>` : ''}<div class="sbar" style="padding:0"><button class="ghost" data-act="profopen">✏️ Modifica profilo</button></div></div>` : `<div class="card prof"><h2 class="ht">👤 Completa il profilo</h2><p class="vnote" style="margin:0 0 8px">Genere, peso, livello, obiettivo, attrezzi e muscoli preferiti: così proposte, programmi e consigli sono fatti per te e ogni esercizio ha un peso di partenza.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="profopen">Compila il profilo</button></div></div>`}
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana dalla prima registrata (${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
     <div class="barsw"><div class="bars" style="width:${Math.max(100, q.weeks.length * 46)}px">${q.weeks.map((w, i) => `<button class="bar" data-act="wk" data-w="${w.key}" aria-label="Settimana del ${fmtD(w.key)}"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === q.weeks.length - 1 ? 'ora' : fmtD(w.key)}</small></button>`).join('')}</div></div>
     ${(() => { const cur = q.weeks[q.weeks.length - 1], prev = q.weeks[q.weeks.length - 2]; const row = (w, lab) => { const e = weekEval(w.key); return `<button class="dayrow" data-act="wk" data-w="${w.key}"><span class="dn">${lab}</span><span class="t"><b>${e.icon} ${e.score !== null ? e.score + '/10 · ' + e.grade : e.grade}</b><small>${esc(e.notes[0])}${e.notes[2] ? ' ' + esc(e.notes[2]) : ''}</small></span><span class="chev">›</span></button>`; }; return row(cur, 'ora') + (prev ? row(prev, 'prec.') : ''); })()}
@@ -850,7 +866,7 @@ function wizPropose() {
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
       if (!covered.has(e.g) && WZ.mus.length > 1) s += 4; if (e.tipo === 'comp') s += .7;
-      if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += out.filter(o => DB.fav[o.id]).length < Math.ceil(want / 2) ? 7 : 0; /* preferiti avvantaggiati ma al massimo metà della proposta: così vedi anche altri esercizi */ if (profAtt().length && profAtt().includes(e.a)) s += 3; return s; };
+      if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; if (e.isom) s += 5; /* addome: preferite le tenute isometriche */ } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += out.filter(o => DB.fav[o.id]).length < Math.ceil(want / 2) ? 7 : 0; /* preferiti avvantaggiati ma al massimo metà della proposta: così vedi anche altri esercizi */ if (profAtt().length && profAtt().includes(e.a)) s += 3; return s; };
     pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); (pick.ab || []).forEach(z => covAb.add(z)); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
   WZ.cur = out.map(e => e.id); return out;
@@ -915,7 +931,7 @@ function presetBuild(P, atts, groups) {
   const pick = g => { const cand = (EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).length ? EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))) : EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))));
     const sc = c => { let v = score(c);
       if (g === 'gambe') { const k = KNEE.test(c.n), p = POST.test(c.n); if (k && knee > post) v -= 12; if (p && post > knee) v -= 12; if (k && !knee) v += 5; if (p && !post && knee) v += 8; }   /* gambe: alterna quadricipiti e catena posteriore */
-      if (c.ab) { const nuove = c.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; v += nuove ? 8 + nuove : -6; if (!covAb.size && c.ab.includes('profonda')) v -= 3; }   /* addome: zone diverse (alta, bassa, obliqui) */
+      if (c.ab) { const nuove = c.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; v += nuove ? 8 + nuove : -6; if (!covAb.size && c.ab.includes('profonda')) v -= 3; if (c.isom) v += 10; }   /* addome: zone diverse (alta, bassa, obliqui) */
       return v; };
     cand.sort((a, b) => sc(b) - sc(a)); const c = cand[0]; if (!c) return null;
     used.add(c.id); keys.add(mkey(c)); (c.ab || []).forEach(z => covAb.add(z)); if (g === 'gambe') { if (KNEE.test(c.n)) knee++; if (POST.test(c.n)) post++; }
@@ -1098,7 +1114,7 @@ document.addEventListener('click', e => {
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
   else if (a === 'profopen') modal(profHtml(!profOk()), !$('#modal').hidden);
-  else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'sex' || t === 'lvl' || t === 'fin') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
+  else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'sex' || t === 'lvl' || t === 'fin' || t === 'tipo') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
   else if (a === 'pfsave') { profRead(); if (!DB.prof.sex) { flash('Scegli il genere'); return; } if (!DB.prof.kg) { flash('Scrivi il tuo peso corporeo'); $('#pfkg').focus(); return; } DB.prof.done = true; DB.prof.later = 0; save(); closeModal(); render(); flash('✓ Profilo salvato: proposte e pesi di partenza tengono conto di te'); }
   else if (a === 'pflater') { DB.prof.later = 1; save(); closeModal(); render(); }
   else if (a === 'usekg') { const c = curFor(b.dataset.k, 0); c.sets.forEach(st => { if (!num(st.kg)) st.kg = b.dataset.kg; }); DB.cur[b.dataset.k] = c; save(); render(true); flash('✓ ' + b.dataset.kg + ' kg inseriti nelle serie'); }

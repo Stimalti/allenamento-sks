@@ -955,3 +955,68 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = EX.find(x => x.id === id); if (e) (e.ab = e.ab || []).push(z); }));
   EX.filter(e => e.g === 'addome' && !e.ab).forEach(e => { e.ab = ['alta']; });
 })();
+
+/* ===== addome in isometria: tenute (plank e varianti, hollow, L-sit, Pallof hold, dead bug e bird dog in tenuta). e.isom = true → ripetizioni espresse in secondi e preferiti nelle proposte ===== */
+(() => {
+  const g = id => EX.find(e => e.id === id);
+  ['a-plank', 'a-side-plank', 'a-hollow'].forEach(id => { const e = g(id); if (e) { e.isom = true; e.hold = id === 'a-side-plank' ? '20-45 s per lato' : '30-60 s'; } });
+  const A = o => { if (g(o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', lin: true, isom: true, st: 'floor'}, o)); };
+  const PL = {h: [150, 181], t: 92, th: -66, sh: -66}, PH = {h: [150, 168], t: 92, th: -58, sh: -58}, LIE = {h: [150, 197], t: 270}, HANG = {t: 180, h: [150, 150]};
+  A({id: 'a-plank-mani', n: 'Plank sulle mani (tenuta)', hold: '30-60 s', m: 'Core completo (isometrico), spalle', mm: 'trasverso dell’addome, retto addominale, obliqui, dentato anteriore, glutei',
+    fr: [[0, 0, {...PH}], [0, 0, {...PH, lift: 1}]], cap: ['Mani sotto le spalle, corpo in linea dalla testa ai talloni', 'Posizione tenuta: spingi il pavimento, addome stretto'],
+    trj: 'Nessun movimento: braccia tese, mani sotto le spalle, corpo dritto come una tavola. Più facile del plank sui gomiti per l’addome, più impegnativo per le spalle.',
+    set: 'Tappetino a terra. Posizione di flessione con braccia tese, mani sotto le spalle, piedi uniti o poco larghi.', pos: 'Testa, schiena e bacino in linea; scapole spinte lontano da terra.',
+    ese: ['Mettiti in posizione di flessione con le braccia tese.', 'Stringi glutei e addome, spingi il pavimento con le mani.', 'Tieni 30-60 secondi respirando normalmente.'],
+    cue: 'Allunga la testa in avanti e i talloni indietro: il corpo si tende.', why: 'Tenuta base del core che prepara a flessioni, mountain climber e a tutti i plank più difficili.', err: ['Fianchi che scendono', 'Sedere alto', 'Scapole che “cadono” tra le spalle']});
+  A({id: 'a-plank-ginocchia', n: 'Plank sulle ginocchia (facile, tenuta)', hold: '30-60 s', m: 'Core (isometrico), versione facilitata', mm: 'trasverso dell’addome, retto addominale, obliqui',
+    fr: [[0, 90, {...PL, th: -66, sh: 30}], [0, 90, {...PL, th: -66, sh: 30, lift: 1}]], cap: ['Gomiti sotto le spalle, ginocchia a terra', 'Corpo in linea dalle ginocchia alla testa'],
+    trj: 'Nessun movimento: come il plank sui gomiti, ma con le ginocchia appoggiate. La leva è più corta e la tenuta più facile: ideale per iniziare o per allungare i tempi.',
+    set: 'Tappetino a terra. Avambracci a terra, gomiti sotto le spalle, ginocchia appoggiate, piedi sollevati o a terra.', pos: 'Linea retta dalle ginocchia alla testa; bacino in avanti (non inarcare).',
+    ese: ['Appoggia avambracci e ginocchia.', 'Porta il bacino in linea con spalle e ginocchia, stringi l’addome.', 'Tieni 30-60 secondi; quando arrivi a 60 passa al plank completo.'],
+    cue: 'Spingi il pube verso le costole: la schiena non si inarca.', why: 'Permette di imparare la posizione corretta senza che la schiena ceda.', err: ['Schiena inarcata', 'Sedere alto', 'Testa che pende']});
+  A({id: 'a-boat', n: 'Tenuta a V (boat pose, V-sit)', hold: '20-40 s', m: 'Retto dell’addome, flessori anca (isometrico)', mm: 'retto addominale (alto e basso), ileopsoas, trasverso',
+    fr: [[70, 75, {h: [112, 204], t: 150, th: 110, sh: 60}], [70, 75, {h: [112, 204], t: 150, th: 110, sh: 60, lift: 1}]], cap: ['Seduto, busto indietro, piedi sollevati, braccia avanti', 'Posizione tenuta: schiena dritta, non arrotondata'],
+    trj: 'Nessun movimento: seduto in equilibrio sul bacino, busto inclinato indietro e gambe sollevate (ginocchia piegate per iniziare, tese per la versione difficile), braccia distese in avanti.',
+    set: 'Tappetino a terra. Seduto, ginocchia piegate, piedi sollevati, braccia distese in avanti all’altezza delle ginocchia.', pos: 'Schiena dritta, petto aperto, busto a 45°.',
+    ese: ['Siediti e inclina il busto indietro finché i piedi si staccano.', 'Trova l’equilibrio sul bacino, braccia avanti.', 'Tieni 20-40 secondi; per rendere più difficile distendi le gambe.'],
+    cue: 'Petto in fuori: se la schiena si arrotonda lavora meno l’addome e di più la zona lombare.', why: 'Tenuta che accende tutto il retto dell’addome e i flessori, senza attrezzi.', err: ['Schiena curva', 'Spalle alle orecchie', 'Trattenere il respiro']});
+  A({id: 'a-ginocchia-hold', n: 'Tenuta ginocchia al petto alla sbarra', hold: '15-30 s', m: 'Retto dell’addome (parte bassa), flessori anca, presa (isometrico)', mm: 'retto addominale (fasci inferiori), ileopsoas, obliqui, avambracci', st: 'hang', eq: 'hb', presa: 'pro',
+    fr: [[180, 180, {...HANG, th: 112, sh: 28}], [180, 180, {...HANG, th: 115, sh: 25}]], cap: ['Appeso, ginocchia sopra le anche, bacino arrotolato', 'Posizione tenuta: non oscillare'],
+    trj: 'Nessun movimento: appeso alla sbarra porti le ginocchia all’altezza delle anche (o più su) e resti lì. Lavora soprattutto la parte bassa dell’addome, più la presa.',
+    set: 'Sbarra per trazioni, presa prona poco più larga delle spalle.', pos: 'Spalle attive (non lasciarti appendere), ginocchia almeno a 90°, bacino leggermente arrotolato.',
+    ese: ['Appenditi e attiva le spalle.', 'Porta le ginocchia all’altezza delle anche arrotolando un po’ il bacino.', 'Tieni 15-30 secondi senza dondolare.'],
+    cue: 'Pensa a portare il pube verso l’ombelico, non solo le ginocchia in alto.', why: 'Versione in tenuta del sollevamento ginocchia: parte bassa dell’addome e presa senza slanci.', err: ['Oscillare', 'Spalle rilassate', 'Ginocchia troppo basse']});
+  A({id: 'a-l-sit', n: 'L-sit alle parallele (tenuta)', hold: '10-20 s', fr: [[0, 0, {h: [150, 198], t: 180, th: 90, sh: 90}], [0, 0, {h: [150, 198], t: 180, th: 90, sh: 90}]], m: 'Addome basso, flessori anca, tricipiti (isometrico)', mm: 'retto addominale, ileopsoas, quadricipiti, tricipiti, deltoidi', noanim: true, fin: ['tonificare'],
+    cap: ['Sospeso tra le parallele, braccia tese e gambe orizzontali a formare una L'], trj: 'Nessun movimento: sospeso sulle parallele a braccia tese, gambe distese in avanti parallele al pavimento. Esercizio difficile: inizia con le ginocchia piegate (tuck) o una gamba sola.',
+    set: 'Parallele del rack. Mani sulle impugnature, braccia tese, spalle basse.', pos: 'Spalle spinte in basso, gambe tese e unite, punte dei piedi in avanti.',
+    ese: ['Sollevati a braccia tese.', 'Porta le gambe in avanti fino all’orizzontale (o le ginocchia al petto per iniziare).', 'Tieni 10-20 secondi.'],
+    cue: 'Spingi le mani nel pavimento e allontana le spalle dalle orecchie.', why: 'Una delle tenute più complete: addome, flessori, tricipiti e spalle. Progressione: tuck → una gamba → L completa.', err: ['Spalle alte', 'Gambe che scendono', 'Braccia piegate']});
+  A({id: 'a-pallof-hold', n: 'Pallof hold (anti-rotazione in tenuta)', a: 'Cavi', eq: 'cable', st: 'stand', an: [185, 75], tzf: 92, gz: 6, az: 0.75, hold: '20-30 s per lato', fin: ['massa', 'tonificare'], m: 'Core (anti-rotazione), obliqui (isometrico)', mm: 'obliqui esterni e interni, trasverso dell’addome, retto addominale, glutei',
+    fr: [[88, 90, {t: 180}], [88, 90, {t: 180, lift: 0}]], cap: ['Braccia distese davanti al petto, il cavo tira di lato', 'Posizione tenuta: busto e bacino non ruotano'],
+    trj: 'Nessun movimento: braccia distese davanti allo sterno, il cavo che arriva di lato cerca di girarti verso la torre e tu resti fermo. È la versione in tenuta del Pallof press.',
+    set: 'Cavo MEDIO (altezza del petto) con maniglia, di lato alla torre, un passo di distanza.', pos: 'Piedi alla larghezza delle spalle, ginocchia morbide, bacino neutro, braccia tese.',
+    ese: ['Afferra la maniglia con due mani al petto e fai un passo lontano dalla torre.', 'Distendi le braccia davanti allo sterno.', 'Tieni 20-30 secondi senza ruotare, poi cambia lato.'],
+    cue: 'Le spalle restano parallele alla torre, come se fossi tra due muri.', why: 'Anti-rotazione pura: protegge la schiena e insegna a tenere il tronco rigido negli esercizi pesanti.', err: ['Ruotare verso la torre', 'Piegare le braccia', 'Inclinarsi di lato']});
+  A({id: 'a-dead-bug-hold', n: 'Dead bug in tenuta (braccia e gambe sollevate)', hold: '20-40 s', m: 'Trasverso, addome basso (isometrico)', mm: 'trasverso dell’addome, retto addominale, obliqui, flessori dell’anca', rl: 170,
+    fr: [[180, 180, {...LIE, h: [150, 202], th: 170, sh: 90}], [180, 180, {...LIE, h: [150, 202], th: 168, sh: 92}]], cap: ['Supino, braccia verso il soffitto, ginocchia sopra le anche a 90°', 'Posizione tenuta: la zona lombare resta a terra'],
+    trj: 'Nessun movimento: supino con braccia verso il soffitto e ginocchia sopra le anche piegate a 90°. Il lavoro è tenere la zona lombare schiacciata a terra.',
+    set: 'Tappetino a terra. Sdraiato, braccia verso il soffitto, anche e ginocchia a 90°.', pos: 'Zona lombare appoggiata (nessuno spazio tra schiena e tappetino), mento dentro.',
+    ese: ['Solleva braccia e gambe nella posizione del tavolino.', 'Schiaccia la zona lombare a terra espirando.', 'Tieni 20-40 secondi; per progredire allontana un po’ le ginocchia.'],
+    cue: 'Espira a fondo: le costole scendono e il trasverso si attiva.', why: 'La tenuta più sicura per chi ha la schiena delicata: impara a stabilizzare il bacino.', err: ['Schiena inarcata', 'Trattenere il respiro', 'Ginocchia verso il petto (troppo facile)']});
+  A({id: 'a-bird-dog-hold', n: 'Bird dog in tenuta (quadrupedia)', hold: '20-30 s per lato', fr: [[0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}], [0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}]], m: 'Core, erettori spinali, glutei (isometrico)', mm: 'trasverso dell’addome, multifido, erettori spinali, grande gluteo, obliqui', noanim: true,
+    cap: ['A quattro zampe, un braccio avanti e la gamba opposta indietro, in linea con la schiena'], trj: 'Nessun movimento: a quattro zampe allunghi un braccio in avanti e la gamba opposta indietro e resti fermo, schiena piatta. Poi cambi lato.',
+    set: 'Tappetino a terra. In quadrupedia: mani sotto le spalle, ginocchia sotto le anche.', pos: 'Schiena neutra (puoi immaginare un bicchiere d’acqua sui lombi), sguardo a terra.',
+    ese: ['Allunga il braccio destro in avanti e la gamba sinistra indietro.', 'Tieni il bacino fermo e parallelo al pavimento.', 'Tieni 20-30 secondi e cambia lato.'],
+    cue: 'Allungati, non alzare: la mano e il piede vanno lontano, non in alto.', why: 'Stabilità della colonna e dei glutei: ottimo prima di stacchi e rematori e per chi lavora seduto.', err: ['Bacino che ruota', 'Schiena inarcata', 'Gamba alzata sopra la linea del corpo']});
+  A({id: 'a-plank-inverso', n: 'Plank inverso (tenuta)', hold: '20-40 s', fr: [[30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}], [30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}]], m: 'Glutei, catena posteriore, core (isometrico)', mm: 'grande gluteo, erettori spinali, femorali, trasverso dell’addome, deltoidi posteriori', noanim: true,
+    cap: ['Seduto con le mani dietro, sollevi il bacino: corpo dritto a pancia in su'], trj: 'Nessun movimento: seduto con le mani a terra dietro al bacino, sollevi i fianchi finché il corpo è una linea retta a pancia in su, appoggiato su mani e talloni.',
+    set: 'Tappetino a terra. Seduto, gambe tese, mani a terra dietro al bacino con le dita verso i piedi.', pos: 'Braccia tese, corpo in linea da spalle a talloni, sguardo al soffitto.',
+    ese: ['Spingi su mani e talloni e solleva il bacino.', 'Stringi i glutei finché il corpo è dritto.', 'Tieni 20-40 secondi.'],
+    cue: 'Spingi il bacino verso il soffitto: se scende, fermati e ripeti.', why: 'Completa i plank classici lavorando la parte dietro: glutei, schiena e spalle posteriori.', err: ['Bacino che scende', 'Testa che cade indietro', 'Gomiti piegati']});
+  // famiglia, zone addominali e flag isometria
+  const pf = g('a-pallof'), ph = g('a-pallof-hold'); if (pf && ph && pf.fam) { ph.fam = pf.fam; ph.famRe = pf.famRe; }
+  const fam = EX.find(e => e.id === 'a-plank');
+  EX.filter(e => e.g === 'addome' && !e.fam && /plank|tenuta|hold|l-sit|bird dog|boat/i.test(e.n)).forEach(e => { if (fam) { e.fam = fam.fam; e.famRe = fam.famRe; } });
+  const Z = {alta: ['a-boat', 'a-plank-mani'], bassa: ['a-boat', 'a-ginocchia-hold', 'a-l-sit', 'a-dead-bug-hold'], obliqui: ['a-pallof-hold', 'a-bird-dog-hold'], profonda: ['a-plank-mani', 'a-plank-ginocchia', 'a-pallof-hold', 'a-dead-bug-hold', 'a-bird-dog-hold', 'a-plank-inverso', 'a-l-sit']};
+  Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = g(id); if (e) { e.ab = e.ab || []; if (!e.ab.includes(z)) e.ab.push(z); } }));
+})();
