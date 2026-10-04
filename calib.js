@@ -908,3 +908,27 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Dal plank laterale abbassa il bacino verso terra senza appoggiarlo.', 'Risali contraendo il fianco fino a superare la linea del corpo.', 'Fai le ripetizioni e cambia lato.'],
     cue: 'Movimento lento: 2 secondi giù, 2 su.', why: 'Versione dinamica del plank laterale: obliqui e quadrato dei lombi con più ripetizioni e meno tempo di tenuta.', err: ['Ruotare il busto', 'Toccare terra e “rimbalzare”', 'Spalla che affonda']});
 })();
+
+/* ===== deltoidi con manubri: alzate frontali, laterali e posteriori (selettore anteriore / laterale / posteriore) ===== */
+(() => {
+  const g = id => EX.find(e => e.id === id), VARS = ['s-frontali-db', 's-laterali-db', 's-posteriori-db'];
+  const A = o => { if (g(o.id)) return; EX.push(Object.assign({g: 'spalle', a: 'Manubri', eq: 'db', tipo: 'iso', fin: ['massa', 'tonificare'], st: 'stand', lin: true, vars: VARS, varsLabel: 'Deltoide'}, o)); };
+  A({id: 's-frontali-db', n: 'Alzate frontali con manubri', varName: 'Anteriore', presa: 'pro', gz: 26, m: 'Deltoide anteriore', mm: 'deltoide anteriore, grande pettorale (fascio clavicolare), dentato anteriore, trapezio superiore',
+    fr: [[6, 6, {t: 180}], [92, 92, {t: 180}]], cap: ['In piedi, manubri davanti alle cosce, palmi verso il corpo', 'Braccia tese all’altezza delle spalle'],
+    trj: 'Arco in avanti: i manubri salgono davanti al corpo fino all’altezza degli occhi, braccia quasi tese, senza slancio del busto.',
+    set: 'Due manubri leggeri. In piedi, piedi alla larghezza delle anche, manubri davanti alle cosce con i palmi verso le gambe.', pos: 'Ginocchia morbide, core contratto, spalle basse.',
+    ese: ['Alza i manubri in avanti fino all’altezza delle spalle, braccia quasi tese.', 'Fermati 1 secondo in alto.', 'Scendi lentamente senza appoggiarli alle cosce.', 'Puoi alternare le braccia.'],
+    cue: 'Sali con il deltoide, non con il busto che oscilla.', why: 'Isola il deltoide anteriore; utile se nelle spinte non lo senti lavorare.', err: ['Oscillare il busto', 'Salire oltre la testa', 'Alzare le spalle verso le orecchie']});
+  A({id: 's-laterali-db', n: 'Alzate laterali con manubri', varName: 'Laterale', presa: 'pro', v: 'f', hs: {a: [-8, 70, 6], b: [68, -4, 22], r: 66}, m: 'Deltoide laterale (mediale)', mm: 'deltoide laterale, sovraspinato, deltoide anteriore, trapezio superiore',
+    fr: [[12, 27, {}], [90, 110, {}]], cap: ['Manubri ai fianchi, gomiti leggermente piegati', 'Braccia aperte all’altezza delle spalle, gomiti un po’ più alti delle mani'],
+    trj: 'Arco laterale: le mani salgono di lato fino all’altezza delle spalle, guidate dal gomito, leggermente davanti al corpo.',
+    set: 'Due manubri leggeri. In piedi, manubri ai fianchi (o leggermente davanti), gomiti un po’ piegati.', pos: 'Busto leggermente inclinato in avanti (5-10°), spalle basse, core contratto.',
+    ese: ['Alza le braccia di lato guidando con i gomiti.', 'Fermati all’altezza delle spalle, mignolo leggermente più alto del pollice.', 'Scendi in 2-3 secondi.'],
+    cue: 'Immagina di allontanare i manubri dal corpo, non di alzarli.', why: 'L’esercizio base per la larghezza delle spalle.', err: ['Slancio con le gambe', 'Spalle che salgono (trapezio)', 'Gomiti tesi e peso eccessivo']});
+  A({id: 's-posteriori-db', n: 'Alzate posteriori con manubri (busto inclinato)', varName: 'Posteriore', presa: 'pro', st: 'hinge', gz: 24, gz2: 82, az: 0.85, m: 'Deltoide posteriore, romboidi', mm: 'deltoide posteriore, romboidi, trapezio medio, sottospinato, piccolo rotondo',
+    fr: [[6, 6, {t: 112}], [-22, -22, {t: 112}]], cap: ['Busto inclinato in avanti, manubri sotto le spalle', 'Braccia aperte di lato, scapole ferme'],
+    trj: 'Con il busto quasi parallelo al pavimento, le braccia si aprono di lato fino all’altezza delle spalle, gomiti leggermente piegati.',
+    set: 'Due manubri leggeri. In piedi, busto inclinato in avanti fino quasi all’orizzontale (schiena neutra), manubri sotto le spalle.', pos: 'Ginocchia morbide, schiena dritta, sguardo verso il pavimento.',
+    ese: ['Apri le braccia di lato fino all’altezza delle spalle.', 'Fermati 1 secondo con i deltoidi posteriori contratti.', 'Scendi lentamente senza far cadere il busto.'],
+    cue: 'Gomiti verso il soffitto, non le mani.', why: 'Deltoide posteriore e parte alta della schiena: riequilibra le spalle di chi fa molte spinte.', err: ['Schiena che si curva', 'Busto che si alza', 'Stringere le scapole invece di alzare i gomiti']});
+})();

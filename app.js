@@ -178,9 +178,11 @@ async function loadMine(root) {
   }
   if (!list.length) host.innerHTML = '<p class="vnone">Nessun video aggiunto.</p>';
 }
-function techHtml(ex) {
+function techHtml(ex, sr) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
-  return `<div class="fig" data-fig="${ex.id}"></div>
+  const pr = presOf(ex, 'massa') || presOf(ex, 'tonificare') || presOf(ex, 'forza');
+  const vars = ex.vars ? `<div class="vars"><span>${esc(ex.varsLabel || 'Varianti')}</span>${ex.vars.map(id => byId[id] ? `<button class="${id === ex.id ? 'on' : ''}" data-act="open" data-id="${id}">${esc(byId[id].varName || byId[id].n)}</button>` : '').join('')}</div>` : '';
+  return `${vars}<div class="fig" data-fig="${ex.id}" data-sr="${esc(sr || (pr ? pr.sr + ' × ' + pr.r : ''))}"></div>
   ${ex.noanim ? '<p class="warn">↔ Questo esercizio è un movimento <b>laterale</b> (il corpo si piega di fianco): il modello 3D mostra solo la posizione di partenza. Segui la descrizione qui sotto.</p>' : ''}
   <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>
   <p class="cue"><b>💡 Come pensarlo:</b> ${esc(ex.cue)}</p>
@@ -284,7 +286,7 @@ function trainView() {
     <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span>${x.obj && FIN[x.obj] ? `<span>· ${FIN[x.obj]}</span>` : ''}</div>
     ${lastLine(k)}${hintLine(k, x.r)}
     <button class="howbtn ${TR.how ? 'on' : ''}" data-act="trhow">🎬 Come si fa${TR.how ? ' · chiudi' : ''}<small>animazione 3D · video · spiegazione passo passo</small></button>
-    ${TR.how ? `<div class="tb howbox">${techHtml(ex)}<button class="ghost addmore" data-act="trhow" style="margin-top:12px">▲ Chiudi e vai alle serie</button></div>` : ''}
+    ${TR.how ? `<div class="tb howbox">${techHtml(ex, c.sets.length + ' × ' + x.r)}<button class="ghost addmore" data-act="trhow" style="margin-top:12px">▲ Chiudi e vai alle serie</button></div>` : ''}
     ${setsHtml(k, x.s, x.r)}
    </article>
    <div class="tbarnav"><button class="ghost" data-act="trprev"${TR.i === 0 ? ' disabled' : ''}>◀ Prec.</button>${TR.i < n - 1 ? `<button class="primary" data-act="trnext">Prossimo: ${esc(byId[p.ex[TR.i + 1].e].n.split(' (')[0].slice(0, 26))} ▶</button>` : `<button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">🏁 Fine allenamento</button>`}</div>`;

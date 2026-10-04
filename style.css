@@ -83,7 +83,7 @@ details.tech[open]>summary::after{transform:rotate(-135deg)}
 .fig{background:linear-gradient(180deg,var(--stage1),var(--stage2));border-radius:18px;overflow:hidden;margin:4px 0 6px;color:#dbe3f5}
 .stage{position:relative;touch-action:pan-y;cursor:grab}.stage canvas{display:block;touch-action:none}
 .hint3d{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:12px;color:rgba(255,255,255,.65);pointer-events:none;transition:opacity .4s}
-.figsvg{background:var(--figbg);border-radius:12px;margin:8px 8px 0}.figsvg svg{display:block;width:100%;max-height:250px}
+.figsvg{background:#fff;border-radius:12px;margin:8px 8px 0}.figsvg svg{display:block;width:100%;max-height:250px}
 .figcap{font-size:14px;text-align:center;padding:4px 14px 8px;min-height:30px;color:#c4cee6}
 .figbtns{display:flex;gap:6px;padding:0 10px 10px}.figbtns button{flex:1;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;border-radius:11px;padding:8px 4px;font-size:13px;font-weight:600}.figbtns button.on{background:var(--acc);border-color:var(--acc)}
 .pills{display:flex;gap:8px;margin:0 0 14px}.pills button{flex:1;padding:11px 8px;border-radius:16px;border:1px solid var(--line);background:var(--card);font:700 19px/1.1 var(--disp)}
@@ -105,12 +105,14 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 
 .legend3d{font-size:13px;color:#ffb4ba;padding:0 14px 12px;text-align:center}.figbtns .mbtn{background:rgba(225,29,46,.18);border-color:rgba(255,120,130,.4)}.figbtns .mbtn.on{background:#e11d2e;border-color:#e11d2e}
 
-.fig{background:linear-gradient(180deg,#f3f6fb,#cdd5e4);color:#27324a}
-.figcap{color:#3d4a66}.hint3d{color:rgba(40,52,78,.55)}
-.figbtns button{border:1px solid rgba(40,52,78,.25);background:rgba(255,255,255,.65);color:#27324a}
+.fig{background:radial-gradient(ellipse at 50% 35%,#4a5471 0%,#262c3e 55%,#141826 100%);color:#e6eaf4}
+.figcap{color:#d6dcea}.hint3d{color:rgba(255,255,255,.5)}
+.figbtns button{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#eef1f8}
 .figbtns button.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.figbtns .mbtn{background:rgba(225,29,46,.12);border-color:rgba(225,29,46,.4);color:#9f1321}.figbtns .mbtn.on{background:#e11d2e;border-color:#e11d2e;color:#fff}
-.legend3d{color:#a3202c}
+.figbtns .mbtn{background:rgba(255,106,0,.16);border-color:rgba(255,140,60,.5);color:#ffc49a}.figbtns .mbtn.on{background:#ff6a00;border-color:#ff6a00;color:#fff}
+.legend3d{color:#ffb98a}
+.figtag{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:2px;pointer-events:none;background:rgba(10,14,26,.55);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:6px 10px;backdrop-filter:blur(4px)}
+.figtag b{font:800 15px/1.1 var(--disp);letter-spacing:.04em;text-transform:uppercase;color:#ffb070}.figtag span{font:700 13px/1.1 var(--font);color:#fff}
 
 .warn{font-size:13px;background:#fff4d6;color:#6b4b00;border-radius:12px;padding:9px 12px;margin:8px 0}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{background:#3a2f10;color:#ffd98a}}:root[data-theme="dark"] .warn{background:#3a2f10;color:#ffd98a}
 
@@ -253,3 +255,4 @@ nav button span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-spac
 .barsw{overflow-x:auto;margin:0 -14px 6px;padding:0 14px;scrollbar-width:thin}
 .bars{gap:5px;min-width:100%}.bar{border:0;background:none;padding:0;min-width:40px;cursor:pointer;color:inherit;font:inherit}.bar:active i{filter:brightness(1.15)}
 .wkt{width:100%;border-collapse:collapse;font-size:13px}.wkt td{padding:4px 0;border-top:1px solid var(--line);vertical-align:top}.wkt td:first-child{width:52%;padding-right:8px}
+.vars{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 8px}.vars span{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.vars button{border:1px solid var(--line);background:var(--in);border-radius:999px;padding:6px 12px;font-size:13.5px;font-weight:700;color:var(--tx)}.vars button.on{background:var(--acc);border-color:var(--acc);color:#fff}

@@ -139,7 +139,7 @@ const RIG = (() => {
       b.position.copy(a); b.quaternion.setFromRotationMatrix(Mr);
     });
     const skel = new THREE.Skeleton(bones, inv);
-    const bodyMat = new THREE.MeshStandardMaterial({color: opts && opts.color || 0xd9dde6, map: body.mat.map, normalMap: body.mat.normalMap, roughness: .62, metalness: 0});
+    const bodyMat = new THREE.MeshStandardMaterial({color: opts && opts.color || 0xe4e7ee, map: opts && opts.plain ? null : body.mat.map, normalMap: body.mat.normalMap, roughness: .7, metalness: 0});   // manichino chiaro opaco (look da studio)
     bodyMat.skinning = true;
     if (bodyMat.normalMap) bodyMat.normalScale = new THREE.Vector2(1.15, 1.15);
     bodyMat.onBeforeCompile = sh => {
@@ -150,10 +150,10 @@ const RIG = (() => {
         sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
         float mm = clamp(dot(vM0,uM0)+dot(vM1,uM1)+dot(vM2,uM2)+dot(vM3,uM3),0.0,1.0);
         float lum = dot(diffuseColor.rgb, vec3(0.333));
-        vec3 red = vec3(0.80,0.03,0.07) * (0.40 + 0.95 * lum);
-        diffuseColor.rgb = mix(diffuseColor.rgb, red, mm * 0.80);
+        vec3 hot = vec3(1.0,0.36,0.04) * (0.55 + 0.6 * lum);
+        diffuseColor.rgb = mix(diffuseColor.rgb, hot, mm * 0.9);
         `).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        totalEmissiveRadiance += vec3(0.45,0.0,0.02) * mm * 0.22;`);
+        totalEmissiveRadiance += vec3(0.95,0.28,0.02) * mm * 0.28;`);
     };
     const meshes = [];
     parts.forEach(p => {
