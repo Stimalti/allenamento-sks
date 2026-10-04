@@ -1020,3 +1020,6 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   const Z = {alta: ['a-boat', 'a-plank-mani'], bassa: ['a-boat', 'a-ginocchia-hold', 'a-l-sit', 'a-dead-bug-hold'], obliqui: ['a-pallof-hold', 'a-bird-dog-hold'], profonda: ['a-plank-mani', 'a-plank-ginocchia', 'a-pallof-hold', 'a-dead-bug-hold', 'a-bird-dog-hold', 'a-plank-inverso', 'a-l-sit']};
   Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = g(id); if (e) { e.ab = e.ab || []; if (!e.ab.includes(z)) e.ab.push(z); } }));
 })();
+
+/* ===== revisione addome: ab rollout finisce con il corpo disteso dalle ginocchia (bacino sollevato), non sdraiato a terra ===== */
+(() => { const e = EX.find(x => x.id === 'a-rollout'); if (e) { e.fr = [e.fr[0], [60, 60, {h: [132, 172], t: 100, th: -30, sh: 50}]]; e.cap = ['In ginocchio, bilanciere sotto le spalle', 'Corpo disteso dalle ginocchia alla testa, bilanciere avanti: il bacino non tocca terra']; } })();
