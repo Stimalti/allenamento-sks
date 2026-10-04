@@ -178,6 +178,7 @@ const FIG = (() => {
       if (o.el.offsetParent === null) return;
       let k;
       if (o.hold !== null) k = o.hold;
+      else if (o.ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); }
       else { const ph = ((t - o.t0) / 1000) % 4; k = ph < 0.6 ? 0 : ph < 2 ? (ph-0.6)/1.4 : ph < 2.6 ? 1 : 1 - (ph-2.6)/1.4; k = k*k*(3-2*k); }
       if (k !== o.last) {
         o.last = k; o.svgHost.innerHTML = svg(o.ex, lerpPose(o.p[0], o.p[1], k));

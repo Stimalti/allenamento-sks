@@ -532,6 +532,7 @@ const FIG3 = (() => {
       resize();
       let k;
       if (o.hold !== null) k = o.hold;
+      else if (ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); if (ph >= 1.4 && ph < 4.6) k = 1 - .015 * (1 - Math.cos((ph - 1.4) * 2 * Math.PI / 1.6)); }   /* isometria: entra in posizione, tieni (lieve respiro), torna */
       else { const ph = ((t - o.t0) / 1000) % 4.6; k = ph < .5 ? 0 : ph < 1.9 ? (ph - .5) / 1.4 : ph < 2.4 ? 1 : 1 - (ph - 2.4) / 2.2; k = k*k*(3-2*k); }
       if (k !== lastK) {
         if (lastK >= 0 && Math.abs(k - lastK) > .25) { ikReset(); o.lastUa = undefined; }   // salto (pulsanti Partenza/Arrivo): si riparte da una soluzione pulita
