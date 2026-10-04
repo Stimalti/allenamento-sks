@@ -67,17 +67,17 @@ const FIG3 = (() => {
   /* ---- muscoli in rosso con fibre ---- */
   const MUS = '#e11d2e', FIB = '#ff9aa2';
   const musOf = ex => {
-    const t = (ex.m + ' ' + ex.n).toLowerCase(), r = [];
+    const t = (ex.m + ' ' + ex.n).toLowerCase(), r = [], first = String(ex.m).split(/[,;(]/)[0].toLowerCase();   // 'core' conta solo se è il muscolo principale
     const has = (...k) => k.some(x => t.includes(x));
     if (has('pettoral', 'petto')) r.push('pecs');
     if (has('deltoid', 'spalle', 'cuffia')) r.push('delts');
     if (has('bicipit', 'brachiale')) r.push('biceps');
     if (has('tricip')) r.push('triceps');
-    if (has('avambracc', 'flessori', 'estensori', 'brachioradiale')) r.push('forearms');
+    if (has('avambracc', 'polso', 'brachioradiale', 'flessori delle dita')) r.push('forearms');
     if (has('dorsal', 'romboid')) r.push('lats');
     if (has('trapez')) r.push('traps');
     if (has('erettori', 'lombar')) r.push('lowerback');
-    if (has('addominal', 'retto dell', 'core', 'obliqui')) r.push('abs');
+    if (has('addominal', 'retto dell', 'obliqui') || first.includes('core')) r.push('abs');
     if (has('obliqui')) r.push('obliques');
     if (has('quadric')) r.push('quads');
     if (has('femoral')) r.push('hams');
@@ -552,7 +552,7 @@ const FIG3 = (() => {
       const r = ct[2], cx = ct[0], cy = ct[1]; cam.position.set(cx + Math.sin(o.az) * Math.cos(o.el2) * r, cy + .05 + Math.sin(o.el2) * r * .6, Math.cos(o.az) * Math.cos(o.el2) * r);
       cam.lookAt(cx, cy, 0); renderer.render(scene, cam);
     }
-    const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0]}[ex.st] || [0,1.0,4.3];
+    const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0], floor:[.05,.45,3.7]}[ex.st] || [0,1.0,4.3];
     const over = ex.fr.some(f => f[0] > 125);
     o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
