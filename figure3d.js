@@ -15,7 +15,7 @@ const FIG3 = (() => {
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb'];   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch'];   // pitch = inclinazione di tutto il corpo (dopo il roll) attorno all'asse laterale: testa su/giù; roll = rotazione di tutto il corpo sull'asse lungo (gradi: 90 = sdraiato su un fianco), lz = spostamento laterale delle gambe   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
   const resolve = (ex, fr) => { const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && !(fr[2] && fr[2].t !== undefined)) r.t = 270 - ex.inc; return r; };   // ex.inc = inclinazione della panca in gradi dall'orizzontale: il busto la segue
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
@@ -213,6 +213,11 @@ const FIG3 = (() => {
       if (ex.one) { const Ef = add([S[0], S[1] - dyn], UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
       else { W3f = [W[0], W[1] - dyn, -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1] - dyn, -GZ + ZS]; }
     }
+    if (ex.arm3) {   /* braccia date in 3D: [direzione spalla→gomito, direzione gomito→polso] (x lungo il busto, y verso il pavimento, z laterale) */
+      const off = (b, d, L) => { const n = Math.hypot(d[0], d[1], d[2]) || 1; return [b[0] + d[0] / n * L, b[1] + d[1] / n * L, b[2] + d[2] / n * L]; };
+      if (ex.arm3.n) { E3n = off(SN, ex.arm3.n[0], UA); W3n = off(E3n, ex.arm3.n[1], FA); g3n = W3n; }
+      if (ex.arm3.f) { E3f = off(SF, ex.arm3.f[0], UA); W3f = off(E3f, ex.arm3.f[1], FA); g3f = W3f; }
+    }
     benchPrims(P, ex);
     // gamba lontana
     let K2, A2, f2;
@@ -220,7 +225,7 @@ const FIG3 = (() => {
     if (ex.rl) { K2 = ik(H, ex.rl, TH, SH); A2 = ex.rl; f2 = fl(A2); }
     else if (ex.sup) { K2 = add(H, TH, 0); A2 = add(K2, SH, 0); f2 = fl(A2); }
     else { K2 = K; A2 = A; f2 = foot; }
-    const amt0 = Math.min(1, Math.abs(p.th) / 80), kz0 = (ex.ko || 0) * amt0;
+    const amt0 = Math.min(1, Math.abs(p.th) / 80), kz0 = (ex.ko || 0) * amt0, lz = p.lz || 0;
     leg(B, H, K2, A2, f2, SKF, '#1f2742', (ex.rl || ex.sup) ? LF : [LF, LF - kz0, LF - kz0 * .6, LF - kz0 * 1.25]);
     // braccio lontano
     arm(B, pt3(S, ZF), E3f, W3f, SKF);
@@ -289,12 +294,24 @@ const FIG3 = (() => {
         sh: {R: W3(SN), L: W3(SF)}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
         armF: {R: fS(SN, E3n, W3n, fwd(p.ua)), L: fS(SF, E3f, W3f, fwd(sFar))},
         presa: ex.presa,
-        hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz)), L: W3(pt3(K2, (ex.rl || ex.sup) ? LF : LF - kz0))}, an: {R: W3(pt3(A, LN + kz * .6)), L: W3(pt3(A2, (ex.rl || ex.sup) ? LF : LF - kz0 * .6))},
-        toe: {R: W3(pt3(foot, LN + kz * 1.25)), L: W3(pt3(f2, (ex.rl || ex.sup) ? LF : LF - kz0 * 1.25))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
+        hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz + lz)), L: W3(pt3(K2, ((ex.rl || ex.sup) ? LF : LF - kz0) + lz))}, an: {R: W3(pt3(A, LN + kz * .6 + lz * 1.3)), L: W3(pt3(A2, ((ex.rl || ex.sup) ? LF : LF - kz0 * .6) + lz * 1.3))},
+        toe: {R: W3(pt3(foot, LN + kz * 1.25 + lz * 1.3)), L: W3(pt3(f2, ((ex.rl || ex.sup) ? LF : LF - kz0 * 1.25) + lz * 1.3))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
       const holds = ['bar', 'db', 'jam', 'hb', 'dip'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
       if (holds) { J.obj = {R: W3(g3n)}; if (!ex.one) J.obj.L = W3(g3f); }
       if (ex.hand) J.tip = {R: W3(g3n), L: W3(g3f)};   // polso flesso/esteso: la mano punta verso l'impugnatura
+      if (p.roll) {   /* rotazione di tutto il corpo attorno all'asse bacino→spalle (es. plank laterale: 90° = sdraiato sul fianco) */
+        const r = p.roll * R, ax = J.up.clone(), O = J.H.clone(), rp = v => v ? v.sub(O).applyAxisAngle(ax, r).add(O) : v, rd = v => v ? v.applyAxisAngle(ax, r) : v;
+        J.S = rp(J.S); J.Pm = rp(J.Pm); J.front = rd(J.front); J.frontCh = rd(J.frontCh);
+        ['sh', 'el', 'wr', 'hip', 'kn', 'an', 'toe', 'obj', 'tip'].forEach(k => { if (J[k]) ['R', 'L'].forEach(s => { if (J[k][s]) J[k][s] = rp(J[k][s]); }); });
+        ['armF', 'legF', 'legFL', 'footUp'].forEach(k => ['R', 'L'].forEach(s => { if (J[k] && J[k][s]) J[k][s] = rd(J[k][s]); }));
+      }
+      if (p.pitch) {   /* inclinazione del corpo intero attorno all'asse laterale passante per il bacino (es. plank laterale: spalle più alte dei piedi) */
+        const r = p.pitch * R, ax = Wv(0, 0, 1), O = J.H.clone(), rp = v => v ? v.sub(O).applyAxisAngle(ax, r).add(O) : v, rd = v => v ? v.applyAxisAngle(ax, r) : v;
+        J.S = rp(J.S); J.Pm = rp(J.Pm); J.up = rd(J.up); J.front = rd(J.front); J.frontCh = rd(J.frontCh);
+        ['sh', 'el', 'wr', 'hip', 'kn', 'an', 'toe', 'obj', 'tip'].forEach(k => { if (J[k]) ['R', 'L'].forEach(s => { if (J[k][s]) J[k][s] = rp(J[k][s]); }); });
+        ['armF', 'legF', 'legFL', 'footUp'].forEach(k => ['R', 'L'].forEach(s => { if (J[k] && J[k][s]) J[k][s] = rd(J[k][s]); }));
+      }
       P.J = J;
     }
     if (p.showM && !rig) {

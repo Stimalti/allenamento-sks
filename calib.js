@@ -1023,3 +1023,15 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 
 /* ===== revisione addome: ab rollout finisce con il corpo disteso dalle ginocchia (bacino sollevato), non sdraiato a terra ===== */
 (() => { const e = EX.find(x => x.id === 'a-rollout'); if (e) { e.fr = [e.fr[0], [60, 60, {h: [132, 172], t: 100, th: -30, sh: 50}]]; e.cap = ['In ginocchio, bilanciere sotto le spalle', 'Corpo disteso dalle ginocchia alla testa, bilanciere avanti: il bacino non tocca terra']; } })();
+
+/* ===== plank laterale vero (roll + pitch del motore) e ginocchia oblique con spostamento laterale delle gambe (lz) ===== */
+(() => {
+  const g = id => EX.find(e => e.id === id), A3 = {f: [[0, 0, -1], [0, 1, 0]], n: [[-1, 0.15, 0], [-1, 0, 0]]};   /* braccio sotto: gomito a terra, avambraccio in avanti; braccio sopra: lungo il fianco */
+  let e = g('a-side-plank'); if (e) Object.assign(e, {noanim: false, arm3: A3, fr: [[0, 90, {h: [150, 191], t: 92, th: -66, sh: -66, roll: -90, pitch: 6}], [0, 90, {h: [150, 184], t: 92, th: -66, sh: -66, roll: -90, pitch: 22}]],
+    cap: ['Sul fianco, gomito sotto la spalla, bacino a terra', 'Bacino sollevato: corpo in linea dalla testa ai piedi, tieni 20-45 s per lato'],
+    trj: 'Sdraiato su un fianco, appoggiato sull’avambraccio e sul bordo del piede: sollevi il bacino finché testa, spalle, anche e piedi sono in linea e resti lì.'});
+  e = g('a-side-plank-hip'); if (e) Object.assign(e, {noanim: false, arm3: A3, fr: [[0, 90, {h: [150, 193], t: 92, th: -66, sh: -66, roll: -90, pitch: 8}], [0, 90, {h: [150, 182], t: 92, th: -66, sh: -66, roll: -90, pitch: 25}]],
+    cap: ['Plank laterale con il bacino abbassato quasi a terra', 'Bacino alto, sopra la linea del corpo'],
+    trj: 'Dalla posizione di plank laterale, il bacino scende verso terra fino quasi a toccarla e risale sopra la linea del corpo: è il side bend in isometria dinamica.'});
+  e = g('a-ginocchia-obliquo-sbarra'); if (e) { e.fr = [e.fr[0], [180, 180, {t: 180, h: [150, 150], th: 115, sh: 25, tw: -35, lz: 22}]]; e.cap = ['Appeso, gambe distese', 'Ginocchia su e di lato (verso una spalla), bacino ruotato']; }
+})();

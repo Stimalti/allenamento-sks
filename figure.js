@@ -18,7 +18,7 @@ const FIG = (() => {
     hang:  {h:[150,150], t:180, th:10, sh:-70},
     floor: {h:[112,210], t:180, th:90, sh:82, bench:'floor'}
   };
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu'];
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch'];
 
   function resolve(ex, fr) {
     const b = ST[ex.st];
