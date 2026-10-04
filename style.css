@@ -256,3 +256,7 @@ nav button span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-spac
 .bars{gap:5px;min-width:100%}.bar{border:0;background:none;padding:0;min-width:40px;cursor:pointer;color:inherit;font:inherit}.bar:active i{filter:brightness(1.15)}
 .wkt{width:100%;border-collapse:collapse;font-size:13px}.wkt td{padding:4px 0;border-top:1px solid var(--line);vertical-align:top}.wkt td:first-child{width:52%;padding-right:8px}
 .vars{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 8px}.vars span{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.vars button{border:1px solid var(--line);background:var(--in);border-radius:999px;padding:6px 12px;font-size:13.5px;font-weight:700;color:var(--tx)}.vars button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+/* profilo (genere, peso, livello, obiettivo, preferenze) e pesi di partenza */
+.pfkg{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 2px}.pfkg input{width:90px;font-size:18px;font-weight:700;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--in);color:inherit;text-align:center}.pfkg span{font-weight:700}.pfkg small{flex-basis:100%;color:var(--mut);font-size:12.5px;line-height:1.35}
+.hint.start{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--acc)}.hint.start small{color:var(--mut);font-weight:400}.hint.start .ghost{padding:5px 10px;font-size:12.5px;margin-left:auto}
+.card.prof{border-left:4px solid var(--acc)}

@@ -6,6 +6,7 @@ App autonoma (nessun server, nessun account): apri `index.html` da un hosting st
 - **Giorno 1-4**: schede per la forza (petto+tricipiti / schiena+bicipiti+avambracci / spalle+braccia / gambe+addominali).
 - **Giulia**: gambe e glutei (A e B), con pesi separati dai tuoi.
 - Due modi d'uso: **Prepara** (la scheda del giorno: esercizi, serie, ripetizioni, programmi pronti, proposte) e **Allenati** (un esercizio alla volta: pesi, ✓ serie con timer automatico, note, "Come si fa" con animazione 3D, video e spiegazione). "Fine allenamento" archivia nello storico; ⚙ → backup e **Attrezzi disponibili** (di base senza bilanciere libero).
+- **Profilo** (chiesto alla prima apertura, modificabile da Home o ⚙): genere, peso corporeo, livello, obiettivo, attrezzi e muscoli preferiti. Proposte, programmi pronti e consigli partono da qui; per ogni esercizio senza storico l’app indica un **peso di partenza** (rack con rapporto 1:1 sui cavi).
 - La versione precedente (v69) è conservata come "versione 0" nella cartella `v0/` del sito e nel tag git `v0`.
 
 Hosting gratuito possibile: GitHub Pages o Netlify puntando alla cartella `allenamento/`.
