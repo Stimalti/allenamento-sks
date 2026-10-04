@@ -181,7 +181,9 @@ async function loadMine(root) {
 function techHtml(ex, sr) {
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
   const pr = presOf(ex, 'massa') || presOf(ex, 'tonificare') || presOf(ex, 'forza');
-  const vars = ex.vars ? `<div class="vars"><span>${esc(ex.varsLabel || 'Varianti')}</span>${ex.vars.map(id => byId[id] ? `<button class="${id === ex.id ? 'on' : ''}" data-act="open" data-id="${id}">${esc(byId[id].varName || byId[id].n)}</button>` : '').join('')}</div>` : '';
+  const fam = ex.fam ? EX.filter(x => x.fam === ex.fam && (x.id === ex.id || avail(x))) : [];
+  const vn = x => { let n = x.n.replace(/\(.*?\)/g, '').replace(x.famRe ? new RegExp(x.famRe.source, 'i') : /$^/, '').replace(/^[\s,\-–·]+/, '').replace(/^(con|al|ai|alla|alle|allo|a|su|in|di|dal|dall’|tra)\s+/i, '').replace(/\s+/g, ' ').trim(); if (!n) n = x.a; n = n.charAt(0).toUpperCase() + n.slice(1); return n.length > 30 ? n.slice(0, 28) + '…' : n; };
+  const vars = fam.length > 1 ? `<div class="vars"><span>${esc(ex.fam)}: ${fam.length} varianti</span>${fam.map(x => `<button class="${x.id === ex.id ? 'on' : ''}" data-act="open" data-id="${x.id}" title="${esc(x.n)}">${esc(vn(x))}</button>`).join('')}</div>` : '';
   return `${vars}<div class="fig" data-fig="${ex.id}" data-sr="${esc(sr || (pr ? pr.sr + ' × ' + pr.r : ''))}"></div>
   ${ex.noanim ? '<p class="warn">↔ Questo esercizio è un movimento <b>laterale</b> (il corpo si piega di fianco): il modello 3D mostra solo la posizione di partenza. Segui la descrizione qui sotto.</p>' : ''}
   <p class="warn">⚠ Le animazioni sono schematiche e non sostituiscono un allenatore: se non sei sicuro della tecnica, fatti guardare da un professionista e parti con pesi leggeri.</p>

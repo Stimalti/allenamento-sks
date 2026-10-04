@@ -932,3 +932,16 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Apri le braccia di lato fino all’altezza delle spalle.', 'Fermati 1 secondo con i deltoidi posteriori contratti.', 'Scendi lentamente senza far cadere il busto.'],
     cue: 'Gomiti verso il soffitto, non le mani.', why: 'Deltoide posteriore e parte alta della schiena: riequilibra le spalle di chi fa molte spinte.', err: ['Schiena che si curva', 'Busto che si alza', 'Stringere le scapole invece di alzare i gomiti']});
 })();
+/* ===== famiglie di esercizi: stesso movimento con attrezzi, prese o posizioni diverse (selettore "Varianti" nella scheda) ===== */
+(() => {
+  const F = [
+    ['petto', /panca inclinata|inclinat/, 'Panca inclinata'], ['petto', /panca piana|chest press|panca con|jammer press/, 'Panca piana / chest press'], ['petto', /croci/, 'Croci'], ['petto', /pull-?over/, 'Pull-over'],
+    ['schiena', /lat machine|pulldown/, 'Lat machine / pulldown'], ['schiena', /rematore/, 'Rematore'], ['schiena', /trazioni/, 'Trazioni'], ['schiena', /scrollate/, 'Scrollate'], ['schiena', /rack pull|stacco/, 'Stacco'],
+    ['spalle', /alzate laterali/, 'Alzate laterali'], ['spalle', /alzate frontali/, 'Alzate frontali'], ['spalle', /alzate posteriori|reverse fly/, 'Alzate posteriori'], ['spalle', /face pull/, 'Face pull'], ['spalle', /press|military/, 'Shoulder press'], ['spalle', /upright/, 'Upright row'], ['spalle', /rotazione/, 'Cuffia dei rotatori'],
+    ['bicipiti', /martello|hammer/, 'Curl a martello'], ['bicipiti', /inclinata/, 'Curl su panca inclinata'], ['bicipiti', /trazioni|chin/, 'Trazioni'], ['bicipiti', /curl/, 'Curl'],
+    ['tricipiti', /pushdown|push ?down|spinte in basso/, 'Pushdown'], ['tricipiti', /sopra la testa|overhead|french/, 'Estensioni sopra la testa'], ['tricipiti', /dip/, 'Dip'], ['tricipiti', /kickback/, 'Kickback'], ['tricipiti', /presa stretta/, 'Panca presa stretta'],
+    ['gambe', /stacco|rdl|pull-through/, 'Stacco rumeno'], ['gambe', /hip thrust/, 'Hip thrust'], ['gambe', /calf/, 'Calf raise'], ['gambe', /kickback/, 'Kickback glutei'], ['gambe', /leg curl/, 'Leg curl'], ['gambe', /leg extension/, 'Leg extension'], ['gambe', /abduzione|adduzione/, 'Abduzione / adduzione'], ['gambe', /squat|affond|split/, 'Squat e affondi'],
+    ['addome', /crunch|sit-up|v-up/, 'Crunch e sit-up'], ['addome', /plank|hollow|dead bug|mountain/, 'Plank e tenute'], ['addome', /pallof|woodchop|rotazion|russian/, 'Rotazioni e anti-rotazione'], ['addome', /leg raise|sollevamento|toes|sforbiciate/, 'Sollevamento gambe'], ['addome', /side bend|flessione laterale/, 'Flessione laterale'],
+    ['avambracci', /./, 'Polsi e avambracci']];
+  EX.forEach(e => { delete e.vars; delete e.varsLabel; const n = e.n.toLowerCase(); const f = F.find(([g, re]) => g === e.g && re.test(n)); if (f) { e.fam = f[2]; e.famRe = f[1]; } });
+})();
