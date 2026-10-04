@@ -525,6 +525,14 @@ function allSess() {
   Object.entries(byD).forEach(([d, v]) => out.push({d, pid: null, n: v.n, sd: v.sd, name: 'Seduta (dallo storico)'}));
   return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
 }
+// serie completate tra due date (inclusa/esclusa) ricavate dallo storico: fatte = serie con un numero di ripetizioni, previste = serie della scheda attuale per quell'esercizio (o le fatte se non è più in scheda)
+function complBetween(from, to) {
+  let done = 0, plan = 0;
+  Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id] || !h) return;
+    let pl = 0; CUST.forEach(pid => rtList(pid).forEach(x => { if (x.e === id) pl = Math.max(pl, x.s || 0); }));
+    h.forEach(e => { if (e.d < from || (to && e.d >= to)) return; const dn = e.sets.filter(z => num(z.reps) > 0 || num(z.kg) > 0).length; done += dn; plan += Math.max(pl || 0, dn); }); });
+  return plan ? Math.min(1, done / plan) : null;
+}
 const weekKey = (d, i) => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() + 7 * (i || 0)); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 function quality() {
   const sess = allSess(), t = today(), wk0 = mondayOf(t), weeks = [];
@@ -534,7 +542,7 @@ function quality() {
   const cost = Math.min(1, last4 / (planned * 4));
   let imp = 0, cmp = 0; Object.values(DB.hist).forEach(h => { if (!h || h.length < 2) return; const a = h[h.length - 2], b = h[h.length - 1]; const mx = e => Math.max(0, ...e.sets.map(s => num(s.kg))), rp = e => Math.max(0, ...e.sets.map(s => num(s.reps))), vol = e => e.sets.reduce((t, s) => t + num(s.kg) * num(s.reps), 0); cmp++; if (mx(b) > mx(a) || (mx(b) === mx(a) && rp(b) > rp(a)) || vol(b) > vol(a)) imp++; });
   const prog = cmp ? imp / cmp : null;
-  const recent = sess.slice(-5).filter(x => x.st), compl = recent.length ? recent.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / recent.length : null;
+  const recent = sess.slice(-5).filter(x => x.st), compl = recent.length >= 3 ? recent.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / recent.length : complBetween(weekKey(wk0, -3), null);
   const cov = new Set(); plannedDays().forEach(pid => rtList(pid).forEach(x => { const e = byId[x.e]; if (e) { cov.add(e.g); (e.g2 || []).forEach(g => cov.add(g)); } }));
   const main = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
   let streak = 0; for (let i = weeks.length - 1; i >= 0; i--) { if (weeks[i].n) streak++; else if (i < weeks.length - 1) break; }
@@ -581,7 +589,7 @@ function homeView() {
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
-    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = nelle ultime 5 sedute. Equilibrio = gruppi della parte alta coperti nella settimana (gambe e addome esclusi per tua scelta).</p></div>
+    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = serie fatte rispetto a quelle previste, ultime 4 settimane. Equilibrio = gruppi della parte alta coperti nella settimana (gambe e addome esclusi per tua scelta).</p></div>
    <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : x.week ? ' <button class="tlink" data-act="weekprop">Proponi</button>' : ''}</div></li>`).join('')}</ul></div>
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
     ${(() => { const w = proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
@@ -593,7 +601,7 @@ function weekEval(key) {
   const end = weekKey(key, 1), inW = d => d >= key && d < end, prevKey = weekKey(key, -1), inP = d => d >= prevKey && d < key;
   const sess = allSess().filter(x => inW(x.d)), planned = plannedDays().length || 1, n = sess.length;
   const cost = Math.min(1, n / planned);
-  const withSt = sess.filter(x => x.st), compl = withSt.length ? withSt.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / withSt.length : null;
+  const withSt = sess.filter(x => x.st), compl = withSt.length === sess.length && sess.length ? withSt.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / withSt.length : complBetween(key, end);
   const mx = e => Math.max(0, ...e.sets.map(z => num(z.kg))), rp = e => Math.max(0, ...e.sets.map(z => num(z.reps))), vol = e => e.sets.reduce((t, z) => t + num(z.kg) * num(z.reps), 0);
   let imp = 0, cmp = 0, v = 0, vp = 0, nex = 0; const better = [];
   Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id] || !h) return;
