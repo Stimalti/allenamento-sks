@@ -260,7 +260,7 @@ function planView(p, prof) {
   return `<section class="hero"><div class="eyebrow">${isToday ? 'Oggi · ' : ''}${esc(dayName(p.id))}${last ? ' · ultima seduta ' + esc(fmtWd(last.d)) : ''}</div><h2>${esc(p.nome)}</h2>${p.sotto ? `<div class="sub">${esc(p.sotto)}</div>` : ''}
    ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>esercizi</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
-   ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} ${evalDay(p.id).skip ? 'Non valutata (gambe/addome)' : 'Valutazione ' + evalDay(p.id).score + '/10 · ' + evalDay(p.id).grade} ›</button>` : ''}
+   ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} Valutazione ${evalDay(p.id).score}/10 · ${evalDay(p.id).grade} ›</button>` : ''}
    <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button>` : `<p>Scheda vuota. Qui sotto scegli un <b>programma pronto</b>, fatti <b>proporre</b> esercizi oppure aggiungili uno a uno.</p>`}</section>
    <div class="prepH"><h3>${edit ? '✏️ Modifica scheda' : 'Esercizi'}</h3>${p.custom && p.ex.length ? `<button class="ghost small" data-act="pedit">${edit ? '✓ Fine modifiche' : '✏️ Modifica'}</button>` : ''}</div>
    ${edit ? custTools(p) + p.ex.map((x, i) => exCard(x, i, prof, p)).join('') + (p.ex.length ? '<button class="ghost addmore" data-act="ptoggle" onclick="setTimeout(()=>window.scrollTo(0,0),30)">+ Aggiungi altri esercizi</button>' : '')
@@ -354,24 +354,28 @@ const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'lug
 const fmtLong = d => { const t = new Date(d + 'T12:00:00'); return WD[t.getDay()] + ' ' + t.getDate() + ' ' + MESI[t.getMonth()]; };
 const mondayOf = d => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() - (t.getDay() + 6) % 7); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const PUSH = ['petto', 'spalle', 'tricipiti'], PULL = ['schiena', 'bicipiti', 'avambracci'];
-const SKIP_G = ['gambe', 'addome'];   // per scelta dell'utente gambe e addome non entrano nelle valutazioni
+const SKIP_G = [];   // tutti i gruppi (gambe e addome compresi) entrano nelle valutazioni
 const gName = g => GRUPPI[g].toLowerCase();
 // spalle: solo i press contano come "spinta"; alzate, face pull e deltoidi posteriori sono neutri (stanno bene sia con spinta sia con tirata)
 const shPress = e => e.g === 'spalle' && /press|military|arnold|spinta/i.test(e.n);
 const isPush = e => e.g === 'petto' || e.g === 'tricipiti' || shPress(e);
 const isPull = e => PULL.includes(e.g) || (e.g === 'spalle' && /face pull|posterior|rear|reverse/i.test(e.n));
-const classG = e => e.g === 'spalle' && !shPress(e) ? null : e.g;   // gruppo ai fini dell'abbinamento
+const classG = e => (e.g === 'spalle' && !shPress(e)) || e.g === 'addome' ? null : e.g;   // gruppo ai fini dell'abbinamento (addome e alzate spalle sono accessori neutri)
 const weekHas = (set, notPid) => plannedDays().some(pid => pid !== notPid && rtList(pid).some(x => byId[x.e] && (set === PUSH ? isPush(byId[x.e]) : isPull(byId[x.e]))));
-// giudizio sull'abbinamento dei gruppi muscolari di una giornata (solo parte alta)
+// giudizio sull'abbinamento dei gruppi muscolari di una giornata
 function pairing(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); const Gall = [...new Set(L.map(x => byId[x.e].g).filter(g => !SKIP_G.includes(g)))]; if (!Gall.length) return null;
-  const G = [...new Set(L.map(x => classG(byId[x.e])).filter(g => g && !SKIP_G.includes(g)))]; const shAcc = Gall.includes('spalle') && !G.includes('spalle');
-  if (!G.length) return {ok: true, title: 'spalle (alzate, face pull): giornata di rifinitura', why: 'Solo esercizi accessori per le spalle: vanno bene da soli o aggiunti a qualunque altro giorno.', alt: '', G: Gall, near: [], kind: 'split'};
+  const G = [...new Set(L.map(x => classG(byId[x.e])).filter(g => g && !SKIP_G.includes(g)))]; const shAcc = Gall.includes('spalle') && !G.includes('spalle'), hasAb = Gall.includes('addome');
+  if (!G.length) { if (Gall.every(g => g === 'addome')) return {ok: true, title: 'addome: giornata di core', why: 'Solo esercizi per l’addome: va bene da sola (anche a casa) o in coda a qualsiasi altro giorno. Alterna zona alta, bassa e obliqui.', alt: '', G: Gall, near: [], kind: 'split'};
+    return {ok: true, title: `${Gall.map(gName).join(' + ')}: giornata di rifinitura`, why: 'Solo esercizi accessori (alzate spalle, face pull, addome): vanno bene da soli o aggiunti a qualunque altro giorno.', alt: '', G: Gall, near: [], kind: 'split'}; }
   const sub = (a, set) => a.every(g => set.includes(g)), has = g => G.includes(g);
-  const list = Gall.map(gName).join(' + '), accNote = shAcc ? ' Le spalle qui sono alzate/face pull: accessori che stanno bene con qualsiasi abbinamento.' : '';
+  const list = Gall.map(gName).join(' + '), accNote = (shAcc ? ' Le spalle qui sono alzate/face pull: accessori che stanno bene con qualsiasi abbinamento.' : '') + (hasAb ? ' L’addome sta bene in qualsiasi giorno: mettilo per ultimo.' : '');
   let ok = true, title, why, alt = '', kind = 'split';
-  if (G.length === 1) { const g = G[0]; const best = {petto: 'tricipiti o spalle (stessa spinta)', schiena: 'bicipiti (stessa tirata) o petto (antagonisti)', spalle: 'petto e tricipiti, oppure da sole con braccia', bicipiti: 'schiena o tricipiti', tricipiti: 'petto o bicipiti', avambracci: 'schiena e bicipiti'}[g];
-    title = `${list}: giornata dedicata, va bene`; why = `Un solo gruppo con più esercizi: ottimo per concentrarsi. Se vuoi accorciare la settimana si abbina bene con ${best}.`; }
+  if (G.length === 1) { const g = G[0]; const best = {petto: 'tricipiti o spalle (stessa spinta)', schiena: 'bicipiti (stessa tirata) o petto (antagonisti)', spalle: 'petto e tricipiti, oppure da sole con braccia', bicipiti: 'schiena o tricipiti', tricipiti: 'petto o bicipiti', avambracci: 'schiena e bicipiti', gambe: hasAb ? 'spalle o petto (muscoli lontani che non si disturbano)' : 'addome, oppure spalle (muscoli lontani che non si disturbano)'}[g];
+    title = `${list}: giornata dedicata, va bene`; why = `Un solo gruppo con più esercizi: ottimo per concentrarsi. Se vuoi accorciare la settimana si abbina bene con ${best}.` + accNote; }
+  else if (has('gambe')) { kind = 'full'; const up = G.filter(g => g !== 'gambe'); title = `${list}: gambe + parte alta (corpo intero)`;
+    why = `Gambe insieme a ${up.map(gName).join(' e ')}: va bene se tieni 6-9 esercizi e metti le gambe per prime (squat, affondi, stacchi alla Smith sono i più pesanti), poi la parte alta, addome alla fine.` + accNote;
+    if (L.length > 9) { ok = false; alt = 'Con più di 9 esercizi conviene dividere: gambe (+ addome) in un giorno, parte alta in un altro.'; } }
   else if (sub(G, PUSH)) { title = `${list}: abbinamento classico di spinta`; why = 'Petto, spalle e tricipiti spingono insieme: il tricipite e il deltoide anteriore sono già caldi dopo le spinte, quindi li finisci con pochi esercizi. Giorno dopo: schiena e bicipiti.' + accNote; }
   else if (sub(G, PULL)) { title = `${list}: abbinamento classico di tirata`; why = 'Schiena, bicipiti e avambracci tirano insieme: il bicipite lavora già nei rematori e nelle trazioni, lo chiudi con 1-2 curl. Giorno dopo: petto, spalle, tricipiti.' + accNote; }
   else if (sub(G, ['bicipiti', 'tricipiti', 'avambracci'])) { title = `${list}: giornata braccia`; why = 'Bicipiti e tricipiti sono antagonisti: alternarli tiene il braccio irrorato e il recupero breve. Mettila a distanza di un giorno da spinta e tirata.' + accNote; }
@@ -392,7 +396,6 @@ const plannedDays = () => DAYS.filter(([tid]) => rtList(dayPid(tid)).length).map
 function evalDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return null;
   const p = planOf(pid), prof = p.profilo || 'io', pros = [], cons = [], tips = []; let score = 10;
-  if (L.every(x => SKIP_G.includes(byId[x.e].g))) return {score: null, grade: 'non valutata', icon: '🦵', pros: ['Giornata di sole gambe/addome: per tua scelta non viene valutata.'], cons: [], tips: [], n: L.length, tot: L.reduce((t, x) => t + x.s, 0), mins: 0, groups: [...new Set(L.map(x => byId[x.e].g))], pair: null, skip: true};
   const sets = x => (DB.cur[pk(prof, x.e)] || {sets: []}).sets.length || x.s;
   const tot = L.reduce((t, x) => t + sets(x), 0), mins = Math.round(L.reduce((t, x) => t + sets(x) * (40 + secs(x.rec)), 0) / 60);
   const gs = {}; L.forEach(x => { const e = byId[x.e]; gs[e.g] = (gs[e.g] || 0) + sets(x); (e.g2 || []).forEach(g => { gs[g] = (gs[g] || 0) + sets(x) / 2; }); });
@@ -410,7 +413,7 @@ function evalDay(pid) {
   const pr = pairing(pid), mixed = pr && (pr.kind === 'full' || pr.kind === 'mixed');
   if (pr) { if (pr.ok) pros.push(pr.title + '. ' + pr.why); else { cons.push(pr.title + '. ' + pr.why); score -= 1; if (pr.alt) tips.push(pr.alt); }
     pr.near.forEach(z => { cons.push(`${GRUPPI[z.g]} anche ${z.day.toLowerCase()}: due giorni di fila sullo stesso muscolo, servono 48 ore di recupero.`); score -= 0.5; tips.push(`Sposta ${gName(z.g)} in un giorno non consecutivo oppure lascia un giorno di pausa.`); }); }
-  else pros.push(`Giornata di ${groups.map(gName).join(' e ')} (non valutata: gambe e addome sono esclusi per tua scelta).`);
+  else pros.push(`Giornata di ${groups.map(gName).join(' e ')}.`);
   if (mixed && push && pull) { const r = push / pull; if (r >= 0.5 && r <= 2) pros.push('Spinta e tirata in equilibrio (petto/spalle/tricipiti contro schiena/bicipiti): bene per postura e spalle.'); else { cons.push(r > 2 ? 'Molta più spinta che tirata: con il tempo le spalle vanno avanti.' : 'Molta più tirata che spinta.'); score -= 1; tips.push(r > 2 ? 'Aggiungi un rematore o un face pull, oppure togli una spinta.' : 'Aggiungi una spinta per il gruppo che già alleni qui (es. press per le spalle) oppure togli una tirata.'); } }
   else if (upper && (push || pull) && n >= 4 && !weekHas(push ? PULL : PUSH, pid)) { cons.push(push ? 'In tutta la settimana ci sono solo spinte, nessuna tirata.' : 'In tutta la settimana ci sono solo tirate, nessuna spinta.'); score -= 1; tips.push(push ? 'Metti almeno un rematore o una lat machine in uno dei giorni.' : 'Metti almeno una spinta (panca Smith o press con manubri) in uno dei giorni.'); }
   const fi = L.findIndex(x => byId[x.e].tipo === 'iso'), fc = L.findIndex(x => byId[x.e].tipo === 'comp');
@@ -425,7 +428,7 @@ function evalDay(pid) {
   return {score, grade, icon, pros, cons, tips, n, tot, mins, groups, pair: pr};
 }
 /* proposte concrete per un giorno: riordino, esercizi da togliere, sostituire o aggiungere (si applicano solo dopo conferma) */
-const TIER = e => e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;
+const TIER = e => e.g === 'addome' ? 5 : e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;   // addome sempre in coda
 const POST = /stacco|rdl|pull-?through|hip thrust|leg curl|kickback/i, KNEE = /squat|affond|bulgar|leg extension|split/i;
 const exScore = e => (DB.fav[e.id] ? 80 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
 const PROP = {pid: null, list: []};
@@ -450,9 +453,11 @@ function proposeDay(pid) {
   if (mixedP && push && pull) { const ps = live.filter(isPush).length, pl = live.filter(isPull).length;
     if (ps >= pl * 2 + 1) { const c = best('schiena'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${ps} esercizi di spinta contro ${pl} di tirata: riequilibra con un altro esercizio per la schiena.`}); }
     if (pl >= ps * 2 + 1) { const c = best('petto') || best('spalle'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `${pl} esercizi di tirata contro ${ps} di spinta: aggiungi una spinta.`}); } }
-  if (false && has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
+  if (has('gambe')) { const legs = live.filter(e => e.g === 'gambe'); const knee = legs.some(e => KNEE.test(e.n)), post = legs.some(e => POST.test(e.n));
     if (knee && !post) { const c = best('gambe', e => POST.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo squat/affondi: manca un esercizio per femorali e glutei (catena posteriore).'}); }
     if (post && !knee) { const c = best('gambe', e => KNEE.test(e.n)); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'Hai solo stacchi/femorali: manca uno squat o un affondo per i quadricipiti.'}); } }
+  // 4b. nessun esercizio per l'addome in tutta la settimana → uno alla fine della giornata più lunga
+  if (!has('addome') && live.length >= 4 && live.length <= 8 && !plannedDays().some(p2 => p2 !== pid && rtList(p2).some(x => byId[x.e] && byId[x.e].g === 'addome')) && !out.some(o => o.t === 'add' && byId[o.nid].g === 'addome')) { const c = best('addome'); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: 'In tutta la settimana non c’è nessun esercizio per l’addome: uno alla fine della seduta basta per il core (schiena protetta, postura).'}); }
   // 5. pochi esercizi → aggiungi un multiarticolare per il gruppo principale
   if (n + out.filter(o => o.t === 'add').length < 4) { const main = Object.entries(live.reduce((m, e) => { m[e.g] = (m[e.g] || 0) + 1; return m; }, {})).sort((a, b) => b[1] - a[1])[0]; const g = main ? main[0] : 'schiena'; const c = best(g, e => e.tipo === 'comp') || best(g); if (c) out.push({t: 'add', nid: c.id, title: `Aggiungi “${c.n}”`, why: `Con meno di 4 esercizi la seduta è corta: un altro esercizio per ${GRUPPI[g].toLowerCase()}.`}); }
   // 6. ordine: gambe e multiarticolari grandi prima, poi spalle/braccia, semi, isolamento, addome
@@ -472,15 +477,15 @@ function proposeApply(pid, chosen) {
   DB.rt[pid] = L; save(); return done;
 }
 /* ---------- riorganizza la settimana: quali gruppi allenare insieme e in quale giorno ---------- */
-const SPLITS = {1: [['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'avambracci']], 2: [['petto', 'spalle', 'tricipiti'], ['schiena', 'bicipiti', 'avambracci']], 3: [['petto', 'tricipiti'], ['schiena', 'bicipiti'], ['spalle', 'avambracci']], 4: [['petto'], ['schiena'], ['spalle'], ['bicipiti', 'tricipiti', 'avambracci']]};
-const SPLIT_NAMES = {1: ['Parte alta completa'], 2: ['Spinta', 'Tirata'], 3: ['Petto + Tricipiti', 'Schiena + Bicipiti', 'Spalle + Avambracci'], 4: ['Petto', 'Schiena', 'Spalle', 'Braccia']};
-const SPLIT_WHY = {1: 'Con un solo giorno fai tutta la parte alta: multiarticolari prima (panca, lat machine, rematore), poi spalle e braccia.',
-  2: 'Con due giorni il migliore abbinamento è spinta / tirata: petto, spalle e tricipiti lavorano insieme quando spingi; schiena, bicipiti e avambracci quando tiri. Ogni muscolo ha giorni di recupero tra una seduta e l’altra.',
-  3: 'Con tre giorni: petto con tricipiti e schiena con bicipiti (il braccio è già caldo dopo il gruppo grande e lo finisci con pochi esercizi); spalle in un giorno a parte, riposate, insieme agli avambracci.',
-  4: 'Con quattro giorni ogni gruppo grande ha la sua seduta (petto, schiena, spalle) e un giorno è per le braccia: bicipiti e tricipiti alternati, tutto il resto riposa.'};
+const SPLITS = {1: [['gambe', 'petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'avambracci', 'addome']], 2: [['petto', 'spalle', 'tricipiti', 'addome'], ['gambe', 'schiena', 'bicipiti', 'avambracci']], 3: [['petto', 'spalle', 'tricipiti'], ['schiena', 'bicipiti', 'avambracci'], ['gambe', 'addome']], 4: [['petto', 'tricipiti'], ['schiena', 'bicipiti'], ['gambe', 'addome'], ['spalle', 'avambracci']]};
+const SPLIT_NAMES = {1: ['Corpo intero'], 2: ['Spinta + Addome', 'Gambe + Tirata'], 3: ['Spinta', 'Tirata', 'Gambe + Addome'], 4: ['Petto + Tricipiti', 'Schiena + Bicipiti', 'Gambe + Addome', 'Spalle + Avambracci']};
+const SPLIT_WHY = {1: 'Con un solo giorno fai tutto il corpo: gambe per prime (le più pesanti), poi i multiarticolari della parte alta (panca, lat machine, rematore), poi spalle e braccia, addome alla fine. Tieni 7-9 esercizi.',
+  2: 'Con due giorni il migliore abbinamento è spinta / tirata: petto, spalle e tricipiti lavorano insieme quando spingi; schiena, bicipiti e avambracci quando tiri. Le gambe vanno con la tirata (stacchi e rematori si fanno bene insieme) e l’addome chiude il giorno di spinta.',
+  3: 'Con tre giorni: spinta (petto, spalle, tricipiti), tirata (schiena, bicipiti, avambracci) e un giorno per gambe e addome, così le gambe hanno una seduta tutta per loro e il core si allena quando la schiena è riposata.',
+  4: 'Con quattro giorni: petto con tricipiti e schiena con bicipiti (il braccio è già caldo dopo il gruppo grande), gambe con addome in un giorno a parte, spalle riposate con gli avambracci nell’ultimo.'};
 const permute = a => a.length <= 1 ? [a] : a.flatMap((x, i) => permute([...a.slice(0, i), ...a.slice(i + 1)]).map(p => [x, ...p]));
 function proposeWeek() {
-  const upperOf = pid => rtList(pid).filter(x => byId[x.e] && !SKIP_G.includes(byId[x.e].g));
+  const upperOf = pid => rtList(pid).filter(x => byId[x.e]);
   const pids = DAYS.map(([t]) => dayPid(t)).filter(pid => upperOf(pid).length); if (!pids.length) return null;
   const D = Math.min(4, pids.length);
   const keep = pids.length > D ? pids.slice().sort((a, b) => upperOf(b).length - upperOf(a).length).slice(0, D).sort((a, b) => pids.indexOf(a) - pids.indexOf(b)) : pids;
@@ -495,14 +500,14 @@ function proposeWeek() {
   return {D, plan, moves, why: SPLIT_WHY[D], dropped: pids.filter(pid => !keep.includes(pid))};
 }
 function weekPropHtml() {
-  const w = proposeWeek(); if (!w) return `<h2 style="padding-right:44px">🔀 Riorganizza i muscoli per giorno</h2><p class="vnote">Nessun esercizio per la parte alta nelle schede: aggiungi prima gli esercizi.</p>`;
+  const w = proposeWeek(); if (!w) return `<h2 style="padding-right:44px">🔀 Riorganizza i muscoli per giorno</h2><p class="vnote">Nessun esercizio nelle schede: aggiungi prima gli esercizi.</p>`;
   const dn = pid => planOf(pid).nome;
   return `<h2 style="padding-right:44px">🔀 Riorganizza i muscoli per giorno</h2>
-   <p class="vnote">Ho guardato tutti gli esercizi scelti nei ${w.D} giorni di allenamento${w.dropped.length ? ' (' + w.dropped.map(dn).join(', ') + ': i loro esercizi per la parte alta vengono spostati, gambe e addome restano)' : ''}. ${esc(w.why)}</p>
+   <p class="vnote">Ho guardato tutti gli esercizi scelti nei ${w.D} giorni di allenamento${w.dropped.length ? ' (' + w.dropped.map(dn).join(', ') + ': i loro esercizi vengono spostati negli altri giorni)' : ''}. ${esc(w.why)}</p>
    <h3 style="margin:12px 0 6px">Come diventerebbe</h3>
    ${w.plan.map(d => `<div class="dayrow" style="cursor:default"><span class="dn">${esc(dn(d.pid).slice(0, 3))}</span><span class="t"><b>${esc(dn(d.pid))} → ${esc(d.name)}</b><small>${d.gl.map(gName).join(', ') || 'nessun esercizio al momento'} · ${d.n} esercizi</small></span></div>`).join('')}
    ${w.moves.length ? `<h3 style="margin:12px 0 6px">Spostamenti (${w.moves.length})</h3><ul class="evl tip">${w.moves.map(m => `<li>“${esc(byId[m.e].n)}” (${gName(byId[m.e].g)}): da <b>${esc(dn(m.from))}</b> a <b>${esc(dn(m.to))}</b></li>`).join('')}</ul>
-   <p class="vnote">Gambe e addome non si toccano. Pesi, note e storico restano. Dopo lo spostamento ogni giorno viene riordinato (multiarticolari prima) e prende il nome del gruppo.</p>
+   <p class="vnote">Pesi, note e storico restano. Dopo lo spostamento ogni giorno viene riordinato (multiarticolari prima) e prende il nome del gruppo.</p>
    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="weekapply">✓ Sì, sposta gli esercizi</button><button class="ghost" data-act="no">No, lascia così</button></div>` : '<p class="gn" style="margin-top:10px">✅ La settimana è già organizzata così: niente da spostare.</p>'}`;
 }
 function applyWeek(w) {
@@ -512,7 +517,6 @@ function applyWeek(w) {
 }
 function evalHtml(pid) {
   const v = evalDay(pid), p = planOf(pid); if (!v) return '';
-  if (v.skip) return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.grade}</h2><p class="vnote">${esc(v.pros[0])}</p><div class="sbar" style="padding:12px 0 0"><button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
   return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.score}/10, ${v.grade}</h2><p class="vnote">${v.n} esercizi · ${v.tot} serie · ~${v.mins} minuti. Giudizio automatico sull'insieme degli esercizi che hai scelto (non sul peso che usi).</p>
    ${v.pair ? `<div class="pairbox ${v.pair.ok ? 'ok' : 'no'}"><b>${v.pair.ok ? '✅' : '🔀'} Abbinamento muscoli</b><p>${esc(v.pair.title)}.</p><p class="vnote" style="margin:4px 0 0">${esc(v.pair.why)}${v.pair.alt ? ' <b>Meglio:</b> ' + esc(v.pair.alt) : ''}</p></div>` : ''}
    ${v.pros.length ? `<h3 style="margin:12px 0 6px">Cosa va bene</h3><ul class="evl ok">${v.pros.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
@@ -550,7 +554,7 @@ function quality() {
   const prog = cmp ? imp / cmp : null;
   const recent = sess.slice(-5).filter(x => x.st), compl = recent.length >= 3 ? recent.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / recent.length : complBetween(weekKey(wk0, -3), null);
   const cov = new Set(); plannedDays().forEach(pid => rtList(pid).forEach(x => { const e = byId[x.e]; if (e) { cov.add(e.g); (e.g2 || []).forEach(g => cov.add(g)); } }));
-  const main = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
+  const main = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'gambe', 'addome'], bal = main.filter(g => cov.has(g)).length / main.length, missing = main.filter(g => !cov.has(g));
   let streak = 0; for (let i = weeks.length - 1; i >= 0; i--) { if (weeks[i].n) streak++; else if (i < weeks.length - 1) break; }
   const thisWeek = weeks[weeks.length - 1].n, lastSess = sess[sess.length - 1];
   const daysSince = lastSess ? Math.round((new Date(t + 'T12:00:00') - new Date(lastSess.d + 'T12:00:00')) / 864e5) : null;
@@ -585,7 +589,7 @@ function homeView() {
   const verdict = !q.nsess ? 'Ancora nessuna seduta salvata: i giudizi arrivano dopo le prime sedute.' : avg >= .75 ? '👍 Ti stai allenando bene: costante, in progressione ed equilibrato.' : avg >= .5 ? '🙂 Vai abbastanza bene: guarda i consigli qui sotto per migliorare il punto più debole.' : '⚠️ C’è da sistemare: leggi i consigli e parti dalla costanza.';
   const max = Math.max(1, q.planned, ...q.weeks.map(w => w.n));
   return `<section class="hero home"><div class="eyebrow">${hello}</div><h2>${esc(WD[new Date().getDay()])}</h2><div class="sub">${esc(fmtLong(t).replace(/^\S+ /, ''))}${q.lastSess ? ' · ultima seduta ' + esc(fmtWd(q.lastSess.d)) : ''}</div>
-   ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v && !v.skip ? ` · ${v.icon} ${v.score}/10` : ''}</p>
+   ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana dalla prima registrata (${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
@@ -594,12 +598,12 @@ function homeView() {
     <p class="vnote" style="margin:0 0 8px">${q.weeks.length > 8 ? 'Scorri a sinistra per le settimane precedenti · ' : ''}tocca una settimana per sedute, esercizi fatti e valutazione.</p>
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
-    ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
-    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = serie fatte rispetto a quelle previste, ultime 4 settimane. Equilibrio = gruppi della parte alta coperti nella settimana (gambe e addome esclusi per tua scelta).</p></div>
+    ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 7) + '/7')}
+    <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = serie fatte rispetto a quelle previste, ultime 4 settimane. Equilibrio = gruppi muscolari coperti nella settimana (petto, schiena, spalle, bicipiti, tricipiti, gambe, addome).</p></div>
    <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : x.week ? ' <button class="tlink" data-act="weekprop">Proponi</button>' : ''}</div></li>`).join('')}</ul></div>
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
     ${(() => { const w = proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
-    ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? (e.skip ? `<span class="sc s10" style="background:var(--in);color:var(--mut)">${e.icon}</span>` : `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>`) : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
+    ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>` : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
 }
 
 // valutazione di una singola settimana: costanza, serie completate, progressione e volume rispetto alla settimana prima
@@ -771,7 +775,8 @@ async function setLogo(file) {
 }
 applyLogo();
 /* ---------- proposta automatica di esercizi ---------- */
-const WZ = {step: 1, att: [], mus: [], fin: 'massa', lato: '', pid: null, keep: [], rejected: [], cur: []};
+const WZ = {step: 1, att: [], mus: [], fin: 'massa', lato: '', pid: null, keep: [], rejected: [], cur: [], extra: 0};   // extra = quante proposte in più chieste con “+”
+const WZ_MAX = 9;
 const ATT_ALL = () => [...new Set(EX.map(e => e.a))];
 const mkey = e => e.g + '|' + norm(e.m.split(',')[0].trim());
 const station = e => { if (e.eq !== 'cable') return e.a; const an = e.an ? (Array.isArray(e.an[0]) ? e.an[0] : e.an) : null, y = an ? an[1] : 100; const att = /corda/i.test(e.set) ? 'corda' : /barra|triangolo|V\b/i.test(e.set) ? 'barra' : /cavigliera/i.test(e.set) ? 'cavigliera' : 'maniglia'; return 'Cavi ' + (y < 60 ? 'alto' : y > 160 ? 'basso' : 'medio') + ' ' + att; };
@@ -783,14 +788,15 @@ function wizPool() {
   return EX.filter(e => avail(e) && (wizPrio(e) || (attOk(e, WZ.att) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
-  const onlyAb = WZ.mus.length === 1 && WZ.mus[0] === 'addome', want = onlyAb ? 3 : Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
+  const onlyAb = WZ.mus.length === 1 && WZ.mus[0] === 'addome', base = onlyAb ? 3 : Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
+  const want = Math.min(WZ_MAX, Math.max(base + (WZ.extra || 0), out.length + (WZ.extra ? 1 : 0)));
   const covAb = new Set(out.flatMap(e => e.ab || []));
   let pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e)));
   if (!pool.length && WZ.rejected.length) { WZ.rejected = []; pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e))); }
   const covered = new Set(out.map(e => e.g));
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
-      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7;
+      if (!covered.has(e.g) && WZ.mus.length > 1) s += 4; if (e.tipo === 'comp') s += .7;
       if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += 80; return s; };
     pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); (pick.ab || []).forEach(z => covAb.add(z)); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
@@ -813,66 +819,99 @@ function wizHtml() {
   const list = WZ.cur.map(id => byId[id]);
   const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">Proposta</h2>
-    <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati.</p>
+    <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati; “＋” tiene tutti questi e ne propone un altro (fino a ${WZ_MAX}).</p>
     ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])}${e.ab ? ' · ' + esc(abTxt(e)) : ''} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
-    <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
+    <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzmore" ${list.length >= WZ_MAX || !wizPool().filter(e => !list.some(o => mkey(o) === mkey(e))).length ? 'disabled' : ''} title="Tieni questi e proponi un altro esercizio">＋ Un altro esercizio</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
 }
 
-/* ---------- programmi pronti: allenamento completo e veloce (petto, schiena, spalle, bicipiti, tricipiti) ---------- */
+/* ---------- programmi pronti: allenamento completo (fino a 8-9 esercizi) per i gruppi muscolari scelti, con il core ---------- */
 const PRESETS = [
-  {key: 'forza', fin: 'forza', n: '💪 Forza · corpo intero (parte alta)', d: 'Fondamentali alla Smith machine, sbarra, parallele e jammer arms (niente bilanciere libero). Serie pesanti e recuperi lunghi: circa 50-60 minuti.',
-   ex: ['sm-panca', 'sm-row', 'sm-military', 'b-trazioni-neutra', 't-dip', 'c-curl-db', 'j-press-piedi']},
-  {key: 'massa', fin: 'massa', n: '🏋️ Massa · corpo intero (parte alta)', d: 'Un esercizio per ogni gruppo con manubri e un cavo, 8-12 ripetizioni: circa 45-55 minuti.',
-   ex: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
-  {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare · corpo intero (parte alta)', d: 'Tutto ai cavi con una sola torre, 12-15 ripetizioni e recuperi brevi: circa 35-40 minuti.',
-   ex: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
-const PS = {att: null, pid: null};   // attrezzi scelti per i programmi pronti (null = non ancora chiesto)
+  {key: 'forza', fin: 'forza', n: '💪 Forza', d: 'Fondamentali alla Smith machine, sbarra, parallele e jammer arms (niente bilanciere libero). Serie pesanti e recuperi lunghi.',
+   seed: ['sm-panca', 'sm-row', 'sm-military', 'b-trazioni-neutra', 't-dip', 'c-curl-db', 'j-press-piedi']},
+  {key: 'massa', fin: 'massa', n: '🏋️ Massa', d: 'Manubri, Smith e un cavo, 8-12 ripetizioni, 90 secondi di recupero.',
+   seed: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
+  {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare', d: 'Soprattutto ai cavi, 12-15 ripetizioni e recuperi brevi.',
+   seed: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
+const PS = {step: 1, att: null, mus: [], pid: null};   // step 1 attrezzi, 2 muscoli, 3 programmi; att null = non ancora chiesto; mus [] = corpo intero
+const PS_MAX = 8;   // esercizi per programma (9 con tante scelte)
 const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_AV();
-// costruisce il programma con gli attrezzi scelti: tiene gli esercizi del programma base se l'attrezzo c'è, altrimenti sostituisce con uno dello stesso gruppo (preferiti e "dai tuoi video" prima)
-function presetBuild(P, atts) {
-  const ok = e => avail(e) && attOk(e, atts) && (e.fin || []).includes(P.fin);
-  const score = e => (DB.fav[e.id] ? 80 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 5 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
-  const out = [], used = new Set(), keys = new Set();
-  const ok2 = e => avail(e) && attOk(e, atts);   // ripiego: stesso gruppo e attrezzo anche se non è indicato per quell'obiettivo
-  const pickFor = g => EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0] || EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).sort((a, b) => score(b) - score(a))[0];
-  P.ex.forEach(id => { const o = byId[id]; if (!o) return; let e = ok(o) && !keys.has(mkey(o)) ? o : null, sub = false;
-    if (!e) { e = pickFor(o.g); sub = !!e; }
-    if (e && !used.has(e.id)) { used.add(e.id); keys.add(mkey(e)); out.push({ex: e, sub, orig: sub ? o : null}); } });
-  ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti'].forEach(g => { if (!out.some(x => x.ex.g === g)) { const e = pickFor(g); if (e) { used.add(e.id); keys.add(mkey(e)); out.push({ex: e, sub: true, orig: null}); } } });
-  return out;
+const PS_ALL = ['gambe', 'petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'addome'];
+const psGroups = () => PS.mus.length ? PS_ALL.concat(['avambracci']).filter(g => PS.mus.includes(g)) : PS_ALL.slice();
+const psLabel = () => PS.mus.length ? psGroups().map(gName).join(' + ') : 'corpo intero';
+// quanti esercizi per gruppo: budget totale 8 (9 se si scelgono 6+ gruppi), gruppi grandi pesano di più; l'addome entra sempre (almeno 1 esercizio di core)
+function psBudget(groups) {
+  const W = {gambe: 3.1, petto: 3, schiena: 3.2, spalle: 2, bicipiti: 1.5, tricipiti: 1.5, avambracci: 1, addome: 1.5};
+  const gs = groups.includes('addome') ? groups : groups.concat(['addome']);
+  const N = Math.min(9, Math.max(gs.length, groups.length >= 6 ? 9 : PS_MAX));
+  const tot = gs.reduce((t, g) => t + W[g], 0), q = {}; let used = 0;
+  gs.forEach(g => { q[g] = Math.max(1, Math.floor(N * W[g] / tot)); used += q[g]; });
+  if (!groups.includes('addome')) { q.addome = 1; used = gs.reduce((t, g) => t + q[g], 0); }
+  const order = gs.slice().sort((a, b) => (N * W[b] / tot - q[b]) - (N * W[a] / tot - q[a]));
+  for (let i = 0; used < N; i = (i + 1) % order.length) { if (order[i] === 'addome' && !groups.includes('addome')) continue; q[order[i]]++; used++; }
+  while (used > N) { const g = order.slice().reverse().find(x => q[x] > 1); if (!g) break; q[g]--; used--; }
+  return q;
+}
+function presetBuild(P, atts, groups) {
+  groups = groups || psGroups();
+  const ok = e => avail(e) && attOk(e, atts) && (e.fin || []).includes(P.fin), ok2 = e => avail(e) && attOk(e, atts);
+  const pref = P.fin === 'tonificare' ? e => (e.eq === 'cable' ? 3 : 0) : P.fin === 'forza' ? e => (e.tipo === 'comp' ? 4 : 0) + (/smith|sbarra|parallele|jammer/i.test(e.a) ? 2 : 0) : e => (/manubri/i.test(e.a) ? 2 : 0);
+  const score = e => (DB.fav[e.id] ? 80 : 0) + (P.seed.includes(e.id) ? 30 : 0) + (e.prio ? 15 : 0) + (e.tipo === 'comp' ? 6 : e.tipo === 'semi' ? 2 : 0) + pref(e) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
+  const q = psBudget(groups), out = [], used = new Set(), keys = new Set(), covAb = new Set(); let knee = 0, post = 0;
+  const pick = g => { const cand = (EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).length ? EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))) : EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))));
+    const sc = c => { let v = score(c);
+      if (g === 'gambe') { const k = KNEE.test(c.n), p = POST.test(c.n); if (k && knee > post) v -= 12; if (p && post > knee) v -= 12; if (k && !knee) v += 5; if (p && !post && knee) v += 8; }   /* gambe: alterna quadricipiti e catena posteriore */
+      if (c.ab) { const nuove = c.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; v += nuove ? 8 + nuove : -6; if (!covAb.size && c.ab.includes('profonda')) v -= 3; }   /* addome: zone diverse (alta, bassa, obliqui) */
+      return v; };
+    cand.sort((a, b) => sc(b) - sc(a)); const c = cand[0]; if (!c) return null;
+    used.add(c.id); keys.add(mkey(c)); (c.ab || []).forEach(z => covAb.add(z)); if (g === 'gambe') { if (KNEE.test(c.n)) knee++; if (POST.test(c.n)) post++; }
+    out.push({ex: c, g}); return c; };
+  // un giro per gruppo (così ogni gruppo scelto è coperto), poi i posti rimanenti
+  const gs = Object.keys(q); gs.forEach(g => pick(g));
+  gs.forEach(g => { for (let i = 1; i < q[g]; i++) pick(g); });
+  return out.sort((a, b) => TIER(a.ex) - TIER(b.ex));
 }
 function presetItems(P, atts) { return presetBuild(P, atts || psAtt()).map(({ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: ex.id, s: pr.s, r: pr.r, rec: pr.rec, obj: (ex.fin || []).includes(P.fin) ? P.fin : undefined}; }); }
+const psName = P => P.n + ' · ' + psLabel();
 function presetAttHtml(pid) {
   const all = ATT_AV(), sel = psAtt();
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
-   <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi fare il programma? Scegline uno o più: ogni programma viene adattato (gli esercizi con attrezzi non scelti vengono sostituiti con altri dello stesso gruppo).</p>
+   <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi fare il programma? Scegline uno o più: il programma viene costruito solo con questi.</p>
    <div class="chips wrap">${all.map(a => `<button class="chip ${sel.includes(a) ? 'on' : ''}" data-act="psatt" data-a="${esc(a)}"${pid ? ` data-pid="${pid}"` : ''}>${a === 'Panca' ? esc(attLabel(a)) : esc(a) + ' (' + attCount(a) + ')'}</button>`).join('')}</div>
    <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : sel.length + ' attrezzi scelti.'}${sel.includes('Panca') ? '' : ' Senza la panca: niente panca piana/inclinata né press seduti, solo esercizi in piedi o ai cavi.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
-   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psgo"${pid ? ` data-pid="${pid}"` : ''}>Avanti: i programmi →</button></div>`;
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psstep" data-s="2"${pid ? ` data-pid="${pid}"` : ''}>Avanti: quali muscoli →</button></div>`;
+}
+function presetMusHtml(pid) {
+  const q = psBudget(psGroups()), n = Object.values(q).reduce((t, x) => t + x, 0);
+  return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
+   <p class="vnote">Attrezzi: <b>${esc(psAtt().length === ATT_AV().length ? 'tutti' : psAtt().join(', '))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Seconda domanda: <b>quali muscoli</b> vuoi allenare in questo programma? Puoi sceglierne uno o più (es. gambe + spalle): ti preparo un programma completo con massimo ${PS_MAX}-9 esercizi, e un esercizio per il core c’è sempre.</p>
+   <div class="chips wrap"><button class="chip ${PS.mus.length ? '' : 'on'}" data-act="psmus" data-g=""${pid ? ` data-pid="${pid}"` : ''}>Corpo intero</button>${Object.entries(GRUPPI).map(([k, v]) => `<button class="chip ${PS.mus.includes(k) ? 'on' : ''}" data-act="psmus" data-g="${k}"${pid ? ` data-pid="${pid}"` : ''}>${esc(v)}</button>`).join('')}</div>
+   <p class="vnote">${esc(psLabel().replace(/^./, c => c.toUpperCase()))}: ${n} esercizi → ${Object.entries(q).map(([g, k]) => k + ' ' + gName(g)).join(', ')}.${PS.mus.length && !PS.mus.includes('addome') ? ' L’addome è aggiunto come lavoro per il core.' : ''}</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psstep" data-s="3"${pid ? ` data-pid="${pid}"` : ''}>Avanti: i programmi →</button></div>`;
 }
 function presetsHtml(pid) {
   const dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
-  if (PS.att === null) return presetAttHtml(pid);
+  if (PS.att === null || PS.step === 1) return presetAttHtml(pid);
+  if (PS.step === 2) return presetMusHtml(pid);
   const atts = psAtt();
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
-   <p class="vnote">Attrezzi: <b>${esc(atts.length === ATT_AV().length ? 'tutti' : atts.join(', '))}</b> · <button class="tlink" data-act="psback"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Allenamenti completi e veloci: petto, schiena, spalle, bicipiti e tricipiti in 7-8 esercizi. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
-   ${PRESETS.map(P => { const items = presetBuild(P, atts); return `<div class="card preset"><h3>${esc(P.n)}</h3><p class="vnote">${esc(P.d)}</p>${items.length ? `<ol>${items.map(({ex, sub, orig}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return `<li>${esc(ex.n)} <small>${pr.s} × ${pr.r} · rec. ${pr.rec}${sub ? ' · <i>' + (orig ? 'al posto di ' + esc(orig.n) : 'aggiunto') + '</i>' : ''}</small></li>`; }).join('')}</ol>` : '<p class="vnote">Nessun esercizio con questi attrezzi.</p>'}
+   <p class="vnote">Attrezzi: <b>${esc(atts.length === ATT_AV().length ? 'tutti' : atts.join(', '))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button> · Muscoli: <b>${esc(psLabel())}</b> · <button class="tlink" data-act="psstep" data-s="2"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Tre programmi completi per questi muscoli, ordinati dai più pesanti ai più leggeri, con il core alla fine. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
+   ${PRESETS.map(P => { const items = presetBuild(P, atts); const mins = Math.round(items.reduce((t, {ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, rec: '90 s'}; return t + pr.s * (40 + secs(pr.rec)); }, 0) / 60); return `<div class="card preset"><h3>${esc(psName(P))}</h3><p class="vnote">${esc(P.d)} ${items.length} esercizi, circa ${Math.round(mins / 5) * 5} minuti.</p>${items.length ? `<ol>${items.map(({ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return `<li>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${ex.ab ? ' · ' + esc(abTxt(ex)) : ''} · ${pr.s} × ${pr.r} · rec. ${pr.rec}</small></li>`; }).join('')}</ol>` : '<p class="vnote">Nessun esercizio con questi attrezzi.</p>'}
      <div class="sbar" style="padding:6px 0 0"><button class="primary" style="width:auto;padding:9px 16px" data-act="preset" data-key="${P.key}"${pid ? ` data-pid="${pid}"` : ''}${items.length ? '' : ' disabled'}>${pid ? 'Usa questo programma' : 'Scegli il giorno…'}</button></div></div>`; }).join('')}`;
 }
 function presetDayHtml(key) {
   const P = PRESETS.find(p => p.key === key), dayN = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
-  return `<h2 style="padding-right:44px">In quale giorno?</h2><p class="vnote">${esc(P.n)}: gli esercizi del giorno scelto verranno sostituiti.</p>
+  return `<h2 style="padding-right:44px">In quale giorno?</h2><p class="vnote">${esc(psName(P))}: gli esercizi del giorno scelto verranno sostituiti.</p>
    <div class="chips wrap">${CUST.map(id => `<button class="chip" data-act="preset" data-key="${key}" data-pid="${id}">${esc(dayN(id))}${rtList(id).length ? ' (' + rtList(id).length + ')' : ''}</button>`).join('')}</div>
-   <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="psgo">← Programmi</button></div>`;
+   <div class="sbar" style="padding:10px 0 0"><button class="ghost" data-act="psstep" data-s="3">← Programmi</button></div>`;
 }
 function presetApply(key, pid) {
-  const P = PRESETS.find(p => p.key === key), items = presetItems(P, psAtt()), run = () => { DB.rt[pid] = items; prepEdit = false; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + P.n + ' inserito (' + items.length + ' esercizi)'); };
-  if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + P.n + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
+  const P = PRESETS.find(p => p.key === key), items = presetItems(P, psAtt()), name = psName(P), run = () => { DB.rt[pid] = items; prepEdit = false; save(); closeModal(); go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + name + ' inserito (' + items.length + ' esercizi)'); };
+  if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + name + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
 }
 
-function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; modal(wizHtml()); }
+function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; WZ.extra = 0; modal(wizHtml()); }
 function wizRender() { $('#mbody').innerHTML = wizHtml(); }
 function wizAdd() {
   const L = rtList(WZ.pid), added = [], removed = [];
@@ -1004,15 +1043,16 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
-  else if (a === 'presets') { PS.att = null; modal(presetsHtml(b.dataset.pid)); }
+  else if (a === 'presets') { PS.att = null; PS.step = 1; PS.mus = []; modal(presetsHtml(b.dataset.pid)); }
   else if (a === 'psatt') { const all = ATT_AV(), cur = psAtt().slice(), t = b.dataset.a, i = cur.indexOf(t); if (i >= 0) { if (cur.length > 1) cur.splice(i, 1); } else cur.push(t); PS.att = cur.filter(x => all.includes(x)); $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
-  else if (a === 'psgo') { if (PS.att === null) PS.att = ATT_AV(); $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
-  else if (a === 'psback') { $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
+  else if (a === 'psmus') { const g = b.dataset.g; if (!g) PS.mus = []; else { const i = PS.mus.indexOf(g); if (i >= 0) PS.mus.splice(i, 1); else PS.mus.push(g); } $('#mbody').innerHTML = presetMusHtml(b.dataset.pid); }
+  else if (a === 'psstep') { if (PS.att === null) PS.att = ATT_AV(); PS.step = +b.dataset.s; $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
   else if (a === 'preset') { if (b.dataset.pid) presetApply(b.dataset.key, b.dataset.pid); else modal(presetDayHtml(b.dataset.key)); }
   else if (a === 'sksreset') window.sksReset();
   else if (a === 'fav') { if (DB.fav[b.dataset.id]) delete DB.fav[b.dataset.id]; else DB.fav[b.dataset.id] = 1; save(); render(true); flash(DB.fav[b.dataset.id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
   else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
-  else if (a === 'wzgo') { WZ.step = 3; WZ.keep = []; WZ.rejected = []; wizPropose(); wizRender(); }
+  else if (a === 'wzgo') { WZ.step = 3; WZ.keep = []; WZ.rejected = []; WZ.extra = 0; wizPropose(); wizRender(); }
+  else if (a === 'wzmore') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id)) WZ.keep.push(id); }); WZ.extra = (WZ.extra || 0) + 1; wizPropose(); wizRender(); }
   else if (a === 'wznext') { WZ.step = 2; wizRender(); }
   else if (a === 'wzback1') { WZ.step = 1; wizRender(); }
   else if (a === 'wzagain') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id) && !WZ.rejected.includes(id)) WZ.rejected.push(id); }); wizPropose(); wizRender(); }
