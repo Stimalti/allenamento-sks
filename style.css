@@ -242,3 +242,14 @@ body.training #timer{bottom:calc(88px + env(safe-area-inset-bottom))}
 .hero .sbar{padding:10px 0 0}
 .pairbox{border-radius:14px;padding:10px 12px;margin:10px 0 4px;background:var(--in);border:1px solid var(--line)}.pairbox.ok{border-color:var(--ok)}.pairbox.no{border-color:var(--acc)}.pairbox p{margin:4px 0 0}
 .li.plan .t small{display:block}.li.plan .t small.mm{color:var(--tx);opacity:.75;font-size:12px;line-height:1.3;margin:2px 0 3px}
+
+/* barra in basso: 9 tasti anche su schermi stretti */
+nav{gap:0;padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1 1 0;min-width:0;max-width:none;padding:2px 0 0}
+nav button i{width:38px;height:28px}
+nav button span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.1;min-height:24px}
+@media(max-width:430px){nav button i{width:32px;height:26px;font-size:17px}nav button i svg{width:16px;height:16px}nav button span{font-size:9px;min-height:22px}}
+/* andamento scorrevole e dettaglio settimana */
+.barsw{overflow-x:auto;margin:0 -14px 6px;padding:0 14px;scrollbar-width:thin}
+.bars{gap:5px;min-width:100%}.bar{border:0;background:none;padding:0;min-width:40px;cursor:pointer;color:inherit;font:inherit}.bar:active i{filter:brightness(1.15)}
+.wkt{width:100%;border-collapse:collapse;font-size:13px}.wkt td{padding:4px 0;border-top:1px solid var(--line);vertical-align:top}.wkt td:first-child{width:52%;padding-right:8px}

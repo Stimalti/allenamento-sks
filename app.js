@@ -337,6 +337,7 @@ function render(keep) {
     h = custView(planOf(tab));
   } else h = planView(planOf(tab), 'io');
   $('#main').innerHTML = h;
+  const bw = $('#main .barsw'); if (bw) bw.scrollLeft = bw.scrollWidth;
   if (training && TR.how) { const f = $('#main [data-fig]'); if (f) FIG3.mount(f, byId[f.dataset.fig], FIG.mount); loadMine($('#main')); }
   if (keep) window.scrollTo(0, y);
 }
@@ -517,9 +518,18 @@ function evalHtml(pid) {
    <div class="sbar" style="padding:12px 0 0">${v.pair && !v.pair.ok ? '<button class="primary" style="width:auto;padding:10px 16px" data-act="weekprop">🔀 Riorganizza i muscoli per giorno</button>' : ''}<button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
 }
 // qualità dell'allenamento dallo storico
+// tutte le sedute: quelle registrate (DB.sess) più le date che compaiono solo nello storico degli esercizi (sedute salvate con le versioni precedenti)
+function allSess() {
+  const out = (DB.sess || []).slice(), have = new Set(out.map(x => x.d)), byD = {};
+  Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id]) return; (h || []).forEach(e => { if (!e.d || have.has(e.d)) return; (byD[e.d] = byD[e.d] || {n: 0, sd: 0}); byD[e.d].n++; byD[e.d].sd += e.sets.length; }); });
+  Object.entries(byD).forEach(([d, v]) => out.push({d, pid: null, n: v.n, sd: v.sd, name: 'Seduta (dallo storico)'}));
+  return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0);
+}
+const weekKey = (d, i) => { const t = new Date(d + 'T12:00:00'); t.setDate(t.getDate() + 7 * (i || 0)); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 function quality() {
-  const sess = DB.sess || [], t = today(), wk0 = mondayOf(t), weeks = [];
-  for (let i = 7; i >= 0; i--) { const d = new Date(wk0 + 'T12:00:00'); d.setDate(d.getDate() - 7 * i); const key = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); weeks.push({key, n: sess.filter(x => mondayOf(x.d) === key).length}); }
+  const sess = allSess(), t = today(), wk0 = mondayOf(t), weeks = [];
+  const first = sess.length ? mondayOf(sess[0].d) : wk0, nW = Math.max(8, Math.round((new Date(wk0 + 'T12:00:00') - new Date(first + 'T12:00:00')) / (7 * 864e5)) + 1);
+  for (let i = nW - 1; i >= 0; i--) { const key = weekKey(wk0, -i); weeks.push({key, n: sess.filter(x => mondayOf(x.d) === key).length}); }
   const planned = plannedDays().length || 1, last4 = weeks.slice(-4).reduce((t, w) => t + w.n, 0);
   const cost = Math.min(1, last4 / (planned * 4));
   let imp = 0, cmp = 0; Object.values(DB.hist).forEach(h => { if (!h || h.length < 2) return; const a = h[h.length - 2], b = h[h.length - 1]; const mx = e => Math.max(0, ...e.sets.map(s => num(s.kg))), rp = e => Math.max(0, ...e.sets.map(s => num(s.reps))), vol = e => e.sets.reduce((t, s) => t + num(s.kg) * num(s.reps), 0); cmp++; if (mx(b) > mx(a) || (mx(b) === mx(a) && rp(b) > rp(a)) || vol(b) > vol(a)) imp++; });
@@ -564,8 +574,9 @@ function homeView() {
    ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v && !v.skip ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
-   <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana, ultime 8 settimane${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
-    <div class="bars">${q.weeks.map((w, i) => `<div class="bar"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === 7 ? 'ora' : fmtD(w.key)}</small></div>`).join('')}</div>
+   <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana dalla prima registrata (${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
+    <div class="barsw"><div class="bars" style="width:${Math.max(100, q.weeks.length * 46)}px">${q.weeks.map((w, i) => `<button class="bar" data-act="wk" data-w="${w.key}" aria-label="Settimana del ${fmtD(w.key)}"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === q.weeks.length - 1 ? 'ora' : fmtD(w.key)}</small></button>`).join('')}</div></div>
+    <p class="vnote" style="margin:0 0 8px">${q.weeks.length > 8 ? 'Scorri a sinistra per le settimane precedenti · ' : ''}tocca una settimana per vedere le sedute e gli esercizi fatti.</p>
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
@@ -574,6 +585,19 @@ function homeView() {
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
     ${(() => { const w = proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
     ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? (e.skip ? `<span class="sc s10" style="background:var(--in);color:var(--mut)">${e.icon}</span>` : `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>`) : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
+}
+
+function weekDetHtml(key) {
+  const q = quality(), idx = q.weeks.findIndex(w => w.key === key), sess = allSess().filter(x => mondayOf(x.d) === key), end = weekKey(key, 1);
+  const days = {}; sess.forEach(x => { (days[x.d] = days[x.d] || []).push(x); });
+  const exOn = d => Object.entries(DB.hist).map(([k, h]) => { const id = k.split(':')[1], e = (h || []).find(z => z.d === d); return e && byId[id] ? {ex: byId[id], e} : null; }).filter(Boolean);
+  const planned = q.planned, n = sess.length;
+  const d6 = new Date(key + 'T12:00:00'); d6.setDate(d6.getDate() + 6); const endD = new Date(d6.getTime() - d6.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  return `<h2 style="padding-right:44px">Settimana ${fmtD(key)} – ${fmtD(endD)}</h2>
+   <div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="wk" data-w="${weekKey(key, -1)}"${idx <= 0 ? ' disabled' : ''}>← Precedente</button><button class="ghost" data-act="wk" data-w="${weekKey(key, 1)}"${idx >= q.weeks.length - 1 || idx < 0 ? ' disabled' : ''}>Successiva →</button></div>
+   <div class="stats dark" style="margin:0 0 12px"><div class="stat"><b>${n}</b><span>sedute</span></div><div class="stat"><b>${planned}</b><span>programmate</span></div><div class="stat"><b>${sess.reduce((t, x) => t + (x.sd || 0), 0)}</b><span>serie fatte</span></div></div>
+   ${n ? Object.keys(days).sort().map(d => `<div class="card" style="padding:10px 12px"><h3 style="margin:0 0 4px;font-size:17px">${esc(fmtLong(d))}</h3>${days[d].map(x => `<p class="vnote" style="margin:0 0 6px">${esc(x.name)}${x.tot ? ` · ${x.n}/${x.tot} esercizi` : ` · ${x.n} esercizi`}${x.st ? ` · ${x.sd}/${x.st} serie` : ''}</p>`).join('')}
+     <table class="wkt">${exOn(d).map(({ex, e}) => `<tr><td>${esc(ex.n)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')}×${esc(s.reps || '–')}`).join(' · ')}</td></tr>`).join('')}</table></div>`).join('') : '<p class="vnote">Nessuna seduta salvata in questa settimana.</p>'}`;
 }
 
 /* ---------- modali ---------- */
@@ -618,13 +642,13 @@ function reportData() {
 const fmtFull = d => d.split('-').reverse().join('/');
 function reportText(data) {
   let t = 'STORICO ALLENAMENTI · ' + fmtFull(today()) + '\n';
-  if ((DB.sess || []).length) { t += '\nSEDUTE FATTE\n'; DB.sess.slice(-40).reverse().forEach(x => { t += '  ' + fmtWd(x.d) + ': ' + x.name + ' (' + x.n + ' esercizi)\n'; }); }
+  if (allSess().length) { t += '\nSEDUTE FATTE\n'; allSess().slice(-60).reverse().forEach(x => { t += '  ' + fmtWd(x.d) + ': ' + x.name + ' (' + x.n + ' esercizi)\n'; }); }
   data.forEach(({ex, h}) => { t += '\n' + ex.n + ' (' + GRUPPI[ex.g] + ')\n'; if (DB.notes[ex.id]) t += '  Note: ' + DB.notes[ex.id] + '\n'; h.forEach(e => { t += '  ' + fmtFull(e.d) + ': ' + e.sets.map(s => (s.kg || '–') + ' kg × ' + (s.reps || '–') + (s.note ? ' (' + s.note + ')' : '')).join(' · ') + '\n'; }); });
   return t;
 }
 function reportHtml(data) {
   if (!data.length) return '<p>Nessun allenamento archiviato: usa “Fine allenamento” per salvarlo nello storico.</p>';
-  const sess = (DB.sess || []).slice(-40).reverse();
+  const sess = allSess().slice(-60).reverse();
   return (sess.length ? `<section class="rp"><h3>Sedute fatte <small>data reale · scheda usata</small></h3><table>${sess.map(x => `<tr><td>${esc(fmtWd(x.d))}</td><td>${esc(x.name)} <small>· ${x.n} esercizi</small></td></tr>`).join('')}</table></section>` : '') + data.map(({ex, h}) => { const best = Math.max(0, ...h.flatMap(e => e.sets.map(s => num(s.kg))));
     return `<section class="rp"><h3>${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${best ? ' · massimo ' + best + ' kg' : ''}</small></h3>${DB.notes[ex.id] ? `<p class="gn">📝 ${esc(DB.notes[ex.id])}</p>` : ''}<table>${h.map(e => `<tr><td>${esc(fmtWd(e.d))}</td><td>${e.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</td></tr>`).join('')}</table></section>`; }).join('');
 }
@@ -907,6 +931,7 @@ document.addEventListener('click', e => {
   else if (a === 'hist') histView(k);
   else if (a === 'train') trainStart(b.dataset.pid);
   else if (a === 'evalday') modal(evalHtml(b.dataset.pid));
+  else if (a === 'wk') modal(weekDetHtml(b.dataset.w));
   else if (a === 'weekprop') { modal(weekPropHtml()); const no = $('#mbody [data-act=no]'); if (no) no.onclick = closeModal; }
   else if (a === 'weekapply') { const w = proposeWeek(); if (!w || !w.moves.length) { closeModal(); return; } ask('Spostare ' + w.moves.length + ' esercizi tra i giorni come proposto?', 'Sposta', () => { const n = applyWeek(w); prepEdit = false; go('home'); flash('✓ ' + n + ' esercizi spostati: settimana riorganizzata'); }); }
   else if (a === 'propapply') { const pid = b.dataset.pid, chosen = [...document.querySelectorAll('#mbody [data-prop]')].filter(c => c.checked).map(c => PROP.list[+c.dataset.prop]); if (!chosen.length) { flash('Nessuna modifica selezionata'); return; }
