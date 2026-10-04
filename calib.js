@@ -825,12 +825,12 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Parti appeso con le gambe distese e ferme.', 'Porta le ginocchia verso il petto arrotolando il bacino.', 'Scendi lentamente senza dondolare.'],
     cue: 'Ferma il dondolio tra una ripetizione e l’altra.', why: 'Parte bassa dell’addome con il corpo libero in sospensione: allena anche la presa.', err: ['Dondolare', 'Muovere solo le gambe senza arrotolare il bacino', 'Spalle rilassate']});
   A({id: 'a-gambe-sbarra', n: 'Sollevamento gambe tese alla sbarra', m: 'Retto dell’addome, flessori anca', mm: 'retto addominale, ileopsoas, retto femorale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['massa', 'tonificare'],
-    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [180, 180, {...HANG, th: 100, sh: 100}]], cap: ['Appeso, gambe tese', 'Gambe tese all’orizzontale (o più su)'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [176, 176, {t: 188, h: [144, 142], th: 108, sh: 108}]], cap: ['Appeso, gambe tese', 'Gambe tese all’orizzontale, bacino leggermente arrotolato'],
     set: 'Sbarra del powerrack, presa prona.', pos: 'Gambe tese e unite, spalle attive.',
     ese: ['Dalle gambe distese, alzale tese fino all’orizzontale.', 'Se riesci continua fino alla sbarra.', 'Scendi lentamente.'],
     cue: 'Prima arrotola il bacino, poi le gambe seguono.', why: 'Versione avanzata del sollevamento ginocchia: più leva, più lavoro.', err: ['Dondolare', 'Piegare le ginocchia', 'Scendere di colpo']});
   A({id: 'a-toes-to-bar', n: 'Toes to bar (piedi alla sbarra)', m: 'Retto dell’addome, flessori anca, dorsali', mm: 'retto addominale, ileopsoas, gran dorsale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['forza', 'massa', 'tonificare'],
-    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [168, 168, {...HANG, th: 168, sh: 168, lift: 6}]], cap: ['Appeso, gambe tese', 'Piedi alla sbarra, bacino arrotolato'],
+    fr: [[180, 180, {...HANG, th: 8, sh: 8}], [152, 152, {t: 198, h: [130, 118], th: 146, sh: 146}]], cap: ['Appeso, gambe tese', 'Bacino su e indietro, busto inclinato: i piedi arrivano alla sbarra davanti al viso'],
     set: 'Sbarra del powerrack, presa prona.', pos: 'Spalle attive; si parte senza dondolio.',
     ese: ['Alza le gambe tese portando i piedi a toccare la sbarra.', 'Usa anche i dorsali spingendo la sbarra verso il basso.', 'Scendi controllato.'],
     cue: 'Spingi la sbarra verso le anche mentre le gambe salgono.', why: 'L’esercizio più completo alla sbarra: addome, flessori e dorsali.', err: ['Kipping incontrollato', 'Ginocchia piegate', 'Lasciarsi cadere']});
