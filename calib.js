@@ -883,14 +883,14 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 /* ===== flessione laterale: side bend e plank laterale (movimento laterale: il 3D mostra solo la posa di partenza) ===== */
 (() => {
   const A = o => { if (EX.some(e => e.id === o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', lin: true, noanim: true}, o)); };
-  A({id: 'a-side-bend-db', n: 'Side bend con manubrio', a: 'Manubri', eq: 'db', one: true, st: 'stand', fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
-    fr: [[4, 4, {t: 180}], [4, 4, {t: 180}]], cap: ['In piedi, manubrio in una mano lungo il fianco', 'Il busto si piega di lato verso il manubrio e torna (movimento laterale, non mostrato dal 3D)'],
+  A({id: 'a-side-bend-db', n: 'Side bend con manubrio', a: 'Manubri', eq: 'db', one: true, st: 'stand', noanim: false, fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
+    fr: [[4, 4, {t: 180, sb: -8}], [4, 4, {t: 180, sb: 26}]], az: 1.05, cap: ['In piedi, manubrio nella mano destra, busto dritto (anzi un filo verso l’altro lato)', 'Busto piegato di lato verso il manubrio: il fianco opposto si allunga'],
     trj: 'Movimento laterale puro: il busto si inclina di lato verso il manubrio (il manubrio scende lungo la coscia) e poi torna dritto e un po’ oltre, verso il lato opposto. Niente rotazione, niente inclinazione in avanti.',
     set: 'Un manubrio in una mano, l’altra mano sul fianco o dietro la testa. In piedi, piedi alla larghezza delle anche.', pos: 'Busto dritto, spalle basse, sguardo avanti. Il bacino resta fermo e centrato.',
     ese: ['Lascia scendere il manubrio lungo la coscia inclinando il busto di lato.', 'Scendi finché senti allungare il fianco opposto, senza ruotare.', 'Risali contraendo il fianco libero e vai leggermente oltre la verticale.', 'Finisci la serie e cambia mano.'],
     cue: 'Il lavoro lo fa il fianco OPPOSTO al manubrio, quando risali.', why: 'Obliqui e quadrato dei lombi con carico regolabile; utile anche per la mobilità del tronco.', err: ['Inclinarsi in avanti o indietro', 'Ruotare il busto', 'Spostare il bacino di lato per “aiutare”', 'Usare un peso troppo alto']});
-  A({id: 'a-side-bend-cavo', n: 'Flessione laterale al cavo basso', a: 'Cavi', eq: 'cable', one: true, an: [258, 212], st: 'stand', fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
-    fr: [[4, 4, {t: 180}], [4, 4, {t: 180}]], cap: ['Di lato alla torre, maniglia nella mano vicina al cavo', 'Il busto si piega verso la torre e torna (movimento laterale, non mostrato dal 3D)'],
+  A({id: 'a-side-bend-cavo', n: 'Flessione laterale al cavo basso', a: 'Cavi', eq: 'cable', one: true, st: 'stand', noanim: false, fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
+    fr: [[4, 4, {t: 180, sb: -8}], [4, 4, {t: 180, sb: 26}]], az: 1.05, tzf: 92, an: [185, 212], cap: ['Di lato alla torre, maniglia nella mano vicina al cavo', 'Busto piegato verso la torre: il fianco opposto lavora quando risali'],
     trj: 'Come il side bend con manubrio, ma la resistenza del cavo è costante lungo tutto il movimento: il busto si inclina verso la torre e risale contraendo il fianco opposto.',
     set: 'Cavo BASSO con maniglia singola. Stai di lato alla torre, maniglia nella mano vicina alla torre, braccio disteso lungo il fianco.', pos: 'Piedi alla larghezza delle anche, ginocchia morbide, bacino fermo.',
     ese: ['Inclina il busto verso la torre lasciando scendere la maniglia.', 'Risali contraendo il fianco opposto fino a superare leggermente la verticale.', 'Scendi controllato: il cavo tira per tutta la serie.', 'Cambia lato.'],
@@ -944,4 +944,14 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ['addome', /crunch|sit-up|v-up/, 'Crunch e sit-up'], ['addome', /plank|hollow|dead bug|mountain/, 'Plank e tenute'], ['addome', /pallof|woodchop|rotazion|russian/, 'Rotazioni e anti-rotazione'], ['addome', /leg raise|sollevamento|toes|sforbiciate/, 'Sollevamento gambe'], ['addome', /side bend|flessione laterale/, 'Flessione laterale'],
     ['avambracci', /./, 'Polsi e avambracci']];
   EX.forEach(e => { delete e.vars; delete e.varsLabel; const n = e.n.toLowerCase(); const f = F.find(([g, re]) => g === e.g && re.test(n)); if (f) { e.fam = f[2]; e.famRe = f[1]; } });
+})();
+
+/* ===== zone dell'addome allenate da ogni esercizio: alta (retto superiore), bassa (retto inferiore), obliqui, profonda (trasverso / stabilità) ===== */
+(() => {
+  const Z = {alta: ['a-crunch-cavo', 'a-crunch-cavo-piedi', 'a-crunch-terra', 'a-situp', 'a-situp-db', 'a-situp-panca', 'a-vup', 'a-bicicletta', 'a-toes-to-bar'],
+    bassa: ['a-crunch-inverso', 'a-crunch-inverso-cavo', 'a-leg-raise', 'a-leg-raise-terra', 'a-sforbiciate', 'a-ginocchia-sbarra', 'a-gambe-sbarra', 'a-toes-to-bar', 'a-vup', 'a-hollow', 'a-ginocchia-obliquo-sbarra'],
+    obliqui: ['a-woodchop', 'a-woodchop-basso', 'a-pallof-rotazione', 'a-rotazioni-cavo', 'a-russian-twist', 'a-crunch-cavo-obliquo', 'a-ginocchia-obliquo-sbarra', 'a-side-bend-db', 'a-side-bend-cavo', 'a-side-plank', 'a-side-plank-hip', 'a-bicicletta', 'a-pallof', 'a-pallof-ginocchio'],
+    profonda: ['a-plank', 'a-pallof', 'a-pallof-ginocchio', 'a-dead-bug', 'a-mountain', 'a-hollow', 'a-rollout', 'a-side-plank', 'a-side-plank-hip']};
+  Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = EX.find(x => x.id === id); if (e) (e.ab = e.ab || []).push(z); }));
+  EX.filter(e => e.g === 'addome' && !e.ab).forEach(e => { e.ab = ['alta']; });
 })();

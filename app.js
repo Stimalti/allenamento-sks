@@ -116,6 +116,8 @@ const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
 const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.nb) : e.a === a).length;
 const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.nb || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
 const attLabel = a => a === 'Panca' ? 'Panca (serve in ' + attCount(a) + ' esercizi)' : a;
+const AB_N = {alta: 'addome alto', bassa: 'addome basso', obliqui: 'obliqui (fianchi)', profonda: 'addome profondo / stabilità'};
+const abTxt = e => e.ab ? e.ab.map(z => AB_N[z] || z).join(' + ') : '';
 const inG = (e, g) => e.g === g || (e.g2 || []).includes(g);   // gruppo principale o secondario (es. face pull: spalle e schiena)
 const latoTxt = e => e.one ? (e.g === 'gambe' ? 'una gamba' : 'un braccio') : (e.g === 'gambe' || e.g === 'addome' ? '' : 'due braccia');
 
@@ -191,7 +193,7 @@ function techHtml(ex, sr) {
   ${ex.alt && byId[ex.alt] ? `<p class="altc">🔁 Serve una sola torre? <button class="tlink" data-act="open" data-id="${ex.alt}">${esc(byId[ex.alt].n)}</button> (un cavo e una maniglia)</p>` : ''}
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   ${videoBlock(ex)}
-  <h3>Muscoli</h3><p>${esc(ex.m)}</p>${ex.mm && ex.mm !== ex.m ? `<p class="vnote">Nel dettaglio: ${esc(ex.mm)}.</p>` : ''}
+  <h3>Muscoli</h3><p>${esc(ex.m)}</p>${ex.ab ? `<p class="gn">Zona addominale: <b>${esc(abTxt(ex))}</b>. Per un addome completo abbina esercizi di zona alta, bassa e obliqui (più uno di stabilità).</p>` : ''}${ex.mm && ex.mm !== ex.m ? `<p class="vnote">Nel dettaglio: ${esc(ex.mm)}.</p>` : ''}
   ${ex.fin ? `<h3>Finalità e carichi consigliati</h3><p>Adatto a: <b>${ex.fin.map(f => FIN[f]).join(' · ')}</b></p><ul>${ex.fin.map(f => finLine(ex, f)).join('')}</ul><p class="vnote">Indicazioni generali, non personalizzate. “Ripetizioni in riserva” = quante ne potresti ancora fare a fine serie. Per <b>tonificare</b> (muscolo più definito) servono carichi moderati e ripetizioni alte, ma il risultato dipende anche da alimentazione e dal grasso corporeo.</p>` : ''}
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>
@@ -236,7 +238,7 @@ function exCard(x, idx, prof, pl) {
   return `<article class="card ex prep" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
    ${cu ? `<div class="mctl"><span class="mlab">Ordine</span><button data-act="mup" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta su"${idx === 0 ? ' disabled' : ''}>▲ Su</button><button data-act="mdn" data-pid="${pid}" data-id="${ex.id}" aria-label="Sposta giù"${idx === pl.ex.length - 1 ? ' disabled' : ''}>▼ Giù</button><button class="rm" data-act="mrm" data-pid="${pid}" data-id="${ex.id}">✕ Togli</button></div>` : ''}
    <div class="exh"><span class="num ${done >= c.sets.length ? 'done' : ''}">${idx + 1}</span>${cov(ex.id, 'thumb')}
-    <div style="min-width:0;flex:1"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}${avail(ex) ? '' : '<span class="tag na">attrezzo non disponibile</span>'}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
+    <div style="min-width:0;flex:1"><h2>${esc(ex.n)}${x.opt ? '<span class="opt">opzionale</span>' : ''}</h2><div class="meta">${gtag(ex)}${cab(ex)}${avail(ex) ? '' : '<span class="tag na">attrezzo non disponibile</span>'}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${ex.ab ? '<b>' + esc(abTxt(ex)) + '</b> · ' : ''}${esc(ex.mm || ex.m)}</div></div></div>
    ${cu ? `<div class="presc edit"><b><span class="n">${c.sets.length}</span> ×</b><button class="ghost" data-act="addset" data-k="${k}" data-n="${c.sets.length}" aria-label="Più serie">+</button><button class="ghost" data-act="delset" data-k="${k}" data-n="${c.sets.length}" aria-label="Meno serie">−</button><input class="ed" data-mf="r" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.r)}" placeholder="8-12" maxlength="12" aria-label="Ripetizioni previste"><span>rec.</span><input class="ed" data-mf="rec" data-pid="${pid}" data-id="${ex.id}" value="${esc(x.rec)}" placeholder="90 s" maxlength="12" aria-label="Recupero"></div>` : `<div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span></div>`}
    ${cu && ex.fin ? `<div class="objrow"><span>Obiettivo</span>${ex.fin.map(f => `<button class="${x.obj === f ? 'on' : ''}" data-act="objset" data-pid="${pid}" data-id="${ex.id}" data-f="${f}">${FIN[f]}</button>`).join('')}</div>${x.obj && presOf(ex, x.obj) ? `<div class="objtip">Consigliato per ${FIN[x.obj].toLowerCase()}: ${presOf(ex, x.obj).sr} × ${presOf(ex, x.obj).r}, recupero ${presOf(ex, x.obj).rec} · ${esc(pesoTxt(ex, x.obj))}</div>` : ''}` : `<div class="role">${esc(x.ruolo)}</div>`}
    ${lastLine(k)}${DB.notes[ex.id] ? `<div class="last">📝 ${esc(DB.notes[ex.id])}</div>` : ''}
@@ -249,7 +251,7 @@ const planTot = (p, prof) => { let tot = 0, dn = 0, mins = 0; p.ex.forEach(x => 
 function exRowPlan(x, i, prof) {
   const ex = byId[x.e], k = pk(prof, ex.id), c = curFor(k, x.s), d = c.sets.filter(s => s.done).length, h = lastHist(k);
   const kg = h ? h.sets.map(s => s.kg).filter(Boolean) : [], kgTxt = kg.length ? ' · ultima ' + (kg.every(v => v === kg[0]) ? kg[0] : kg.join('/')) + ' kg' : '';
-  return `<button class="li plan" style="--gc:${GCOL[ex.g]}" data-act="open" data-id="${ex.id}" id="c-${k.replace(':', '-')}"><span class="num ${d >= c.sets.length ? 'done' : d ? 'part' : ''}">${i + 1}</span>${cov(ex.id, 'thumb') || ''}<span class="t"><b>${esc(ex.n)}</b><small class="mm">💪 ${esc(ex.mm || ex.m)}</small><small>${c.sets.length} × ${esc(x.r)} · rec. ${esc(x.rec)}${kgTxt}${avail(ex) ? '' : ' · <span style="color:#b91c1c">attrezzo non disponibile</span>'}</small></span><span class="chev">›</span></button>`;
+  return `<button class="li plan" style="--gc:${GCOL[ex.g]}" data-act="open" data-id="${ex.id}" id="c-${k.replace(':', '-')}"><span class="num ${d >= c.sets.length ? 'done' : d ? 'part' : ''}">${i + 1}</span>${cov(ex.id, 'thumb') || ''}<span class="t"><b>${esc(ex.n)}</b><small class="mm">💪 ${ex.ab ? '<b>' + esc(abTxt(ex)) + '</b> · ' : ''}${esc(ex.mm || ex.m)}</small><small>${c.sets.length} × ${esc(x.r)} · rec. ${esc(x.rec)}${kgTxt}${avail(ex) ? '' : ' · <span style="color:#b91c1c">attrezzo non disponibile</span>'}</small></span><span class="chev">›</span></button>`;
 }
 function planView(p, prof) {
   const {tot, dn, mins} = planTot(p, prof);
@@ -284,7 +286,7 @@ function trainView() {
    <div class="tdots">${dots}</div>
    <article class="card ex train" style="--gc:${GCOL[ex.g]}" id="c-${k.replace(':', '-')}">
     ${cov(ex.id, 'cover')}<div class="exh"><span class="num ${c.sets.every(s => s.done) ? 'done' : ''}">${TR.i + 1}</span>
-     <div style="min-width:0;flex:1"><h2>${esc(ex.n)}</h2><div class="meta">${gtag(ex)}${cab(ex)}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${esc(ex.mm || ex.m)}</div></div></div>
+     <div style="min-width:0;flex:1"><h2>${esc(ex.n)}</h2><div class="meta">${gtag(ex)}${cab(ex)}<button class="favb ${DB.fav[ex.id] ? 'on' : ''}" data-act="fav" data-id="${ex.id}" aria-label="Preferito">${DB.fav[ex.id] ? '⭐' : '☆'}</button></div><div class="mm">💪 ${ex.ab ? '<b>' + esc(abTxt(ex)) + '</b> · ' : ''}${esc(ex.mm || ex.m)}</div></div></div>
     <div class="presc"><b>${c.sets.length} × ${esc(x.r)}</b><span>recupero ${esc(x.rec)}</span>${x.obj && FIN[x.obj] ? `<span>· ${FIN[x.obj]}</span>` : ''}</div>
     ${lastLine(k)}${hintLine(k, x.r)}
     <button class="howbtn ${TR.how ? 'on' : ''}" data-act="trhow">🎬 Come si fa${TR.how ? ' · chiudi' : ''}<small>animazione 3D · video · spiegazione passo passo</small></button>
@@ -299,7 +301,7 @@ const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
   return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.nb))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''}${e.ab ? ' · <b>' + esc(abTxt(e)) + '</b>' : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small></span>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = ATT_AV();
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
@@ -781,14 +783,16 @@ function wizPool() {
   return EX.filter(e => avail(e) && (wizPrio(e) || (attOk(e, WZ.att) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id));
 }
 function wizPropose() {
-  const want = Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
+  const onlyAb = WZ.mus.length === 1 && WZ.mus[0] === 'addome', want = onlyAb ? 3 : Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
+  const covAb = new Set(out.flatMap(e => e.ab || []));
   let pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e)));
   if (!pool.length && WZ.rejected.length) { WZ.rejected = []; pool = wizPool().filter(e => !out.some(o => mkey(o) === mkey(e))); }
   const covered = new Set(out.map(e => e.g));
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
-      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7; if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += 80; return s; };
-    pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); pool = pool.filter(e => mkey(e) !== mkey(pick));
+      if (!covered.has(e.g) && WZ.mus.length > 1) s += 2.2; if (e.tipo === 'comp') s += .7;
+      if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += 80; return s; };
+    pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); (pick.ab || []).forEach(z => covAb.add(z)); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
   WZ.cur = out.map(e => e.id); return out;
 }
@@ -810,7 +814,7 @@ function wizHtml() {
   const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">Proposta</h2>
     <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati.</p>
-    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
+    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])}${e.ab ? ' · ' + esc(abTxt(e)) : ''} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
     <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;

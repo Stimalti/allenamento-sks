@@ -15,7 +15,7 @@ const FIG3 = (() => {
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu'];   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb'];   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
   const resolve = (ex, fr) => { const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && !(fr[2] && fr[2].t !== undefined)) r.t = 270 - ex.inc; return r; };   // ex.inc = inclinazione della panca in gradi dall'orizzontale: il busto la segue
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
@@ -196,7 +196,8 @@ const FIG3 = (() => {
     const P = [], B = rig ? [] : P, ZN = rig ? 25 : 17, ZF = -ZN, LN = rig ? 14 : 11, LF = -LN;
     const H = [p.h[0], p.h[1] - p.lift], Pm2 = p.cu ? add(H, p.tl * .5, p.t + p.cu) : null, S = Pm2 ? add(Pm2, p.tl * .5, p.t) : add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
-    const twr = (p.tw || 0) * R, ZS = p.zs || 0, SN = [S[0] - ZN * Math.sin(twr), S[1], ZN * Math.cos(twr)], SF = [S[0] + ZN * Math.sin(twr), S[1], -ZN * Math.cos(twr)];   // spalle ruotate dalla torsione del busto
+    const sbr = (p.sb || 0) * R, SZ = Math.sin(sbr) * p.tl * .85; if (p.sb) { const dy = (1 - Math.cos(sbr)) * p.tl * .6; S[1] += dy; head[1] += dy; }   // flessione laterale: le spalle scendono e si spostano di lato
+    const twr = (p.tw || 0) * R, ZS = (p.zs || 0) + SZ, SN = [S[0] - ZN * Math.sin(twr), S[1], ZN * Math.cos(twr) + SZ], SF = [S[0] + ZN * Math.sin(twr), S[1], -ZN * Math.cos(twr) + SZ];   // spalle ruotate dalla torsione del busto
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
     const GZ0 = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), GZ = ex.gz2 !== undefined && p.k !== undefined ? GZ0 + (ex.gz2 - GZ0) * p.k : GZ0, presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
@@ -208,7 +209,7 @@ const FIG3 = (() => {
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
     else {
       W3n = [W[0], W[1], GZ + ZS]; E3n = ik3(SN, W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1], GZ + ZS];
-      if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF); W3f = pt3(Wf, ZF); g3f = g3n; }
+      if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
       else { W3f = [W[0], W[1], -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1], -GZ + ZS]; }
     }
     benchPrims(P, ex);
@@ -278,12 +279,12 @@ const FIG3 = (() => {
     P.tiltAll = Math.round(tilt); P.st = ex.st;
     P.gp = ex.cp === 'ankle' ? pt3(A, LN) : (ex.one ? g3n : [g3n[0], g3n[1], 0]);
     if (rig) {
-      const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, 0)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
+      const fT = Wv(...fw2(p.t - 90)), up = W3(pt3(S, SZ)).sub(W3(pt3(H, 0))).normalize(), fwd = a => Wv(...fw2(a + 90));
       const fS = (Sx, Ex, Wx, fb) => bendFront(W3(Sx), W3(Ex), W3(Wx), fb);
       const aimF = (a, b) => { const d = W3(b).sub(W3(a)).normalize(); return Wv(-d.y, d.x, 0); };
       const thF = Wv(...fw2(p.th + 90)), shF = Wv(...fw2(p.sh + 90)), up0 = Wv(0, 1, 0);
       const sFar = ex.one ? 5 : p.ua, fFar = ex.one ? 5 : p.fa;
-      const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, 0)), up, front: fT, Pm: Pm2 ? W3(pt3(Pm2, 0)) : null, frontCh: p.tw ? fT.clone().applyAxisAngle(up, -twr) : null,
+      const J = {H: W3(pt3(H, 0)), S: W3(pt3(S, SZ)), up, front: fT, Pm: Pm2 ? W3(pt3(Pm2, 0)) : null, frontCh: p.tw ? fT.clone().applyAxisAngle(up, -twr) : null,
         sh: {R: W3(SN), L: W3(SF)}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
         armF: {R: fS(SN, E3n, W3n, fwd(p.ua)), L: fS(SF, E3f, W3f, fwd(sFar))},
         presa: ex.presa,
