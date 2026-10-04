@@ -267,3 +267,4 @@ html{overflow-x:hidden;width:100%}body{overflow-x:hidden;position:relative;width
 .last,.vnote,.snote,.vlink,.objtip,.role,.hint{overflow-wrap:anywhere}   /* solo blocchi di testo (note, link): mai su titoli o elementi flessibili, in Safari li restringerebbe a una lettera per riga */
 img,video,canvas,svg,iframe,table{max-width:100%}header h1,.hero h2,.exh h2,.li .t,.wzrow .t{overflow-wrap:normal;word-break:normal;white-space:normal}header h1{flex:1 1 0%}
 .sheet{overflow-x:hidden}.fig,.stage{max-width:100%}
+.favb.big{margin-left:0;padding:5px 11px;font-size:14px;font-weight:600;color:var(--tx)}.favb.col{margin-left:0;flex:none;width:36px;padding:0;display:grid;place-items:center;border-radius:12px}
