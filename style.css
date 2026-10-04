@@ -264,6 +264,6 @@ nav button span{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-spac
 .pftab{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pftab span{display:flex;flex-direction:column;align-items:center;border:1px solid var(--line);border-radius:10px;padding:4px 8px;font-size:12px;background:var(--bg)}.pftab span b{font-size:12px}.pftab span.me{border-color:var(--acc);background:var(--accbg);font-weight:700}
 /* schermata sempre larga quanto lo schermo: niente scorrimento laterale; testi e link lunghi vanno a capo */
 html{overflow-x:hidden;width:100%}body{overflow-x:hidden;position:relative;width:100%;max-width:100vw}main,header,nav,.tbarnav,#modal .sheet{max-width:100%;box-sizing:border-box}main{overflow-x:clip}
-h1,h2,h3,p,li,small,.vnote,.last,.hint,.mm,.meta,.sub,.role,.objtip,.figtag,.tip,.vlink,.vcap,.snote,.li .t,.wzrow .t{overflow-wrap:anywhere;min-width:0}
-img,video,canvas,svg,iframe,table{max-width:100%}.hero h2{overflow-wrap:anywhere}
+h2,h3,p,li,small,.vnote,.last,.hint,.mm,.meta,.sub,.role,.objtip,.figtag,.tip,.vlink,.vcap,.snote,.li .t,.wzrow .t{overflow-wrap:break-word}
+img,video,canvas,svg,iframe,table{max-width:100%}.hero h2,header h1{overflow-wrap:break-word;flex:1 1 auto}
 .sheet{overflow-x:hidden}.fig,.stage{max-width:100%}
