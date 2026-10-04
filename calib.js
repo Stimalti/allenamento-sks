@@ -884,7 +884,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => {
   const A = o => { if (EX.some(e => e.id === o.id)) return; EX.push(Object.assign({g: 'addome', a: 'Corpo libero', tipo: 'core', fin: ['tonificare'], presa: 'neu', lin: true, noanim: true}, o)); };
   A({id: 'a-side-bend-db', n: 'Side bend con manubrio', a: 'Manubri', eq: 'db', one: true, st: 'stand', noanim: false, fin: ['massa', 'tonificare'], m: 'Obliqui, quadrato dei lombi', mm: 'obliqui esterni e interni, quadrato dei lombi, trasverso dell’addome',
-    fr: [[4, 4, {t: 180, sb: -8}], [4, 4, {t: 180, sb: 26}]], az: 1.05, cap: ['In piedi, manubrio nella mano destra, busto dritto (anzi un filo verso l’altro lato)', 'Busto piegato di lato verso il manubrio: il fianco opposto si allunga'],
+    fr: [[4, 4, {t: 180, sb: -10}], [4, 4, {t: 180, sb: 30}]], az: 1.05, cap: ['In piedi, manubrio nella mano destra, busto dritto (anzi un filo verso l’altro lato)', 'Busto piegato di lato verso il manubrio, che scende lungo la coscia: il fianco opposto si allunga'],
     trj: 'Movimento laterale puro: il busto si inclina di lato verso il manubrio (il manubrio scende lungo la coscia) e poi torna dritto e un po’ oltre, verso il lato opposto. Niente rotazione, niente inclinazione in avanti.',
     set: 'Un manubrio in una mano, l’altra mano sul fianco o dietro la testa. In piedi, piedi alla larghezza delle anche.', pos: 'Busto dritto, spalle basse, sguardo avanti. Il bacino resta fermo e centrato.',
     ese: ['Lascia scendere il manubrio lungo la coscia inclinando il busto di lato.', 'Scendi finché senti allungare il fianco opposto, senza ruotare.', 'Risali contraendo il fianco libero e vai leggermente oltre la verticale.', 'Finisci la serie e cambia mano.'],

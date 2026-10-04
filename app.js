@@ -12,7 +12,7 @@ const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u03
 let DB = {cur: {}, hist: {}, mia: []};
 try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.cur && r.hist) DB = r; } catch (e) {}
 const CUST = ['g1', 'g2', 'g3', 'g4', 'gA', 'mia', 'dom'];
-function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {}; if (!Array.isArray(d.sess)) d.sess = []; if (!d.prof || typeof d.prof !== 'object') d.prof = {}; const P0 = d.prof; if (!['m', 'f'].includes(P0.sex)) P0.sex = ''; P0.kg = parseFloat(P0.kg) || 0; P0.h = parseFloat(P0.h) || 0; if (!['ecto', 'meso', 'endo'].includes(P0.tipo)) P0.tipo = ''; if (!['principiante', 'intermedio', 'avanzato'].includes(P0.lvl)) P0.lvl = 'principiante'; if (!['forza', 'massa', 'tonificare'].includes(P0.fin)) P0.fin = 'massa'; if (!Array.isArray(P0.mus)) P0.mus = []; if (!Array.isArray(P0.att)) P0.att = []; /* profilo: genere, peso corporeo, livello, obiettivo, muscoli e attrezzi preferiti */
+function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; if (!d.noatt || typeof d.noatt !== 'object') d.noatt = {Bilanciere: 1}; /* attrezzi NON disponibili (di base: niente bilanciere libero) */ if (!d.fav || typeof d.fav !== 'object') d.fav = {}; if (!d.seeds || typeof d.seeds !== 'object') d.seeds = {}; if (!Array.isArray(d.sess)) d.sess = []; if (!d.prof || typeof d.prof !== 'object') d.prof = {}; const P0 = d.prof; if (!['m', 'f'].includes(P0.sex)) P0.sex = ''; P0.kg = parseFloat(P0.kg) || 0; P0.h = parseFloat(P0.h) || 0; if (!['iso', 'dyn', ''].includes(P0.abp)) P0.abp = 'iso'; /* addome: preferenza tenute isometriche / in movimento / indifferente */ if (!['ecto', 'meso', 'endo'].includes(P0.tipo)) P0.tipo = ''; if (!['principiante', 'intermedio', 'avanzato'].includes(P0.lvl)) P0.lvl = 'principiante'; if (!['forza', 'massa', 'tonificare'].includes(P0.fin)) P0.fin = 'massa'; if (!Array.isArray(P0.mus)) P0.mus = []; if (!Array.isArray(P0.att)) P0.att = []; /* profilo: genere, peso corporeo, livello, obiettivo, muscoli e attrezzi preferiti */
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
@@ -76,6 +76,9 @@ const LVL = {principiante: 'Principiante', intermedio: 'Intermedio', avanzato: '
 const profOk = () => !!(DB.prof && DB.prof.done);
 const profMus = () => (DB.prof && DB.prof.mus || []).filter(g => GRUPPI[g]);
 const profAtt = () => (DB.prof && DB.prof.att || []).filter(a => ATT_AV().includes(a));
+const ABP = {iso: 'Tenute (isometria)', dyn: 'In movimento', '': 'Indifferente'};
+const abPref = () => (DB.prof && DB.prof.abp !== undefined) ? DB.prof.abp : 'iso';
+const abBonus = (e, pref, n) => e.g !== 'addome' ? 0 : (pref === 'iso' && e.isom) || (pref === 'dyn' && !e.isom) ? n : 0;   /* bonus secondo la preferenza addome */
 const profFin = () => (DB.prof && FIN[DB.prof.fin]) ? DB.prof.fin : 'massa';
 const TIPO = {ecto: 'Longilineo (ectomorfo)', meso: 'Atletico (mesomorfo)', endo: 'Robusto (endomorfo)'};
 const TIPO_D = {ecto: 'esile, polsi e caviglie sottili, spalle strette, fatica a mettere peso e muscolo', meso: 'spalle larghe e vita stretta, muscolo che cresce facilmente, struttura media', endo: 'ossatura larga, fianchi e tronco ampi, tende ad accumulare grasso con facilità'};
@@ -126,6 +129,8 @@ function profHtml(first) {
    <p class="vnote">Principiante: meno di 6 mesi di pesi con regolarità. Intermedio: 6 mesi - 2 anni. Avanzato: oltre.</p>
    <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, P.fin === k, v)).join('')}</div>
    <p class="vnote">${P.fin === 'forza' ? 'Forza: poche ripetizioni (3-5) pesanti, recuperi lunghi.' : P.fin === 'tonificare' ? 'Tonificare: 12-20 ripetizioni, recuperi brevi, tanti cavi.' : 'Massa: 6-12 ripetizioni, recuperi medi, carichi progressivi.'}</p>
+   <h3>Addome: come preferisci allenarlo</h3><div class="chips wrap">${Object.entries(ABP).map(([k, v]) => chip2('abp', k, abPref() === k, v)).join('')}</div>
+   <p class="vnote">${abPref() === 'iso' ? 'Tenute: plank e varianti, hollow, Pallof hold, L-sit… vengono proposte per prime; gli esercizi in movimento restano disponibili.' : abPref() === 'dyn' ? 'In movimento: crunch, sollevamenti gambe, rotazioni ai cavi vengono proposti per primi.' : 'Nessuna preferenza: tenute ed esercizi in movimento alla pari.'}</p>
    <h3>Attrezzi che preferisci</h3><div class="chips wrap">${chip2('att', '', !profAtt().length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, profAtt().includes(a), a === 'Panca' ? attLabel(a) : a)).join('')}</div>
    <p class="vnote">Gli esercizi con questi attrezzi vengono proposti per primi; gli altri restano disponibili. Quelli che non hai proprio li spegni in ⚙ Impostazioni → Attrezzi disponibili.</p>
    <h3>Muscoli su cui vuoi concentrarti</h3><div class="chips wrap">${chip2('mus', '', !profMus().length, 'Tutto il corpo')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, profMus().includes(k), v)).join('')}</div>
@@ -493,7 +498,7 @@ function evalDay(pid) {
 /* proposte concrete per un giorno: riordino, esercizi da togliere, sostituire o aggiungere (si applicano solo dopo conferma) */
 const TIER = e => e.g === 'addome' ? 5 : e.tipo === 'comp' ? (e.g === 'gambe' ? 0 : e.g === 'schiena' || e.g === 'petto' ? 1 : 2) : e.tipo === 'semi' ? 3 : e.tipo === 'iso' ? 4 : 5;   // addome sempre in coda
 const POST = /stacco|rdl|pull-?through|hip thrust|leg curl|kickback/i, KNEE = /squat|affond|bulgar|leg extension|split/i;
-const exScore = e => (DB.fav[e.id] ? 12 : 0) + (e.isom ? 10 : 0) + (profAtt().includes(e.a) ? 5 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
+const exScore = e => (DB.fav[e.id] ? 12 : 0) + abBonus(e, abPref(), 10) + (profAtt().includes(e.a) ? 5 : 0) + (e.prio ? 20 : 0) + (e.tipo === 'comp' ? 8 : 0) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
 const PROP = {pid: null, list: []};
 function proposeDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return [];
@@ -844,7 +849,7 @@ async function setLogo(file) {
 }
 applyLogo();
 /* ---------- proposta automatica di esercizi ---------- */
-const WZ = {step: 1, att: [], mus: [], fin: 'massa', lato: '', pid: null, keep: [], rejected: [], cur: [], extra: 0};   // extra = quante proposte in più chieste con “+”
+const WZ = {step: 1, att: [], mus: [], fin: 'massa', lato: '', pid: null, keep: [], rejected: [], cur: [], extra: 0, abp: 'iso'};   // extra = quante proposte in più chieste con “+”
 const WZ_MAX = 9;
 const ATT_ALL = () => [...new Set(EX.map(e => e.a))];
 const mkey = e => e.g + '|' + norm(e.m.split(',')[0].trim());
@@ -866,7 +871,7 @@ function wizPropose() {
   while (out.length < want && pool.length) {
     const sc = e => { let s = Math.random() * .6; if (out.length) { const last = out[out.length - 1]; if (station(e) === station(last)) s += 3; else if (e.a === last.a) s += 1.6; if (out.some(o => station(o) === station(e))) s += .8; }
       if (!covered.has(e.g) && WZ.mus.length > 1) s += 4; if (e.tipo === 'comp') s += .7;
-      if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; if (e.isom) s += 5; /* addome: preferite le tenute isometriche */ } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += out.filter(o => DB.fav[o.id]).length < Math.ceil(want / 2) ? 7 : 0; /* preferiti avvantaggiati ma al massimo metà della proposta: così vedi anche altri esercizi */ if (profAtt().length && profAtt().includes(e.a)) s += 3; return s; };
+      if (e.ab) { const nuove = e.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; s += nuove ? 6 + nuove : -4; if (!covAb.has('alta') && e.ab.includes('alta')) s += 1; s += abBonus(e, WZ.abp, 5); /* addome: preferenza tenute / movimento */ } /* addome: prima alta, bassa e obliqui, zone diverse tra loro */ if (e.due) s -= 2.5; if (e.unCavo) s += .6; if (wizPrio(e)) s += 100; if (wizPrioSp(e)) s += 50; if (DB.fav[e.id]) s += out.filter(o => DB.fav[o.id]).length < Math.ceil(want / 2) ? 7 : 0; /* preferiti avvantaggiati ma al massimo metà della proposta: così vedi anche altri esercizi */ if (profAtt().length && profAtt().includes(e.a)) s += 3; return s; };
     pool.sort((a, b) => sc(b) - sc(a)); const pick = pool.shift(); out.push(pick); covered.add(pick.g); (pick.ab || []).forEach(z => covAb.add(z)); pool = pool.filter(e => mkey(e) !== mkey(pick));
   }
   WZ.cur = out.map(e => e.id); return out;
@@ -883,13 +888,14 @@ function wizHtml() {
     <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
     <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
     <h3>Un braccio o due</h3><div class="chips wrap">${chip2('lato', '', !WZ.lato, 'Indifferente')}${Object.entries(LATO).map(([k, v]) => chip2('lato', k, WZ.lato === k, v)).join('')}</div>
+    ${!WZ.mus.length || WZ.mus.includes('addome') ? `<h3>Addome</h3><div class="chips wrap">${Object.entries(ABP).map(([k, v]) => chip2('abp', k, WZ.abp === k, v)).join('')}</div>` : ''}
     <p class="vnote">${wizPool().length} esercizi disponibili con questa scelta.</p>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzgo" ${wizPool().length ? '' : 'disabled'}>Proponi</button></div>`;
   const list = WZ.cur.map(id => byId[id]);
   const day = id => { const p = planOf(id); return p.nome + (p.sotto ? ' · ' + p.sotto : ''); };
   return `<h2 style="padding-right:44px">Proposta</h2>
     <p class="vnote">Spunta quelli che vuoi tenere. “Altra proposta” cambia solo quelli non spuntati; “＋” tiene tutti questi e ne propone un altro (fino a ${WZ_MAX}).</p>
-    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])}${e.ab ? ' · ' + esc(abTxt(e)) : ''} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}${startTxt(e, WZ.fin)}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
+    ${list.map(e => `<label class="wzrow ${WZ.keep.includes(e.id) ? 'on' : ''}"><input type="checkbox" data-act="wzkeep" data-id="${e.id}" ${WZ.keep.includes(e.id) ? 'checked' : ''}>${cov(e.id, 'thumb') || ''}<span class="t"><b>${esc(e.n)}</b><small>${DB.fav[e.id] ? '⭐ preferito · ' : wizPrio(e) ? '⭐ dai tuoi video (schiena ai cavi) · ' : wizPrioSp(e) ? '⭐ un cavo, due mani · ' : ''}${esc(GRUPPI[e.g])}${e.isom ? ' · ⏱ tenuta' : ''}${e.ab ? ' · ' + esc(abTxt(e)) : ''} · ${esc(station(e))}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${presOf(e, WZ.fin) ? ' · ' + presOf(e, WZ.fin).sr + ' × ' + presOf(e, WZ.fin).r : ''}${startTxt(e, WZ.fin)}</small></span><button class="ghost" data-act="open" data-id="${e.id}" style="padding:6px 10px">3D</button></label>`).join('')}
     <div class="sbar" style="padding:10px 0 4px"><button class="ghost" data-act="wzagain">🔄 Altra proposta</button><button class="ghost" data-act="wzmore" ${list.length >= WZ_MAX || !wizPool().filter(e => !list.some(o => mkey(o) === mkey(e))).length ? 'disabled' : ''} title="Tieni questi e proponi un altro esercizio">＋ Un altro esercizio</button><button class="ghost" data-act="wzback">← Cambia scelta</button></div>
     <h3>In quale giorno?</h3><div class="chips wrap">${CUST.map(id => `<button class="chip ${WZ.pid === id ? 'on' : ''}" data-act="wzday" data-id="${id}">${esc(day(id))}</button>`).join('')}</div>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wzadd" ${WZ.keep.length && WZ.pid ? '' : 'disabled'}>Aggiungi ${WZ.keep.length || ''} a ${WZ.pid ? esc(planOf(WZ.pid).nome) : '…'}</button></div>`;
@@ -903,7 +909,7 @@ const PRESETS = [
    seed: ['p-incl-db', 'b-row-barra-pro', 's-press-db', 'b-lat-larga', 'p-croci-alte-singolo', 's-laterali', 't-push-corda', 'c-curl-dietro']},
   {key: 'tonificare', fin: 'tonificare', n: '⚡ Tonificare', d: 'Soprattutto ai cavi, 12-15 ripetizioni e recuperi brevi.',
    seed: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
-const PS = {step: 1, att: null, mus: [], pid: null};   // step 1 attrezzi, 2 muscoli, 3 programmi; att null = non ancora chiesto; mus [] = corpo intero
+const PS = {step: 1, att: null, mus: [], pid: null, abp: 'iso'};   // step 1 attrezzi, 2 muscoli, 3 programmi; att null = non ancora chiesto; mus [] = corpo intero
 const PS_MAX = 8;   // esercizi per programma (9 con tante scelte)
 const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_AV();
 const PS_ALL = ['gambe', 'petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'addome'];
@@ -931,7 +937,7 @@ function presetBuild(P, atts, groups) {
   const pick = g => { const cand = (EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))).length ? EX.filter(c => ok(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))) : EX.filter(c => ok2(c) && c.g === g && !used.has(c.id) && !keys.has(mkey(c))));
     const sc = c => { let v = score(c);
       if (g === 'gambe') { const k = KNEE.test(c.n), p = POST.test(c.n); if (k && knee > post) v -= 12; if (p && post > knee) v -= 12; if (k && !knee) v += 5; if (p && !post && knee) v += 8; }   /* gambe: alterna quadricipiti e catena posteriore */
-      if (c.ab) { const nuove = c.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; v += nuove ? 8 + nuove : -6; if (!covAb.size && c.ab.includes('profonda')) v -= 3; if (c.isom) v += 10; }   /* addome: zone diverse (alta, bassa, obliqui) */
+      if (c.ab) { const nuove = c.ab.filter(z => !covAb.has(z) && z !== 'profonda').length; v += nuove ? 8 + nuove : -6; if (!covAb.size && c.ab.includes('profonda')) v -= 3; v += abBonus(c, PS.abp, 10); }   /* addome: zone diverse (alta, bassa, obliqui) */
       return v; };
     cand.sort((a, b) => sc(b) - sc(a)); const c = cand[0]; if (!c) return null;
     used.add(c.id); keys.add(mkey(c)); (c.ab || []).forEach(z => covAb.add(z)); if (g === 'gambe') { if (KNEE.test(c.n)) knee++; if (POST.test(c.n)) post++; }
@@ -956,6 +962,7 @@ function presetMusHtml(pid) {
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
    <p class="vnote">Attrezzi: <b>${esc(psAtt().length === ATT_AV().length ? 'tutti' : psAtt().join(', '))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Seconda domanda: <b>quali muscoli</b> vuoi allenare in questo programma? Puoi sceglierne uno o più (es. gambe + spalle): ti preparo un programma completo con massimo ${PS_MAX}-9 esercizi, e un esercizio per il core c’è sempre.</p>
    <div class="chips wrap"><button class="chip ${PS.mus.length ? '' : 'on'}" data-act="psmus" data-g=""${pid ? ` data-pid="${pid}"` : ''}>Corpo intero</button>${Object.entries(GRUPPI).map(([k, v]) => `<button class="chip ${PS.mus.includes(k) ? 'on' : ''}" data-act="psmus" data-g="${k}"${pid ? ` data-pid="${pid}"` : ''}>${esc(v)}</button>`).join('')}</div>
+   <h3>Addome</h3><div class="chips wrap">${Object.entries(ABP).map(([k, v]) => `<button class="chip ${PS.abp === k ? 'on' : ''}" data-act="psabp" data-v="${k}"${pid ? ` data-pid="${pid}"` : ''}>${esc(v)}</button>`).join('')}</div>
    <p class="vnote">${esc(psLabel().replace(/^./, c => c.toUpperCase()))}: ${n} esercizi → ${Object.entries(q).map(([g, k]) => k + ' ' + gName(g)).join(', ')}.${PS.mus.length && !PS.mus.includes('addome') ? ' L’addome è aggiunto come lavoro per il core.' : ''}</p>
    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psstep" data-s="3"${pid ? ` data-pid="${pid}"` : ''}>Avanti: i programmi →</button></div>`;
 }
@@ -980,7 +987,7 @@ function presetApply(key, pid) {
   if (rtList(pid).length) ask('Sostituire i ' + rtList(pid).length + ' esercizi di questo giorno con “' + name + '”? Pesi, note e storico degli esercizi restano salvati.', 'Sostituisci', run); else run();
 }
 
-function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; WZ.extra = 0; WZ.att = profAtt().slice(); WZ.mus = profMus().slice(); WZ.fin = profFin(); modal(wizHtml()); }
+function wizOpen(pid) { WZ.step = 1; WZ.pid = pid || WZ.pid; WZ.keep = []; WZ.rejected = []; WZ.cur = []; WZ.extra = 0; WZ.att = profAtt().slice(); WZ.mus = profMus().slice(); WZ.fin = profFin(); WZ.abp = abPref(); modal(wizHtml()); }
 function wizRender() { $('#mbody').innerHTML = wizHtml(); }
 function wizAdd() {
   const L = rtList(WZ.pid), added = [], removed = [];
@@ -1114,18 +1121,19 @@ document.addEventListener('click', e => {
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
   else if (a === 'profopen') modal(profHtml(!profOk()), !$('#modal').hidden);
-  else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'sex' || t === 'lvl' || t === 'fin' || t === 'tipo') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
+  else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'sex' || t === 'lvl' || t === 'fin' || t === 'tipo' || t === 'abp') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
   else if (a === 'pfsave') { profRead(); if (!DB.prof.sex) { flash('Scegli il genere'); return; } if (!DB.prof.kg) { flash('Scrivi il tuo peso corporeo'); $('#pfkg').focus(); return; } DB.prof.done = true; DB.prof.later = 0; save(); closeModal(); render(); flash('✓ Profilo salvato: proposte e pesi di partenza tengono conto di te'); }
   else if (a === 'pflater') { DB.prof.later = 1; save(); closeModal(); render(); }
   else if (a === 'usekg') { const c = curFor(b.dataset.k, 0); c.sets.forEach(st => { if (!num(st.kg)) st.kg = b.dataset.kg; }); DB.cur[b.dataset.k] = c; save(); render(true); flash('✓ ' + b.dataset.kg + ' kg inseriti nelle serie'); }
-  else if (a === 'presets') { PS.att = profAtt().length ? profAtt().slice() : null; PS.step = 1; PS.mus = profMus().slice(); modal(presetsHtml(b.dataset.pid)); }
+  else if (a === 'presets') { PS.att = profAtt().length ? profAtt().slice() : null; PS.step = 1; PS.mus = profMus().slice(); PS.abp = abPref(); modal(presetsHtml(b.dataset.pid)); }
   else if (a === 'psatt') { const all = ATT_AV(), cur = psAtt().slice(), t = b.dataset.a, i = cur.indexOf(t); if (i >= 0) { if (cur.length > 1) cur.splice(i, 1); } else cur.push(t); PS.att = cur.filter(x => all.includes(x)); $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
+  else if (a === 'psabp') { PS.abp = b.dataset.v; $('#mbody').innerHTML = presetMusHtml(b.dataset.pid); }
   else if (a === 'psmus') { const g = b.dataset.g; if (!g) PS.mus = []; else { const i = PS.mus.indexOf(g); if (i >= 0) PS.mus.splice(i, 1); else PS.mus.push(g); } $('#mbody').innerHTML = presetMusHtml(b.dataset.pid); }
   else if (a === 'psstep') { if (PS.att === null) PS.att = ATT_AV(); PS.step = +b.dataset.s; $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
   else if (a === 'preset') { if (b.dataset.pid) presetApply(b.dataset.key, b.dataset.pid); else modal(presetDayHtml(b.dataset.key)); }
   else if (a === 'sksreset') window.sksReset();
   else if (a === 'fav') { if (DB.fav[b.dataset.id]) delete DB.fav[b.dataset.id]; else DB.fav[b.dataset.id] = 1; save(); render(true); flash(DB.fav[b.dataset.id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
-  else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
+  else if (a === 'wzchip') { const t = b.dataset.t, v = b.dataset.v; if (t === 'fin') WZ.fin = v; else if (t === 'lato') WZ.lato = v; else if (t === 'abp') WZ.abp = v; else { const arr = WZ[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } wizRender(); }
   else if (a === 'wzgo') { WZ.step = 3; WZ.keep = []; WZ.rejected = []; WZ.extra = 0; wizPropose(); wizRender(); }
   else if (a === 'wzmore') { WZ.cur.forEach(id => { if (!WZ.keep.includes(id)) WZ.keep.push(id); }); WZ.extra = (WZ.extra || 0) + 1; wizPropose(); wizRender(); }
   else if (a === 'wznext') { WZ.step = 2; wizRender(); }

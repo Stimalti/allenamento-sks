@@ -197,7 +197,8 @@ const FIG3 = (() => {
     const H = [p.h[0], p.h[1] - p.lift], Pm2 = p.cu ? add(H, p.tl * .5, p.t + p.cu) : null, S = Pm2 ? add(Pm2, p.tl * .5, p.t) : add(H, p.tl, p.t), head = add(S, 22, p.t);
     const K = add(H, TH, p.th), A = add(K, SH, p.sh), foot = rig ? add(A, 25, p.sh + 90 + p.ft - 16) : add(A, 17, p.sh + 90 + p.ft);
     const sbr = (p.sb || 0) * R, SZ = Math.sin(sbr) * p.tl * .85; if (p.sb) { const dy = (1 - Math.cos(sbr)) * p.tl * .6; S[1] += dy; head[1] += dy; }   // flessione laterale: le spalle scendono e si spostano di lato
-    const twr = (p.tw || 0) * R, ZS = (p.zs || 0) + SZ, SN = [S[0] - ZN * Math.sin(twr), S[1], ZN * Math.cos(twr) + SZ], SF = [S[0] + ZN * Math.sin(twr), S[1], -ZN * Math.cos(twr) + SZ];   // spalle ruotate dalla torsione del busto
+    const dyn = Math.sin(sbr) * ZN * 1.15;   /* flessione laterale: la spalla del lato verso cui ci si piega scende, l'altra sale */
+    const twr = (p.tw || 0) * R, ZS = (p.zs || 0) + SZ, SN = [S[0] - ZN * Math.sin(twr), S[1] + dyn, ZN * Math.cos(twr) + SZ], SF = [S[0] + ZN * Math.sin(twr), S[1] - dyn, -ZN * Math.cos(twr) + SZ];   // spalle ruotate dalla torsione del busto
     let E = add(S, UA, p.ua), W = add(E, FA, p.fa);
     let grip = ex.hand ? add(add(E, FA * .84, p.fa), rig ? 6 : 14, p.fa + p.hd) : W;   // polso flesso: l'impugnatura sta poco oltre il polso, nella direzione della mano
     const GZ0 = ex.gz ?? (rig ? (ex.eq === 'bar' ? 40 : ex.eq === 'hb' ? 30 : 30) : (ex.eq === 'bar' ? 27 : 21)), GZ = ex.gz2 !== undefined && p.k !== undefined ? GZ0 + (ex.gz2 - GZ0) * p.k : GZ0, presses = ['lie', 'inc'].includes(ex.st) || (ex.st === 'seat' && p.ua > 120), latW = ex.lat ?? (presses ? 2.1 : 1.0);
@@ -208,9 +209,9 @@ const FIG3 = (() => {
     let E3n, W3n, E3f, W3f, g3n, g3f;
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
     else {
-      W3n = [W[0], W[1], GZ + ZS]; E3n = ik3(SN, W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1], GZ + ZS];
-      if (ex.one) { const Ef = add(S, UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
-      else { W3f = [W[0], W[1], -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1], -GZ + ZS]; }
+      W3n = [W[0], W[1] + dyn, GZ + ZS]; E3n = ik3(SN, W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1] + dyn, GZ + ZS];
+      if (ex.one) { const Ef = add([S[0], S[1] - dyn], UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
+      else { W3f = [W[0], W[1] - dyn, -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1] - dyn, -GZ + ZS]; }
     }
     benchPrims(P, ex);
     // gamba lontana
