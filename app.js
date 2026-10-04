@@ -576,7 +576,8 @@ function homeView() {
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana dalla prima registrata (${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
     <div class="barsw"><div class="bars" style="width:${Math.max(100, q.weeks.length * 46)}px">${q.weeks.map((w, i) => `<button class="bar" data-act="wk" data-w="${w.key}" aria-label="Settimana del ${fmtD(w.key)}"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === q.weeks.length - 1 ? 'ora' : fmtD(w.key)}</small></button>`).join('')}</div></div>
-    <p class="vnote" style="margin:0 0 8px">${q.weeks.length > 8 ? 'Scorri a sinistra per le settimane precedenti · ' : ''}tocca una settimana per vedere le sedute e gli esercizi fatti.</p>
+    ${(() => { const cur = q.weeks[q.weeks.length - 1], prev = q.weeks[q.weeks.length - 2]; const row = (w, lab) => { const e = weekEval(w.key); return `<button class="dayrow" data-act="wk" data-w="${w.key}"><span class="dn">${lab}</span><span class="t"><b>${e.icon} ${e.score !== null ? e.score + '/10 · ' + e.grade : e.grade}</b><small>${esc(e.notes[0])}${e.notes[2] ? ' ' + esc(e.notes[2]) : ''}</small></span><span class="chev">›</span></button>`; }; return row(cur, 'ora') + (prev ? row(prev, 'prec.') : ''); })()}
+    <p class="vnote" style="margin:0 0 8px">${q.weeks.length > 8 ? 'Scorri a sinistra per le settimane precedenti · ' : ''}tocca una settimana per sedute, esercizi fatti e valutazione.</p>
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 5) + '/5')}
@@ -587,6 +588,32 @@ function homeView() {
     ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? (e.skip ? `<span class="sc s10" style="background:var(--in);color:var(--mut)">${e.icon}</span>` : `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>`) : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
 }
 
+// valutazione di una singola settimana: costanza, serie completate, progressione e volume rispetto alla settimana prima
+function weekEval(key) {
+  const end = weekKey(key, 1), inW = d => d >= key && d < end, prevKey = weekKey(key, -1), inP = d => d >= prevKey && d < key;
+  const sess = allSess().filter(x => inW(x.d)), planned = plannedDays().length || 1, n = sess.length;
+  const cost = Math.min(1, n / planned);
+  const withSt = sess.filter(x => x.st), compl = withSt.length ? withSt.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / withSt.length : null;
+  const mx = e => Math.max(0, ...e.sets.map(z => num(z.kg))), rp = e => Math.max(0, ...e.sets.map(z => num(z.reps))), vol = e => e.sets.reduce((t, z) => t + num(z.kg) * num(z.reps), 0);
+  let imp = 0, cmp = 0, v = 0, vp = 0, nex = 0; const better = [];
+  Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id] || !h) return;
+    h.forEach(e => { if (inW(e.d)) v += vol(e); else if (inP(e.d)) vp += vol(e); });
+    const cur = h.filter(e => inW(e.d)); if (!cur.length) return; nex++;
+    const last = cur[cur.length - 1], prev = h.filter(e => e.d < key).slice(-1)[0]; if (!prev) return; cmp++;
+    if (mx(last) > mx(prev) || (mx(last) === mx(prev) && rp(last) > rp(prev)) || vol(last) > vol(prev)) { imp++; better.push(byId[id].n.split(' (')[0]); } });
+  const prog = cmp ? imp / cmp : null;
+  if (!n) return {n, planned, cost: 0, compl, prog, vol: v, volPrev: vp, score: null, grade: 'riposo', icon: '💤', notes: ['Nessuna seduta in questa settimana.'], better, nex};
+  let score = cost * 4 + (compl === null ? 1.6 : compl * 2) + (prog === null ? 1.5 : prog * 3) + (vp ? (v >= vp * .95 ? 1 : .4) : .7);
+  score = Math.max(1, Math.min(10, Math.round(score)));
+  const notes = [];
+  notes.push(n >= planned ? `Tutte le ${planned} sedute programmate fatte${n > planned ? ' (anche una in più)' : ''}.` : `${n} sedute su ${planned} programmate.`);
+  if (compl !== null) notes.push(compl >= .9 ? 'Serie completate quasi tutte.' : compl >= .7 ? `Serie completate: ${Math.round(compl * 100)}%.` : `Solo il ${Math.round(compl * 100)}% delle serie completate: scheda troppo lunga o poco tempo.`);
+  if (prog !== null) notes.push(prog >= .5 ? `Progressi su ${imp} esercizi su ${cmp} (${better.slice(0, 3).join(', ')}${better.length > 3 ? '…' : ''}).` : imp ? `Progressi su ${imp} esercizi su ${cmp}.` : 'Nessun esercizio migliorato rispetto alla volta prima: prova +2,5 kg dove chiudi tutte le ripetizioni.');
+  else notes.push('Prima volta per questi esercizi: dalla prossima settimana si misura la progressione.');
+  if (vp) notes.push(v >= vp * 1.05 ? `Volume totale in crescita (+${Math.round((v / vp - 1) * 100)}% rispetto alla settimana prima).` : v >= vp * .95 ? 'Volume totale stabile.' : `Volume totale in calo (${Math.round((1 - v / vp) * 100)}% in meno della settimana prima).`);
+  const grade = score >= 9 ? 'ottima' : score >= 7 ? 'buona' : score >= 5 ? 'così così' : 'da rivedere', icon = score >= 9 ? '🏆' : score >= 7 ? '👍' : score >= 5 ? '🛠' : '⚠️';
+  return {n, planned, cost, compl, prog, vol: v, volPrev: vp, score, grade, icon, notes, better, nex, imp, cmp};
+}
 function weekDetHtml(key) {
   const q = quality(), idx = q.weeks.findIndex(w => w.key === key), sess = allSess().filter(x => mondayOf(x.d) === key), end = weekKey(key, 1);
   const days = {}; sess.forEach(x => { (days[x.d] = days[x.d] || []).push(x); });
@@ -596,6 +623,9 @@ function weekDetHtml(key) {
   return `<h2 style="padding-right:44px">Settimana ${fmtD(key)} – ${fmtD(endD)}</h2>
    <div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="wk" data-w="${weekKey(key, -1)}"${idx <= 0 ? ' disabled' : ''}>← Precedente</button><button class="ghost" data-act="wk" data-w="${weekKey(key, 1)}"${idx >= q.weeks.length - 1 || idx < 0 ? ' disabled' : ''}>Successiva →</button></div>
    <div class="stats dark" style="margin:0 0 12px"><div class="stat"><b>${n}</b><span>sedute</span></div><div class="stat"><b>${planned}</b><span>programmate</span></div><div class="stat"><b>${sess.reduce((t, x) => t + (x.sd || 0), 0)}</b><span>serie fatte</span></div></div>
+   ${(() => { const w = weekEval(key); return `<div class="card" style="padding:12px 14px"><h3 style="margin:0 0 6px;font-size:18px">${w.icon} Valutazione settimana${w.score !== null ? `: ${w.score}/10, ${w.grade}` : ': ' + w.grade}</h3>
+     ${w.n ? qbar('Costanza', w.cost, w.n + '/' + w.planned) + qbar('Serie completate', w.compl, w.compl === null ? '–' : Math.round(w.compl * 100) + '%') + qbar('Progressione', w.prog, w.prog === null ? '–' : w.imp + '/' + w.cmp) + qbar('Volume', w.volPrev ? Math.min(1, w.vol / w.volPrev / 1.2) : (w.vol ? .6 : 0), Math.round(w.vol) + ' kg') : ''}
+     <ul class="evl ${w.score === null ? '' : w.score >= 7 ? 'ok' : 'no'}" style="margin-top:6px">${w.notes.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`; })()}
    ${n ? Object.keys(days).sort().map(d => `<div class="card" style="padding:10px 12px"><h3 style="margin:0 0 4px;font-size:17px">${esc(fmtLong(d))}</h3>${days[d].map(x => `<p class="vnote" style="margin:0 0 6px">${esc(x.name)}${x.tot ? ` · ${x.n}/${x.tot} esercizi` : ` · ${x.n} esercizi`}${x.st ? ` · ${x.sd}/${x.st} serie` : ''}</p>`).join('')}
      <table class="wkt">${exOn(d).map(({ex, e}) => `<tr><td>${esc(ex.n)}</td><td>${e.sets.map(s => `${esc(s.kg || '–')}×${esc(s.reps || '–')}`).join(' · ')}</td></tr>`).join('')}</table></div>`).join('') : '<p class="vnote">Nessuna seduta salvata in questa settimana.</p>'}`;
 }
