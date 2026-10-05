@@ -1174,3 +1174,18 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   set('b-row-jammer', [[20, 20, {t: 135}], [-92, -14, {t: 135}]]);
   set('b-row-busto-cavi', [[42, 44, {t: 135}], [-92, -12, {t: 135}]]);
 })();
+
+/* ===== seconda taratura dall'analisi MediaPipe su tutti i video: gomiti non più "chiusi a libro" nelle estensioni e nelle trazioni, step-up con tibia verticale ===== */
+(() => {
+  const set = (id, o) => { const e = EX.find(x => x.id === id); if (e) Object.assign(e, o); };
+  set('t-over-db', {fr: [[172, 30, {}], [178, 170, {}]], cap: ['Manubrio dietro la testa, gomiti in alto piegati a circa 90°', 'Braccia distese sopra la testa']});
+  set('t-overhead-corda', {fr: [[165, 32, {t: 172}], [168, 172, {t: 172}]]});
+  set('p-press-cavi', {fr: [[-30, 70, {t: 170}], [88, 90, {t: 170}]]});
+  set('c-curl-db', {fr: [[5, 5], [8, 140]]});
+  const top = {h: [158, 100], t: 180, th: 22, sh: -88};
+  ['b-trazioni-stretta', 'b-trazioni-neutra', 'b-trazioni-elastico', 'c-chinup'].forEach(id => set(id, {fr: [[180, 180, {t: 180, th: 22, sh: -88}], [25, 170, top]]}));
+  set('b-trazioni-larga', {fr: [[180, 180, {t: 180, th: 22, sh: -88}], [40, 160, {h: [156, 102], t: 180, th: 22, sh: -88}]]});
+  set('b-trazioni-negative', {fr: [[25, 170, top], [180, 180, {t: 180, th: 22, sh: -88}]]});
+  ['g-stepup-db', 'cl-stepup'].forEach(id => set(id, {fr: [[0, 0, {t: 178, h: [150, 118], th: 92, sh: 2}], [0, 0, {t: 178, h: [150, 118], th: 2, sh: 0}]]}));
+  set('s-laterali', {fr: [[12, 27, {}], [90, 104, {}]]});
+})();
