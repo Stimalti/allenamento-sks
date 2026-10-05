@@ -1157,3 +1157,20 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   set('a-mountain', {fr: [[0, 0, {h: [150, 150], t: 92, th: -42, sh: -42}], [0, 0, {h: [150, 150], t: 92, th: 45, sh: -32}]]});
   set('a-leg-raise-terra', {fr: [[90, 90, {h: [150, 197], t: 270, th: 100, sh: 100}], [90, 90, {h: [150, 197], t: 270, th: 186, sh: 186}]]});
 })();
+
+/* ===== rematori a un braccio: il manubrio/maniglia parte sotto la spalla e sale verso il fianco con il gomito che supera la linea della schiena (prima scorreva in orizzontale all'altezza del ginocchio) ===== */
+(() => {
+  const set = (id, fr) => { const e = EX.find(x => x.id === id); if (e) { e.fr = fr; e.lin = false; } };   /* niente linearizzazione: il gomito deve salire sopra la schiena, non restare basso */
+  set('b-row-db', [[2, 2, {t: 112}], [-100, -12, {t: 112}]]);
+  set('b-row-singolo', [[22, 24, {t: 128}], [-96, -10, {t: 128}]]);
+  set('j-row-singolo', [[12, 12, {t: 135}], [-95, -12, {t: 135}]]);
+  const e = EX.find(x => x.id === 'b-row-db'); if (e) e.cap = ['Busto inclinato, manubrio che pende sotto la spalla', 'Gomito in alto oltre la schiena, manubrio al fianco'];
+})();
+(() => {   /* rematori a due braccia (bilanciere, manubri, jammer, cavi a busto inclinato, Smith): gomiti indietro e sopra la linea della schiena, bilanciere al basso addome */
+  const set = (id, fr, lin) => { const e = EX.find(x => x.id === id); if (e) { e.fr = fr; e.lin = !!lin; } };
+  set('b-row-db2', [[2, 2, {t: 115, th: 14, sh: -6}], [-98, -14, {t: 115, th: 14, sh: -6}]]);
+  set('b-row-db-panca', [[2, 2, {t: 115, th: 14, sh: -6}], [-98, -14, {t: 115, th: 14, sh: -6}]]);
+  set('b-row-bar', [[2, 2, {t: 115, th: 14, sh: -6}], [-96, -12, {t: 115, th: 14, sh: -6}]]);
+  set('b-row-jammer', [[20, 20, {t: 135}], [-92, -14, {t: 135}]]);
+  set('b-row-busto-cavi', [[42, 44, {t: 135}], [-92, -12, {t: 135}]]);
+})();
