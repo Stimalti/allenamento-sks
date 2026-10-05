@@ -16,6 +16,8 @@ function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; i
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+  if (!d.seeds.drv1 && typeof DRIVEV !== 'undefined') { /* video 3D dalla libreria Drive: primo "mio video" di ogni esercizio (una volta sola) */
+    d.seeds.drv1 = 1; Object.entries(DRIVEV).forEach(([id, list]) => { const L = d.myv[id] = Array.isArray(d.myv[id]) ? d.myv[id] : []; list.slice().reverse().forEach(([vid, lab]) => { const k = 'drv:' + vid; if (!L.some(x => x.k === k)) L.unshift({t: 'u', k, u: 'https://drive.google.com/file/d/' + vid + '/view', n: '🎬 Video 3D · ' + lab}); }); }); }
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }

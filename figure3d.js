@@ -554,7 +554,7 @@ const FIG3 = (() => {
       else { const ph = ((t - o.t0) / 1000) % 4.6; k = ph < .5 ? 0 : ph < 1.9 ? (ph - .5) / 1.4 : ph < 2.4 ? 1 : 1 - (ph - 2.4) / 2.2; k = k*k*(3-2*k); }
       if (k !== lastK) {
         if (lastK >= 0 && Math.abs(k - lastK) > .25) { ikReset(); o.lastUa = undefined; }   // salto (pulsanti Partenza/Arrivo): si riparte da una soluzione pulita
-        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); prims.forEach((pr, i) => place(i, pr));
+        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); o.J = prims.J; prims.forEach((pr, i) => place(i, pr));
         if (rigInst && prims.J) {
           rigInst.pose(prims.J);
           if (o.intro === undefined && !window.FIG3_ICON) { const F = focusOf(musOf(ex), prims.J); o.intro = F ? {p: [F.x, F.y], t: performance.now()} : null; }
