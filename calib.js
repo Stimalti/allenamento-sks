@@ -1189,3 +1189,6 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   ['g-stepup-db', 'cl-stepup'].forEach(id => set(id, {fr: [[0, 0, {t: 178, h: [150, 118], th: 92, sh: 2}], [0, 0, {t: 178, h: [150, 118], th: 2, sh: 0}]]}));
   set('s-laterali', {fr: [[12, 27, {}], [90, 104, {}]]});
 })();
+
+/* ===== rematore alla Smith: gomiti indietro (la linearizzazione + vincolo barra verticale li piegava in avanti) ===== */
+(() => { const e = EX.find(x => x.id === 'sm-row'); if (e) Object.assign(e, {lin: false, vbar: false, fr: [[2, 2, {t: 118, th: 14, sh: -6}], [-96, -12, {t: 118, th: 14, sh: -6}]], cap: ['Busto inclinato, barra appesa a braccia distese sotto le spalle', 'Gomiti indietro e in alto oltre la schiena, barra al basso addome']}); })();
