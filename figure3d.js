@@ -260,8 +260,8 @@ const FIG3 = (() => {
       const gw = Math.max(GZ, rig ? 40 : 27); P.push(cyl(pt3(grip, -gw - 26), pt3(grip, gw + 26), 2.4, STEEL));
       [[-gw - 24, -gw - 17], [gw + 17, gw + 24]].forEach(([z0, z1]) => { P.push(cyl(pt3(grip, z0), pt3(grip, z1), 12.5, BLK), cyl(pt3(grip, z0 - .3), pt3(grip, z1 + .3), 4.5, '#5b6580')); });
       if (ex.sm) { // Smith machine: due binari verticali, la barra scorre su carrelli
-        const rx = grip[0], zs = [-gw - 34, gw + 34];
-        zs.forEach(z => { P.push(cyl(pt3([rx, FLOOR], z), pt3([rx, FLOOR - 285], z), 3.4, TW), cyl(pt3([rx - 7, FLOOR], z), pt3([rx + 7, FLOOR], z), 5, BLK), cyl(pt3(grip, z > 0 ? gw + 26 : -gw - 26), pt3(grip, z), 3, TW), cyl(pt3([rx, grip[1] - 7], z), pt3([rx, grip[1] + 7], z), 6, BLK)); });
+        const rx = ex._rx !== undefined ? ex._rx : grip[0], zs = [-gw - 34, gw + 34];   /* binari fermi: posizione fissata all'avvio dell'esercizio, non seguono la barra */
+        zs.forEach(z => { P.push(cyl(pt3([rx, FLOOR], z), pt3([rx, FLOOR - 285], z), 3.4, TW), cyl(pt3([rx - 7, FLOOR], z), pt3([rx + 7, FLOOR], z), 5, BLK), cyl(pt3(grip, z > 0 ? gw + 26 : -gw - 26), pt3([rx, grip[1]], z), 3, TW), cyl(pt3([rx, grip[1] - 7], z), pt3([rx, grip[1] + 7], z), 6, BLK)); });
         P.push(cyl(pt3([rx, FLOOR - 285], zs[0]), pt3([rx, FLOOR - 285], zs[1]), 3.4, TW));
       }
     } else if (ex.eq === 'db') {
@@ -586,6 +586,11 @@ const FIG3 = (() => {
       if (typeof RIG !== 'undefined' && THREE.GLTFLoader) { try { rigInst = await RIG.create({plain: true}); } catch (e) { rigInst = null; } }
       if (o.dead) { if (rigInst) rigInst.dispose(); return; }
       rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])]; if (ex.lin) o.lw = pose.map(handOf);
+      if (ex.sm) {   /* Smith: posizione dei binari = media della barra a inizio e fine movimento, calcolata una volta */
+        ex._rx = undefined;
+        const xs = [1, 0].map(k => { const pp = lerp(pose[0], pose[1], k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k); const pr = geo(ex, pp, !!rigInst); return pr && pr.gp ? pr.gp[0] : null; }).filter(x => x !== null);
+        ikReset(); o.lastUa = undefined; if (xs.length) ex._rx = (xs[0] + xs[xs.length - 1]) / 2;
+      }
       buildTrail();
       if (rigInst) { scene.add(rigInst.root); rigInst.meshes.forEach(m => { m.castShadow = true; }); o.rig = rigInst; }
       o.raf = requestAnimationFrame(frame);

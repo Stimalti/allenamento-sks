@@ -1191,4 +1191,13 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 })();
 
 /* ===== rematore alla Smith: gomiti indietro (la linearizzazione + vincolo barra verticale li piegava in avanti) ===== */
-(() => { const e = EX.find(x => x.id === 'sm-row'); if (e) Object.assign(e, {lin: false, vbar: false, fr: [[2, 2, {t: 118, th: 14, sh: -6}], [-96, -12, {t: 118, th: 14, sh: -6}]], cap: ['Busto inclinato, barra appesa a braccia distese sotto le spalle', 'Gomiti indietro e in alto oltre la schiena, barra al basso addome']}); })();
+(() => { const e = EX.find(x => x.id === 'sm-row'); if (e) Object.assign(e, {lin: true, vbar: false, fr: [[-45, -30, {t: 118, th: 14, sh: -6}], [-96, -12, {t: 118, th: 14, sh: -6}]],   /* traiettoria della barra verticale (binari fermi), gomito sempre dietro */ cap: ['Busto inclinato, barra appesa a braccia distese sotto le spalle', 'Gomiti indietro e in alto oltre la schiena, barra al basso addome']}); })();
+
+/* ===== Smith machine: barra che sale e scende solo in verticale (i binari restano fermi) ===== */
+(() => {
+  const set = (id, o) => { const e = EX.find(x => x.id === id); if (e) Object.assign(e, o); };
+  set('sm-bulgaro', {vbar: true});
+  set('sm-good-morning', {vbar: false, lin: false, fr: [[-70, 118, {t: 178}], [-70, 118, {t: 130, h: [128, 122], th: 62, sh: -6}]], cap: ['Barra sul trapezio, in piedi', 'Anche indietro e busto inclinato: la barra scende in verticale lungo i binari']});
+  set('sm-hip-thrust', {fr: [[56, 56, {h: [180, 200], t: 236, th: 122, sh: 5}], [86, 86, {h: [180, 170], t: 272, th: 98, sh: 3}]]});
+  set('sm-row-inverso', {fr: [[150, 150, {h: [150, 180], t: 245, th: 75, sh: 75}], [90, 170, {h: [150, 166], t: 237, th: 67, sh: 67}]], cap: ['Appeso sotto la barra a braccia tese, talloni a terra', 'Petto alla barra: il corpo ruota sui talloni, la barra resta ferma']});
+})();
