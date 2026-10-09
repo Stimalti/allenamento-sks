@@ -47,6 +47,74 @@ async function initCloud() {
     if ((DB.ts || 0) > 0 && !snap.exists) pushCloud();
   } catch (e) {}
 }
+/* ---------- account online con Supabase: ogni persona accede con email e password, i dati sono salvati per persona ---------- */
+const SB = {cfg: window.SKS_CLOUD || {}, client: null, user: null, msg: '', last: 0, ready: false};
+const sbOn = () => !window.claude && !!(SB.cfg.url && SB.cfg.key);
+const SB_LIB = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js';
+const freshDB = () => fixDB({cur: {}, hist: {}, rt: {}, names: {}, myv: {}, hiddenRef: {}, notes: {}, fav: {}, seeds: {}, noatt: {Bilanciere: 1}, sess: [], v: 3});
+const hasData = d => !!(d && (Object.keys(d.hist || {}).length || (d.sess || []).length));
+function sbLoad() { return new Promise((res, rej) => { if (window.supabase && window.supabase.createClient) return res(); const sc = document.createElement('script'); sc.src = SB_LIB; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); }); }
+function sbErr(e) { const m = String((e && (e.message || e.error_description)) || e || ''); return /invalid login/i.test(m) ? 'Email o password sbagliate.' : /already registered|already been registered/i.test(m) ? 'Esiste già un account con questa email: tocca “Accedi”.' : /at least 6|password should be/i.test(m) ? 'La password deve avere almeno 6 caratteri.' : /email not confirmed/i.test(m) ? 'Devi prima confermare l’email: apri il link che ti è arrivato, poi tocca “Accedi”.' : /valid email|invalid email/i.test(m) ? 'Controlla l’indirizzo email.' : /fetch|network|failed to/i.test(m) ? 'Connessione assente: riprova quando sei online.' : /rate limit|too many/i.test(m) ? 'Troppi tentativi: aspetta qualche minuto.' : m || 'Errore sconosciuto.'; }
+const sbSet = d => { DB = d; try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} };
+async function sbFetch() { const {data, error} = await SB.client.from('allenamento').select('data').eq('user_id', SB.user.id).maybeSingle(); if (error) throw error; const r = data && data.data; return r && r.cur && r.hist ? r : null; }
+async function sbPush() { if (!SB.client || !SB.user) return; DB.owner = SB.user.id; const {error} = await SB.client.from('allenamento').upsert({user_id: SB.user.id, data: DB, updated_at: new Date().toISOString()}); if (error) throw error; SB.last = Date.now(); }
+function sbAfter() { remote = {set: () => sbPush()}; applyLogo(); closeModal(); render(true); if (!profOk() && !DB.prof.later) setTimeout(() => { if ($('#modal').hidden) modal(profHtml(true)); }, 300); }
+async function sbAttach(user) {
+  SB.user = user; const r = await sbFetch();
+  if (DB.owner && DB.owner !== user.id) sbSet(r ? fixDB(r) : freshDB());   /* dati di un'altra persona rimasti sul telefono: non si mescolano */
+  else if (!DB.owner && r && hasData(DB) && JSON.stringify(r.hist) !== JSON.stringify(DB.hist)) {   /* primo accesso con dati sia sul telefono sia online: decide la persona */
+    modal(`<h2 style="padding-right:44px">☁️ Quali dati vuoi tenere?</h2><p class="vnote">Su questo telefono ci sono già degli allenamenti, e anche il tuo account online ne ha. Scegli quali tenere: gli altri verranno sostituiti.</p>
+     <div class="sbar" style="flex-direction:column;align-items:stretch;gap:8px"><button class="primary" data-act="sbkeep" data-w="remote">Quelli online (${(r.sess || []).length} sedute, ${Object.keys(r.hist || {}).length} esercizi)</button><button class="ghost" data-act="sbkeep" data-w="local">Quelli di questo telefono (${(DB.sess || []).length} sedute, ${Object.keys(DB.hist || {}).length} esercizi)</button></div>`);
+    SB.pending = r; return;
+  }
+  else if (r && ((r.ts || 0) > (DB.ts || 0) || !hasData(DB))) sbSet(fixDB(r));
+  DB.owner = user.id; sbSet(DB);
+  if (!r || (DB.ts || 0) > (r.ts || 0)) await sbPush(); else SB.last = Date.now();
+  sbAfter();
+}
+async function sbPull() { if (!SB.user) return; try { const r = await sbFetch(); if (r && (r.ts || 0) > (DB.ts || 0)) { sbSet(fixDB(r)); DB.owner = SB.user.id; applyLogo(); if ($('#modal').hidden) render(true); } SB.last = Date.now(); } catch (e) {} }
+async function sbInit() {
+  if (!sbOn()) return;
+  try {
+    await sbLoad();
+    SB.client = supabase.createClient(SB.cfg.url, SB.cfg.key, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'sks_sb_auth'}});
+    SB.client.auth.onAuthStateChange((ev, session) => { if (ev === 'PASSWORD_RECOVERY') setTimeout(() => modal(sbNewPassHtml()), 200); if (ev === 'SIGNED_OUT') { SB.user = null; remote = null; } });
+    const {data} = await SB.client.auth.getSession();
+    SB.ready = true; if (!(data && data.session)) render(true);
+    if (data && data.session) await sbAttach(data.session.user);
+    else if (!DB.sbSkip && !TR.on) modal(sbHtml(true));
+    else if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true));
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sbPull(); });
+    window.addEventListener('online', () => { if (SB.user) sbPush().catch(() => {}); });
+  } catch (e) { SB.msg = 'Servizio online non raggiungibile: per ora i dati restano su questo telefono.'; if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true)); }
+}
+function sbHtml(first) {
+  const u = SB.user;
+  if (u) return `<h2 style="padding-right:44px">☁️ Account online</h2><p class="vnote">Accesso fatto come <b>${esc(u.email)}</b>. I tuoi dati si salvano online a ogni modifica: li ritrovi su qualsiasi telefono o computer accedendo con la stessa email e password.${SB.last ? ' Ultimo salvataggio online alle ' + new Date(SB.last).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}) + '.' : ''}</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="ghost" data-act="sbsync">🔄 Sincronizza ora</button><button class="ghost danger" data-act="sblogout">Esci (cambia persona)</button></div>
+   <p class="vnote">Uscendo, i tuoi dati restano salvati online e vengono tolti da questo telefono, così può accedere un’altra persona.</p>`;
+  return `<h2 style="padding-right:44px">☁️ ${first ? 'Benvenuto! Accedi per salvare i tuoi dati' : 'Account online'}</h2>
+   <p class="vnote">Ogni persona ha il suo account: schede, pesi e storico vengono salvati online e li ritrovi su qualsiasi telefono o computer. Se più persone usano lo stesso telefono, una esce e l’altra accede.</p>
+   <div class="sbf"><input id="sbemail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Email"><input id="sbpass" type="password" autocomplete="current-password" placeholder="Password (almeno 6 caratteri)"></div>
+   <p class="vnote sbmsg" id="sbmsg">${esc(SB.msg || '')}</p>
+   <div class="sbar" style="padding:4px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="sblogin">Accedi</button><button class="ghost" data-act="sbsignup">Crea account</button></div>
+   <p style="margin:12px 0 0"><button class="tlink" data-act="sbreset">Password dimenticata?</button>${first ? `<br><button class="tlink" data-act="sbskip" style="margin-top:8px">Continua senza account (i dati restano solo su questo telefono)</button>` : ''}</p>`;
+}
+const sbNewPassHtml = () => `<h2 style="padding-right:44px">🔑 Nuova password</h2><p class="vnote">Scegli la nuova password per il tuo account.</p><div class="sbf"><input id="sbnewpass" type="password" autocomplete="new-password" placeholder="Nuova password (almeno 6 caratteri)"></div><p class="vnote sbmsg" id="sbmsg"></p><div class="sbar"><button class="primary" style="width:auto;padding:11px 20px" data-act="sbnewpass">Salva password</button></div>`;
+const sbMsg = t => { SB.msg = t; const m = $('#sbmsg'); if (m) m.textContent = t; };
+const sbCred = () => ({email: (($('#sbemail') || {}).value || '').trim(), password: ($('#sbpass') || {}).value || ''});
+async function sbAct(a, b) {
+  if (!SB.client) { sbMsg('Servizio online non raggiungibile: riprova quando sei online.'); return; }
+  try {
+    if (a === 'sblogin') { const c = sbCred(); if (!c.email || !c.password) return sbMsg('Scrivi email e password.'); sbMsg('Accesso in corso…'); const {data, error} = await SB.client.auth.signInWithPassword(c); if (error) throw error; SB.msg = ''; await sbAttach(data.user); flash('✓ Accesso fatto: i dati si salvano online'); }
+    else if (a === 'sbsignup') { const c = sbCred(); if (!c.email || c.password.length < 6) return sbMsg('Scrivi la tua email e una password di almeno 6 caratteri.'); sbMsg('Creo l’account…'); const {data, error} = await SB.client.auth.signUp({...c, options: {emailRedirectTo: location.origin + location.pathname}}); if (error) throw error; if (data.session) { SB.msg = ''; await sbAttach(data.user); flash('✓ Account creato'); } else sbMsg('Account creato. Ti ho mandato una email: apri il link di conferma, poi torna qui e tocca “Accedi”.'); }
+    else if (a === 'sbreset') { const c = sbCred(); if (!c.email) return sbMsg('Scrivi prima la tua email, poi tocca di nuovo “Password dimenticata?”.'); const {error} = await SB.client.auth.resetPasswordForEmail(c.email, {redirectTo: location.origin + location.pathname}); if (error) throw error; sbMsg('Ti ho mandato una email con il link per scegliere una nuova password.'); }
+    else if (a === 'sbnewpass') { const p = ($('#sbnewpass') || {}).value || ''; if (p.length < 6) return sbMsg('Almeno 6 caratteri.'); const {data, error} = await SB.client.auth.updateUser({password: p}); if (error) throw error; closeModal(); flash('✓ Password cambiata'); if (data && data.user && !SB.user) await sbAttach(data.user); }
+    else if (a === 'sbkeep') { const r = SB.pending; SB.pending = null; if (b.dataset.w === 'remote' && r) sbSet(fixDB(r)); DB.owner = SB.user.id; sbSet(DB); await sbPush(); sbAfter(); flash('✓ Dati sincronizzati'); }
+    else if (a === 'sbsync') { await sbPush(); await sbPull(); $('#mbody').innerHTML = sbHtml(false); flash('✓ Sincronizzato'); }
+    else if (a === 'sblogout') ask('Uscire dall’account? I tuoi dati restano salvati online e vengono tolti da questo telefono.', 'Esci', async () => { try { await sbPush(); } catch (e) { flash('⚠ Non riesco a salvare online: resta collegato e riprova'); return; } await SB.client.auth.signOut(); SB.user = null; remote = null; sbSet(freshDB()); DB.sbSkip = 0; try { localStorage.removeItem('sks_train'); } catch (e) {} TR.on = false; applyLogo(); go('home'); setTimeout(() => modal(sbHtml(true)), 200); });
+  } catch (e) { sbMsg(sbErr(e)); }
+}
 function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => s.classList.remove('on'), 2200); }
 
 const FIN = {forza: 'Forza', massa: 'Massa', tonificare: 'Tonificare'};
@@ -667,6 +735,7 @@ function homeView() {
    ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${p.ex.length} esercizi · ${tot} serie · ~${Math.round(mins / 600) * 10} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${rtList(dayPid(next)).length} esercizi).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
+   ${sbOn() && SB.ready && !SB.user ? `<div class="card prof"><h2 class="ht">☁️ Salva i tuoi dati online</h2><p class="vnote" style="margin:0 0 8px">Accedi con email e password: i tuoi allenamenti restano salvati anche se cambi telefono, e ogni persona ha i suoi.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="sbopen">Accedi o crea un account</button></div></div>` : ''}
    ${profOk() ? `<div class="card prof"><h2 class="ht">👤 Il mio profilo</h2><p class="vnote" style="margin:0 0 8px">${esc(profTxt())}.</p>${DB.prof.h ? `<p class="vnote" style="margin:0 0 8px">⚖️ ${pfTxt()}</p>` : ''}<div class="sbar" style="padding:0"><button class="ghost" data-act="profopen">✏️ Modifica profilo</button></div></div>` : `<div class="card prof"><h2 class="ht">👤 Completa il profilo</h2><p class="vnote" style="margin:0 0 8px">Genere, peso, livello, obiettivo, attrezzi e muscoli preferiti: così proposte, programmi e consigli sono fatti per te e ogni esercizio ha un peso di partenza.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="profopen">Compila il profilo</button></div></div>`}
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana dalla prima registrata (${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
     <div class="barsw"><div class="bars" style="width:${Math.max(100, q.weeks.length * 46)}px">${q.weeks.map((w, i) => `<button class="bar" data-act="wk" data-w="${w.key}" aria-label="Settimana del ${fmtD(w.key)}"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === q.weeks.length - 1 ? 'ora' : fmtD(w.key)}</small></button>`).join('')}</div></div>
@@ -1043,6 +1112,7 @@ function settings() {
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
+   ${sbOn() ? `<div class="card"><h2>☁️ Account online</h2><p class="vnote">${SB.user ? 'Collegato come <b>' + esc(SB.user.email) + '</b>: i dati si salvano online.' : 'Non collegato: i dati restano solo su questo telefono.'}</p><p><button class="ghost" data-act="sbopen">${SB.user ? 'Gestisci account' : 'Accedi o crea un account'}</button></p></div>` : ''}
    <div class="card"><h2>Il mio profilo</h2><p class="vnote">${profOk() ? esc(profTxt()) + '.' : 'Non ancora compilato.'}</p><p><button class="ghost" data-act="profopen">👤 ${profOk() ? 'Modifica' : 'Compila'} il profilo</button></p></div>
    <div class="card"><h2>Attrezzi disponibili</h2><p>Spegni gli attrezzi che non hai: i loro esercizi spariscono dalla libreria, dalle proposte e dai programmi pronti (quelli già nelle schede restano, segnalati). Powerrack Atletica SKS: safety, manubri, panca regolabile, jammer arms, doppia puleggia con corda/barra/maniglie/cavigliera, sbarra, parallele, Smith machine.</p>${attlHtml()}</div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Le icone degli esercizi sono disegnate con lo stesso modello 3D.</p></div>
@@ -1122,6 +1192,9 @@ document.addEventListener('click', e => {
   else if (a === 'report') reportView();
   else if (a === 'week') weekView();
   else if (a === 'wiz') wizOpen(b.dataset.pid);
+  else if (/^sb(login|signup|reset|newpass|keep|sync|logout)$/.test(a)) sbAct(a, b);
+  else if (a === 'sbopen') modal(sbHtml(false), !$('#modal').hidden);
+  else if (a === 'sbskip') { DB.sbSkip = 1; save(); closeModal(); render(true); if (!profOk() && !DB.prof.later) setTimeout(() => modal(profHtml(true)), 200); }
   else if (a === 'profopen') modal(profHtml(!profOk()), !$('#modal').hidden);
   else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'sex' || t === 'lvl' || t === 'fin' || t === 'tipo' || t === 'abp') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
   else if (a === 'pfsave') { profRead(); if (!DB.prof.sex) { flash('Scegli il genere'); return; } if (!DB.prof.kg) { flash('Scrivi il tuo peso corporeo'); $('#pfkg').focus(); return; } DB.prof.done = true; DB.prof.later = 0; save(); closeModal(); render(); flash('✓ Profilo salvato: proposte e pesi di partenza tengono conto di te'); }
@@ -1236,14 +1309,15 @@ async function exportData(full) {
 function importData(f) {
   if (!f) return; const r = new FileReader();
   r.onload = () => { try { const d = JSON.parse(r.result); if (!d.cur || !d.hist) throw 0; const vids = d.vids || null; delete d.vids; fixDB(d);
-    const go2 = async () => { DB = d; save(); render(); if (vids) { let n = 0; for (const [k, v] of Object.entries(vids)) { try { const b = await (await fetch(v.d)).blob(); await VDB.set(k, b); n++; } catch (e) {} } flash('✓ Backup ripristinato con ' + n + ' video'); } }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
+    const go2 = async () => { DB = d; if (SB.user) DB.owner = SB.user.id; else delete DB.owner; save(); render(); if (vids) { let n = 0; for (const [k, v] of Object.entries(vids)) { try { const b = await (await fetch(v.d)).blob(); await VDB.set(k, b); n++; } catch (e) {} } flash('✓ Backup ripristinato con ' + n + ' video'); } }; ask('Sostituire i dati attuali con il backup?', 'Sostituisci', go2); } catch (e) { flash('⚠ File non valido'); } };
   r.readAsText(f);
 }
 
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h !== tab && TABS.some(t => t.id === h)) { if (TR.on && h !== (TR.pid === 'gA' ? 'giulia' : TR.pid)) { TR.on = false; trSave(); } tab = h; render(); } });
 if (TR.on && CUST.includes(TR.pid)) { tab = TR.pid === 'gA' ? 'giulia' : TR.pid; location.hash = tab; }
 try { render(); } catch (e) { window.dispatchEvent(new ErrorEvent('error', {message: 'Avvio: ' + (e && e.message)})); throw e; }
-if (!profOk() && !DB.prof.later && !TR.on) setTimeout(() => { if ($('#modal').hidden) modal(profHtml(true)); }, 500);   /* prima apertura: chiedi genere, peso, livello, obiettivo, preferenze */
+if (!sbOn() && !profOk() && !DB.prof.later && !TR.on) setTimeout(() => { if ($('#modal').hidden) modal(profHtml(true)); }, 500);
+sbInit();   /* account online (se configurato), poi il profilo alla prima apertura */
 initCloud();
 if (!window.claude && 'serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
