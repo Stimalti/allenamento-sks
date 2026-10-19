@@ -1205,13 +1205,13 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 /* ===== Rear delt pull-across al cavo (video Facebook): un braccio teso, cavo all'altezza della spalla, arco ampio da davanti al corpo fino di lato ===== */
 (() => {
   const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
-  EX.push(cl('s-posteriori-singolo', {id: 's-posteriori-pullacross', n: 'Alzate posteriori a un braccio al cavo, braccio teso (pull-across)', one: true, prio: true, tipo: 'iso', fin: ['massa', 'tonificare'],
-    m: 'Deltoide posteriore', mm: 'Deltoide posteriore (isolato), romboidi e trapezio medio in appoggio', an: [[25, 105]], hs: {a: [-42, 0, 54], b: [70, 2, -12], r: 68},
-    cap: ['Braccio teso davanti al corpo, mano alla spalla opposta', 'Braccio teso aperto di lato, in linea con le spalle'],
+  EX.push(cl('s-posteriori-singolo', {id: 's-posteriori-pullacross', n: 'Alzate posteriori a un braccio al cavo, gomito bloccato (pull-across)', one: true, prio: true, tipo: 'iso', fin: ['massa', 'tonificare'],
+    m: 'Deltoide posteriore', mm: 'Deltoide posteriore (isolato), romboidi e trapezio medio in appoggio', an: [[25, 105]], hs: {a: [-26, 0, 46], b: [50, 2, 16], r: 54},   /* gomito bloccato ma piegato (braccio corto), arco piu' corto: finisce di lato, non dietro */
+    cap: ['Gomito piegato e bloccato, mano davanti alla spalla opposta', 'Braccio aperto di lato, gomito sempre piegato'],
     set: 'Cavo all’ALTEZZA DELLA SPALLA con maniglia singola. Stai di fianco alla torre: la mano che lavora e’ quella lontana dalla torre, il cavo passa davanti al petto. L’altra mano dietro la testa o sul montante.',
-    pos: 'Piedi alla larghezza delle spalle, petto alto, busto fermo. Gomito BLOCCATO: il braccio resta teso per tutta la ripetizione.',
-    ese: ['Parti con il braccio teso davanti al petto, mano verso la spalla opposta.', 'Con il gomito bloccato porta il braccio in un arco ampio verso l’esterno, fino in linea con le spalle (o poco oltre).', 'Tieni 1 secondo, senti il dietro della spalla.', 'Torna lentamente controllando il cavo per tutto l’arco.'],
-    cue: 'Il braccio e’ una leva rigida: muovi solo la spalla, come se volessi "spazzare" il cavo di lato. Tensione sempre sul deltoide posteriore.',
+    pos: 'Piedi alla larghezza delle spalle, petto alto, busto fermo. Gomito BLOCCATO in leggera flessione: l’angolo del gomito non cambia mai, non si distende e non si chiude.',
+    ese: ['Parti con la mano davanti al petto, verso la spalla opposta, gomito piegato.', 'Con il gomito bloccato porta il braccio verso l’esterno in un arco ampio, fino di lato: non andare oltre la linea delle spalle.', 'Tieni 1 secondo, senti il dietro della spalla.', 'Torna lentamente controllando il cavo per tutto l’arco.'],
+    cue: 'Il braccio e’ una leva rigida piegata: muovi solo la spalla, come se volessi "spazzare" il cavo di lato. Tensione sempre sul deltoide posteriore.',
     why: 'Con il gomito bloccato e il cavo all’altezza della spalla il deltoide posteriore lavora da solo per tutto l’arco, senza aiuto di tricipite e dorsale. 3 serie da 12-15 nel giorno di parte alta.',
-    err: ['Piegare il gomito durante l’arco', 'Ruotare il busto per aiutarsi', 'Alzare la spalla verso l’orecchio', 'Peso troppo alto: scegli un carico leggero']}));
+    err: ['Cambiare l’angolo del gomito durante l’arco (distenderlo o chiuderlo)', 'Portare il braccio troppo indietro', 'Ruotare il busto per aiutarsi', 'Alzare la spalla verso l’orecchio', 'Peso troppo alto: scegli un carico leggero']}));
 })();

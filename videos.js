@@ -3,7 +3,7 @@ const VIDEOS = {
 "s-posteriori-pullacross": [
 {
 "u": "https://www.facebook.com/share/r/1H9aw32fud/",
-"n": "rear delt pull-across al cavo: gomito bloccato, arco ampio, 3 serie da 12-15 (Ajay Saini)",
+"n": "rear delt pull-across al cavo: gomito piegato e bloccato, arco ampio ma corto, 3 serie da 12-15 (Ajay Saini)",
 "v": "114"
 }
 ],
