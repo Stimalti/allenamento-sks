@@ -1201,3 +1201,17 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   set('sm-hip-thrust', {fr: [[56, 56, {h: [180, 200], t: 236, th: 122, sh: 5}], [86, 86, {h: [180, 170], t: 272, th: 98, sh: 3}]]});
   set('sm-row-inverso', {fr: [[150, 150, {h: [150, 180], t: 245, th: 75, sh: 75}], [90, 170, {h: [150, 166], t: 237, th: 67, sh: 67}]], cap: ['Appeso sotto la barra a braccia tese, talloni a terra', 'Petto alla barra: il corpo ruota sui talloni, la barra resta ferma']});
 })();
+
+/* ===== Rear delt pull-across al cavo (video Facebook): un braccio teso, cavo all'altezza della spalla, arco ampio da davanti al corpo fino di lato ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('s-posteriori-singolo', {id: 's-posteriori-pullacross', n: 'Alzate posteriori a un braccio al cavo, braccio teso (pull-across)', one: true, prio: true, tipo: 'iso', fin: ['massa', 'tonificare'],
+    m: 'Deltoide posteriore', mm: 'Deltoide posteriore (isolato), romboidi e trapezio medio in appoggio', an: [[25, 105]], hs: {a: [-42, 0, 54], b: [70, 2, -12], r: 68},
+    cap: ['Braccio teso davanti al corpo, mano alla spalla opposta', 'Braccio teso aperto di lato, in linea con le spalle'],
+    set: 'Cavo all’ALTEZZA DELLA SPALLA con maniglia singola. Stai di fianco alla torre: la mano che lavora e’ quella lontana dalla torre, il cavo passa davanti al petto. L’altra mano dietro la testa o sul montante.',
+    pos: 'Piedi alla larghezza delle spalle, petto alto, busto fermo. Gomito BLOCCATO: il braccio resta teso per tutta la ripetizione.',
+    ese: ['Parti con il braccio teso davanti al petto, mano verso la spalla opposta.', 'Con il gomito bloccato porta il braccio in un arco ampio verso l’esterno, fino in linea con le spalle (o poco oltre).', 'Tieni 1 secondo, senti il dietro della spalla.', 'Torna lentamente controllando il cavo per tutto l’arco.'],
+    cue: 'Il braccio e’ una leva rigida: muovi solo la spalla, come se volessi "spazzare" il cavo di lato. Tensione sempre sul deltoide posteriore.',
+    why: 'Con il gomito bloccato e il cavo all’altezza della spalla il deltoide posteriore lavora da solo per tutto l’arco, senza aiuto di tricipite e dorsale. 3 serie da 12-15 nel giorno di parte alta.',
+    err: ['Piegare il gomito durante l’arco', 'Ruotare il busto per aiutarsi', 'Alzare la spalla verso l’orecchio', 'Peso troppo alto: scegli un carico leggero']}));
+})();
