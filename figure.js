@@ -169,7 +169,8 @@ const FIG = (() => {
   function svg(ex, p) {
     return `<svg viewBox="0 -34 300 270" role="img" aria-label="${ex.n}">${ex.v === 'f' ? front(ex, p) : side(ex, p)}</svg>`;
   }
-  function poses(ex) { return [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])]; }
+  function poses(ex) { return ex.fr.map(f => resolve(ex, f)); }
+  const poseAt = (P, k) => { const n = P.length; if (n <= 2) return lerpPose(P[0], P[1], k); const s = Math.min(n - 2, Math.max(0, Math.floor(k * (n - 1)))); return lerpPose(P[s], P[s + 1], k * (n - 1) - s); };
 
   const live = new Set(); let raf = 0;
   function tick(t) {
@@ -179,9 +180,9 @@ const FIG = (() => {
       let k;
       if (o.hold !== null) k = o.hold;
       else if (o.ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); }
-      else { const ph = ((t - o.t0) / 1000) % 4; k = ph < 0.6 ? 0 : ph < 2 ? (ph-0.6)/1.4 : ph < 2.6 ? 1 : 1 - (ph-2.6)/1.4; k = k*k*(3-2*k); }
+      else { const T = o.ex.tempo || [1.4, .6, 1.4], a = .6, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }
       if (k !== o.last) {
-        o.last = k; o.svgHost.innerHTML = svg(o.ex, lerpPose(o.p[0], o.p[1], k));
+        o.last = k; o.svgHost.innerHTML = svg(o.ex, poseAt(o.p, k));
         if (o.cap) o.cap.textContent = k < .5 ? o.ex.cap[0] : o.ex.cap[1];
         if (o.btns) o.btns.forEach((b, i) => b.classList.toggle('on', o.hold === null ? false : i === Math.round(k)));
       }

@@ -388,7 +388,7 @@ E({id:'t-overhead-corda', n:'Estensioni sopra la testa con corda al cavo', g:'tr
  err:['Gomiti che si aprono','Inarcare la schiena','Peso troppo alto']});
 
 E({id:'t-french-cavo', n:'French press ai cavi su panca', g:'tricipiti', a:'Cavi', m:'Tricipiti (capo lungo e mediale)',
- st:'lie', eq:'cable', an:[40,200], fr:[[178,178],[178,-115]], cap:['Braccia distese sopra il petto','Avambracci verso la testa, gomiti fermi'],
+ st:'lie', eq:'cable', an:[40,200], fr:[[178,178],[178,245]], cap:['Braccia distese sopra il petto','Avambracci verso la testa, gomiti fermi'],
  set:'Panca piana con la testa rivolta verso la torre, cavo BASSO con corda o barra EZ.',
  pos:'Schiena appoggiata, piedi a terra, gomiti fissi e leggermente inclinati verso la testa.',
  ese:['Parti con le braccia distese sopra il petto.','Piega i gomiti portando le mani verso la testa, i gomiti restano fermi.','Estendi i gomiti tornando alla posizione iniziale.'],

@@ -480,7 +480,7 @@ const FIG3 = (() => {
       while (trail.children.length) trail.remove(trail.children[0]);
       const N = 28, lines = [[], []];
       for (let i = 0; i <= N; i++) {
-        const k = i / N, pp = lerp(pose[0], pose[1], k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k);
+        const k = i / N, pp = poseAt(k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k);
         const P = geo(ex, pp, !!rigInst); if (P.gp) lines[0].push(P.gp); if (P.gp2) lines[1].push(P.gp2);
       }
       if (lines[0].length > 1) { const p0 = V(lines[0][0]), pl = new THREE.Mesh(gCylR(1), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: .75, depthTest: false})); pl.position.set(p0.x, 1.1, p0.z); pl.scale.set(.55 / S3, 2.4, .55 / S3); pl.renderOrder = 18; trail.add(pl); }
@@ -494,8 +494,11 @@ const FIG3 = (() => {
     // e le braccia si adattano con un IK piano, così il bilanciere non disegna un arco
     const sOf = p => ex.v === 'f' ? [175, (ex.st === 'seat' ? 107 : 62) + 4] : add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
     const handOf = p => { const S = sOf(p), E = add(S, UA, p.ua); return {S, E, W: add(E, FA, p.fa)}; };
+    /* fotogrammi chiave multipli: k in [0,1] scorre i segmenti fr[0]->fr[1]->...->fr[n-1] (2 fotogrammi = come prima) */
+    const segOf = k => { const n = pose.length; if (n <= 2) return [0, k]; const s = Math.min(n - 2, Math.max(0, Math.floor(k * (n - 1)))); return [s, k * (n - 1) - s]; };
+    const poseAt = k => { const [s, kk] = segOf(k); return lerp(pose[s], pose[s + 1], kk); };
     function linearize(pp, k) {
-      const S = sOf(pp), W0 = o.lw[0].W, W1 = o.lw[1].W, Wt = [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k];
+      const [sg, kk] = segOf(k), S = sOf(pp), W0 = o.lw[sg].W, W1 = o.lw[sg + 1].W, Wt = [W0[0] + (W1[0] - W0[0]) * kk, W0[1] + (W1[1] - W0[1]) * kk];
       const dx = Wt[0] - S[0], dy = Wt[1] - S[1]; let d = Math.min(Math.hypot(dx, dy), UA + FA - .5); d = Math.max(d, Math.abs(UA - FA) + .5);
       const base = Math.atan2(dx, dy) / R, cosA = Math.max(-1, Math.min(1, (UA * UA + d * d - FA * FA) / (2 * UA * d))), A = Math.acos(cosA) / R;
       const Er = o.lastUa === undefined ? add(S, UA, pp.ua) : add(S, UA, o.lastUa), ea = add(S, UA, base + A), eb = add(S, UA, base - A);   // il gomito resta sul ramo del fotogramma precedente: niente salti
@@ -551,10 +554,10 @@ const FIG3 = (() => {
       let k;
       if (o.hold !== null) k = o.hold;
       else if (ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); if (ph >= 1.4 && ph < 4.6) k = 1 - .015 * (1 - Math.cos((ph - 1.4) * 2 * Math.PI / 1.6)); }   /* isometria: entra in posizione, tieni (lieve respiro), torna */
-      else { const ph = ((t - o.t0) / 1000) % 4.6; k = ph < .5 ? 0 : ph < 1.9 ? (ph - .5) / 1.4 : ph < 2.4 ? 1 : 1 - (ph - 2.4) / 2.2; k = k*k*(3-2*k); }
+      else { const T = ex.tempo || [1.4, .5, 2.2], a = .5, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }   /* tempo reale della ripetizione: ex.tempo = [secondi di andata, pausa, ritorno] */
       if (k !== lastK) {
         if (lastK >= 0 && Math.abs(k - lastK) > .25) { ikReset(); o.lastUa = undefined; }   // salto (pulsanti Partenza/Arrivo): si riparte da una soluzione pulita
-        lastK = k; const pp = lerp(pose[0], pose[1], k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); o.J = prims.J; prims.forEach((pr, i) => place(i, pr));
+        lastK = k; const pp = poseAt(k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); o.J = prims.J; prims.forEach((pr, i) => place(i, pr));
         if (rigInst && prims.J) {
           rigInst.pose(prims.J);
           if (o.intro === undefined && !window.FIG3_ICON) { const F = focusOf(musOf(ex), prims.J); o.intro = F ? {p: [F.x, F.y], t: performance.now()} : null; }
@@ -585,10 +588,10 @@ const FIG3 = (() => {
     (async () => {
       if (typeof RIG !== 'undefined' && THREE.GLTFLoader) { try { rigInst = await RIG.create({plain: true}); } catch (e) { rigInst = null; } }
       if (o.dead) { if (rigInst) rigInst.dispose(); return; }
-      rigMode(!!rigInst); pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])]; if (ex.lin) o.lw = pose.map(handOf);
+      rigMode(!!rigInst); pose = ex.fr.map(f => resolve(ex, f)); if (ex.lin) o.lw = pose.map(handOf);
       if (ex.sm) {   /* Smith: posizione dei binari = media della barra a inizio e fine movimento, calcolata una volta */
         ex._rx = undefined;
-        const xs = [1, 0].map(k => { const pp = lerp(pose[0], pose[1], k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k); const pr = geo(ex, pp, !!rigInst); return pr && pr.gp ? pr.gp[0] : null; }).filter(x => x !== null);
+        const xs = [1, 0].map(k => { const pp = poseAt(k); pp.showM = false; if (ex.lin && o.lw) linearize(pp, k); const pr = geo(ex, pp, !!rigInst); return pr && pr.gp ? pr.gp[0] : null; }).filter(x => x !== null);
         ikReset(); o.lastUa = undefined; if (xs.length) ex._rx = (xs[0] + xs[xs.length - 1]) / 2;
       }
       buildTrail();
@@ -600,11 +603,11 @@ const FIG3 = (() => {
   // analisi della traiettoria della mano (px): scostamento massimo dalla retta / lunghezza della retta
   function path(ex) {
     rigMode(true); ikReset();
-    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], pts = [];
+    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[ex.fr.length - 1])], pts = [];
     const sOf = p => add([p.h[0], p.h[1] - p.lift], p.tl, p.t);
     const hand = p => { const S = sOf(p), E = add(S, UA, p.ua); return add(E, FA, p.fa); };
     const W0 = hand(pose[0]), W1 = hand(pose[1]);
-    for (let i = 0; i <= 10; i++) { const k = i / 10; pts.push(ex.lin ? [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k] : hand(lerp(pose[0], pose[1], k))); }
+    for (let i = 0; i <= 10; i++) { const k = i / 10; pts.push(ex.lin ? [W0[0] + (W1[0] - W0[0]) * k, W0[1] + (W1[1] - W0[1]) * k] : hand(poseAt(k))); }
     const ch = Math.hypot(W1[0] - W0[0], W1[1] - W0[1]); let dev = 0;
     pts.forEach(p => { const d = Math.abs((W1[0] - W0[0]) * (W0[1] - p[1]) - (W0[0] - p[0]) * (W1[1] - W0[1])) / (ch || 1); dev = Math.max(dev, d); });
     return {chord: ch, dev, ratio: ch ? dev / ch : 0, W0, W1};
@@ -612,11 +615,11 @@ const FIG3 = (() => {
   // controllo geometrico: il cavo attraversa il corpo?
   function cableCheck(ex) {
     rigMode(true); ikReset();
-    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[1])], hits = [];
+    const pose = [resolve(ex, ex.fr[0]), resolve(ex, ex.fr[ex.fr.length - 1])], hits = [];
     const toPx = v => [v.x * 100 + 150, 222 - v.y * 100, v.z * 100];
     const dseg = (p, a, b) => { const ab = vs(b, a), ap = vs(p, a), t = Math.max(0, Math.min(1, vd(ap, ab) / (vd(ab, ab) || 1))); return vl(vs(ap, vm(ab, t))); };
     for (let i = 0; i <= 10; i++) {
-      const k = i / 10, pp = lerp(pose[0], pose[1], k); pp.showM = false;
+      const k = i / 10, pp = poseAt(k); pp.showM = false;
       const P = geo(ex, pp, true), J = P.J; if (!J) continue;
       const H = toPx(J.H), S = toPx(J.S), up = vs(S, H);
       const caps = [['torso', H, S, 14], ['testa', va(S, vm(up, .3)), va(S, vm(up, .55)), 11]];

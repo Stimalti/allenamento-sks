@@ -32,7 +32,8 @@ function save() {
   if (remote) { clearTimeout(cloudTimer); cloudTimer = setTimeout(pushCloud, 700); ok = true; }
   flash(ok ? '✓ Salvato' : '⚠ Non riesco a salvare: fai un backup');
 }
-function pushCloud() { remote.set({json: JSON.stringify(DB), ts: DB.ts}).catch(() => flash('⚠ Salvataggio online non riuscito')); }
+function pushCloud() { remote.set({json: JSON.stringify(DB), ts: DB.ts}).then(() => { SB.pending = false; }).catch(() => { SB.pending = true; flash(navigator.onLine === false ? '📴 Sei offline: salvato sul telefono, lo invio appena torna la rete' : '⚠ Salvataggio online non riuscito: riprovo più tardi'); }); }
+const cloudRetry = () => { if (SB.pending && remote) pushCloud(); };
 async function initCloud() {
   try {
     if (!window.claude || !window.claude.use) return;
@@ -85,8 +86,8 @@ async function sbInit() {
     if (data && data.session) await sbAttach(data.session.user);
     else if (!DB.sbSkip && !TR.on) modal(sbHtml(true));
     else if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true));
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sbPull(); });
-    window.addEventListener('online', () => { if (SB.user) sbPush().catch(() => {}); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (SB.pending) sbPush().then(() => { SB.pending = false; }).catch(() => {}); else sbPull(); } });
+    window.addEventListener('online', () => { if (SB.user) sbPush().then(() => { SB.pending = false; }).catch(() => {}); });
   } catch (e) { SB.msg = 'Servizio online non raggiungibile: per ora i dati restano su questo telefono.'; if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true)); }
 }
 function sbHtml(first) {
@@ -355,8 +356,8 @@ function setsHtml(k, n, target) {
   const rows = c.sets.map((s, i) => {
     const ph = h && h.sets[i] ? h.sets[i] : (h && h.sets.length ? h.sets[h.sets.length - 1] : (sk0 ? {kg: String(sk0.kg)} : {}));
     return `<div class="set"><span>${i + 1}</span>
-      <label class="f"><input inputmode="decimal" data-k="${k}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(ph.kg || '0')}" aria-label="Peso serie ${i + 1}"><u>kg</u></label>
-      <label class="f"><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="${isom ? 'Secondi di tenuta' : 'Ripetizioni'} serie ${i + 1}"><u>${isom ? 'sec' : 'rip'}</u></label>
+      <label class="f"><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="kg" data-d="-2.5" aria-label="meno 2,5 kg">−</button><input inputmode="decimal" data-k="${k}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(ph.kg || '0')}" aria-label="Peso serie ${i + 1}"><u>kg</u><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="kg" data-d="2.5" aria-label="più 2,5 kg">+</button></label>
+      <label class="f"><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="reps" data-d="-1" aria-label="meno uno">−</button><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="${isom ? 'Secondi di tenuta' : 'Ripetizioni'} serie ${i + 1}"><u>${isom ? 'sec' : 'rip'}</u><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="reps" data-d="1" aria-label="più uno">+</button></label>
       <button class="chk ${s.done ? 'on' : ''}" data-k="${k}" data-i="${i}" data-act="done" aria-label="Serie completata">✓</button>
       <input class="snote" data-k="${k}" data-i="${i}" data-f="note" value="${esc(s.note || '')}" placeholder="${h && h.sets[i] && h.sets[i].note ? 'ultima volta: ' + esc(h.sets[i].note) : 'nota serie ' + (i + 1) + ' (es. presa, sensazione, dolore)'}" maxlength="140" aria-label="Nota serie ${i + 1}"></div>`;
   }).join('');
@@ -364,7 +365,7 @@ function setsHtml(k, n, target) {
   return `<div class="sets" data-sets="${k}">${rows}</div>
     <label class="gnote"><span>📝 Note sull’esercizio (restano salvate per sempre)</span><textarea data-gnote="${id}" rows="${gn.length > 60 ? 3 : 2}" placeholder="Es. altezza del cavo, regolazione della panca, cosa funziona meglio…" maxlength="600">${esc(gn)}</textarea></label>
     <div class="sbar"><button data-act="addset" data-k="${k}" data-n="${n}">+ serie</button><button data-act="delset" data-k="${k}" data-n="${n}">− serie</button>
-    <button data-act="hist" data-k="${k}">Storico</button></div>`;
+    ${h ? `<button data-act="same" data-k="${k}" title="Copia pesi e ripetizioni dell’ultima volta">↻ Come l’ultima volta</button>` : ''}<button data-act="hist" data-k="${k}">Storico ${h ? '📈' : ''}</button></div>`;
 }
 
 const cov = (id, cls) => (typeof COVERS !== 'undefined' && COVERS[id]) ? `<img class="${cls}" src="${COVERS[id]}" alt="" loading="lazy">` : '';
@@ -743,6 +744,7 @@ function homeView() {
     ${(() => { const cur = q.weeks[q.weeks.length - 1], prev = q.weeks[q.weeks.length - 2]; const row = (w, lab) => { const e = weekEval(w.key); return `<button class="dayrow" data-act="wk" data-w="${w.key}"><span class="dn">${lab}</span><span class="t"><b>${e.icon} ${e.score !== null ? e.score + '/10 · ' + e.grade : e.grade}</b><small>${esc(e.notes[0])}${e.notes[2] ? ' ' + esc(e.notes[2]) : ''}</small></span><span class="chev">›</span></button>`; }; return row(cur, 'ora') + (prev ? row(prev, 'prec.') : ''); })()}
     <p class="vnote" style="margin:0 0 8px">${q.weeks.length > 8 ? 'Scorri a sinistra per le settimane precedenti · ' : ''}tocca una settimana per sedute, esercizi fatti e valutazione.</p>
     <div class="stats dark"><div class="stat"><b>${q.thisWeek}/${q.planned}</b><span>questa sett.</span></div><div class="stat"><b>${q.streak}</b><span>sett. di fila</span></div><div class="stat"><b>${q.nsess}</b><span>sedute totali</span></div></div></div>
+   ${weekSetsHtml()}
    <div class="card"><h2 class="ht">🩺 Qualità dell’allenamento</h2><p style="margin:4px 0 10px">${verdict}</p>
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 7) + '/7')}
     <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = serie fatte rispetto a quelle previste, ultime 4 settimane. Equilibrio = gruppi muscolari coperti nella settimana (petto, schiena, spalle, bicipiti, tricipiti, gambe, addome).</p></div>
@@ -818,11 +820,47 @@ function openEx(id) {
   const f = $('#mbody [data-fig]'); if (f) FIG3.mount(f, ex, FIG.mount);
   loadMine($('#mbody'));
 }
+/* record personale: il peso della serie supera il massimo mai registrato per questo esercizio (stessa persona) */
+function prCheck(k, s) {
+  const kg = num(s.kg), r = num(s.reps); if (!(kg > 0)) return '';
+  const h = DB.hist[k] || []; let best = 0, best1 = 0;
+  h.forEach(e => e.sets.forEach(x => { const a = num(x.kg), b = num(x.reps); best = Math.max(best, a); if (a > 0 && b >= 1 && b <= 12) best1 = Math.max(best1, a * (1 + b / 30)); }));
+  if (h.length && kg > best) return `🏆 Record personale: ${kg} kg (prima ${best} kg)`;
+  if (h.length && r >= 1 && r <= 12 && kg * (1 + r / 30) > best1 + 0.5) return `🏆 Nuovo massimale stimato: ${Math.round(kg * (1 + r / 30))} kg`;
+  return '';
+}
+/* grafico dello storico di un esercizio: peso massimo e massimale stimato per seduta, volume a barre */
+function histChart(h) {
+  const pts = h.filter(e => e.sets && e.sets.length).map(e => { let mx = 0, e1 = 0, vol = 0; e.sets.forEach(s => { const a = num(s.kg), b = num(s.reps); mx = Math.max(mx, a); vol += a * b; if (a > 0 && b >= 1 && b <= 12) e1 = Math.max(e1, a * (1 + b / 30)); }); return {d: e.d, mx, e1: Math.round(e1), vol}; }).filter(p => p.mx > 0);
+  if (pts.length < 2) return '';
+  const W = 320, H = 130, L = 34, Rm = 8, T = 10, B = 24, n = pts.length, top = Math.max(...pts.map(p => Math.max(p.mx, p.e1))) * 1.1 || 1, vmax = Math.max(...pts.map(p => p.vol)) || 1;
+  const x = i => L + (W - L - Rm) * (n === 1 ? .5 : i / (n - 1)), y = v => T + (H - T - B) * (1 - v / top);
+  const line = (key, col, dash) => `<polyline fill="none" stroke="${col}" stroke-width="2.5" ${dash ? 'stroke-dasharray="5 4"' : ''} points="${pts.map((p, i) => x(i) + ',' + y(p[key])).join(' ')}"/>` + pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p[key])}" r="3" fill="${col}"/>`).join('');
+  const bars = pts.map((p, i) => `<rect x="${x(i) - 5}" y="${H - B - (H - T - B) * (p.vol / vmax) * .5}" width="10" height="${(H - T - B) * (p.vol / vmax) * .5}" fill="var(--acc)" opacity=".18"/>`).join('');
+  const grid = [0, .5, 1].map(f => `<line x1="${L}" x2="${W - Rm}" y1="${y(top * f)}" y2="${y(top * f)}" stroke="var(--line)"/><text x="${L - 4}" y="${y(top * f) + 4}" font-size="10" text-anchor="end" fill="var(--mut)">${Math.round(top * f)}</text>`).join('');
+  const labs = pts.map((p, i) => (n <= 6 || i === 0 || i === n - 1 || i % Math.ceil(n / 5) === 0) ? `<text x="${x(i)}" y="${H - 6}" font-size="10" text-anchor="middle" fill="var(--mut)">${fmtD(p.d)}</text>` : '').join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento">${grid}${bars}${line('e1', '#22c7ff', true)}${line('mx', 'var(--acc)')}${labs}</svg>
+   <div class="legend"><span><i style="background:var(--acc)"></i>peso massimo</span><span><i style="background:#22c7ff"></i>massimale stimato</span><span><i style="background:var(--acc);opacity:.3"></i>volume (kg × rip)</span></div>`;
+}
+/* serie fatte questa settimana per gruppo muscolare (dallo storico + serie segnate oggi non ancora archiviate) */
+function weekSets() {
+  const wk = mondayOf(today()), out = {}; const add = (id, n) => { const e = byId[id]; if (!e || !n) return; out[e.g] = (out[e.g] || 0) + n; (e.g2 || []).forEach(g => { out[g] = (out[g] || 0) + n * .5; }); };
+  Object.entries(DB.hist).forEach(([k, h]) => (h || []).forEach(e => { if (e.d >= wk) add(k.split(':')[1], e.sets.filter(s => num(s.reps) > 0).length); }));
+  Object.entries(DB.cur).forEach(([k, c]) => add(k.split(':')[1], (c.sets || []).filter(s => s.done).length));
+  return out;
+}
+function weekSetsHtml() {
+  const ws = weekSets(), main = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'gambe', 'addome'], mx = Math.max(12, ...main.map(g => ws[g] || 0));
+  if (!main.some(g => ws[g])) return '';
+  return `<div class="card"><h2 class="ht">📊 Serie per muscolo · questa settimana</h2><p class="vnote" style="margin:0 0 8px">Obiettivo: 10-20 serie a settimana per gruppo. In chiaro quelle sotto le 10.</p>
+   ${main.map(g => { const v = Math.round((ws[g] || 0) * 10) / 10; return `<div class="qrow"><span>${esc(GRUPPI[g])}</span><div class="qb"><i style="width:${Math.round(v / mx * 100)}%;background:${v >= 10 ? 'var(--ok)' : v >= 5 ? '#f59e0b' : 'var(--line)'}"></i></div><b>${v}</b></div>`; }).join('')}</div>`;
+}
 function histView(k) {
   const [prof, id] = k.split(':'), ex = byId[id], h = (DB.hist[k] || []).slice().reverse();
   const best = h.reduce((m, e) => Math.max(m, ...e.sets.map(s => num(s.kg))), 0);
   modal(`<h2 style="padding-right:44px">Storico · ${esc(ex.n)}</h2>
-   <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
+   <p style="color:var(--mut)">${h.length ? `Peso massimo registrato: <b>${best} kg</b>${est1RM(id) ? ` · massimale stimato <b>${Math.round(est1RM(id))} kg</b>` : ''} · ${h.length} sedute` : 'Ancora nessuna sessione salvata. Usa “Fine allenamento” per archiviare la seduta.'}</p>
+   ${histChart((DB.hist[k] || []))}
    ${DB.notes[id] ? `<p class="gn">📝 ${esc(DB.notes[id])}</p>` : ''}
    <div class="card hist">${h.map(e => `<div><b>${wdOf(e.d).slice(0, 3)} ${fmtD(e.d)}/${e.d.slice(2, 4)}</b> — ${e.sets.map(s => `${s.kg || '–'}×${s.reps || '–'}${s.note ? ` <i>(${esc(s.note)})</i>` : ''}`).join(' · ')}</div>`).join('')}</div>`, true);
 }
@@ -1139,7 +1177,10 @@ document.addEventListener('click', e => {
   else if (a === 'ren') renameRt(b.dataset.id);
   else if (a === 'rensave') { const id = b.dataset.id; DB.names[id] = {n: $('#rn-n').value.trim(), m: $('#rn-m').value.trim()}; save(); closeModal(); render(true); }
   else if (a === 'renreset') { const id = b.dataset.id; delete DB.names[id]; save(); closeModal(); render(true); }
-  else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; save(); b.classList.toggle('on', s.done); refreshProgress();
+  else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done;
+    if (s.done) { const row = b.closest('.set'); ['kg', 'reps'].forEach(f => { if (s[f] === '' || s[f] === undefined) { const inp = row && row.querySelector(`input[data-f="${f}"]`); if (inp && inp.placeholder && num(inp.placeholder) > 0) { s[f] = inp.placeholder; inp.value = inp.placeholder; } } });   /* serie fatta senza scrivere nulla = come suggerito (ultima volta / peso di partenza) */
+      const pr = prCheck(k, s); if (pr) setTimeout(() => flash(pr), 900); }
+    save(); b.classList.toggle('on', s.done); refreshProgress();
     if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); }
     if (TR.on && s.done && DB.cur[k].sets.every(z => z.done)) setTimeout(() => flash('✓ Esercizio completato: quando sei pronto tocca Prossimo'), 1200); }
   else if (a === 'tmadj') { const d = +b.dataset.d; if (TM.run) TM.end += d * 1000; else TM.left = Math.max(0, TM.left + d); TM.total = Math.max(TM.total, TM.run ? (TM.end - Date.now()) / 1000 : TM.left); if (TM.run && TM.end - Date.now() > 10500) TM.pre = false; tmTick(); tmSave(); }
@@ -1147,6 +1188,8 @@ document.addEventListener('click', e => {
   else if (a === 'tmset') { TM.pre = false; tmStart(+b.dataset.s); }
   else if (a === 'tmclose') tmHide();
   else if (a === 'tmopen') { tmAudio(); TM.pre = false; tmStart(TM.last || 90); }
+  else if (a === 'stp') { const s = DB.cur[k].sets[i], f = b.dataset.f, inp = b.parentElement.querySelector('input'), base = s[f] !== '' && s[f] !== undefined ? num(s[f]) : num(inp.placeholder); let v = Math.max(0, Math.round((base + (+b.dataset.d)) * 100) / 100); if (f === 'reps') v = Math.round(v); s[f] = String(v); inp.value = s[f]; save(); }
+  else if (a === 'same') { const h = lastHist(k); if (h) { const c = curFor(k, h.sets.length); h.sets.forEach((hs, j) => { c.sets[j].kg = hs.kg || ''; c.sets[j].reps = hs.reps || ''; }); save(); render(true); flash('↻ Copiati pesi e ripetizioni del ' + fmtD(h.d)); } }
   else if (a === 'addset' || a === 'delset') {
     const c = DB.cur[k], n = Math.max(1, c.sets.length + (a === 'addset' ? 1 : -1));
     if (a === 'delset') c.sets.length = n; else curFor(k, n);
