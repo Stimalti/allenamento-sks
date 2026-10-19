@@ -1,5 +1,40 @@
 /* Video di riferimento (solo link alla fonte originale: nessun video e' incluso nell'app). Tempi indicativi. */
 const VIDEOS = {
+"sm-row-basso": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 1 lower lat row: presa stretta, barra al basso addome",
+"v": "118"
+}
+],
+"sm-row-largo": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 3 wide row: presa larga, gomiti in fuori",
+"v": "118"
+}
+],
+"sm-row-supino": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 4 underarm row: presa supina, gomiti indietro",
+"v": "118"
+}
+],
+"sm-row-cross": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 5 cross pulls: tirata incrociata a un braccio",
+"v": "118"
+}
+],
+"sm-neck-pull": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 6 neck pulls: tirata alta al collo, trapezio",
+"v": "118"
+}
+],
 "s-posteriori-pullacross": [
 {
 "u": "https://www.facebook.com/share/r/1H9aw32fud/",
@@ -1063,6 +1098,11 @@ const VIDEOS = {
 }
 ],
 "sm-row": [
+{
+"u": "https://www.facebook.com/share/r/1C4LngFdK8/",
+"n": "6 rematori alla Smith (Umair Bhatti) · 2 shoulder-width row: presa larghezza spalle",
+"v": "118"
+},
 {
 "u": "https://www.youtube.com/watch?v=tGGq2VZIW_M",
 "n": "How To: Smith Machine Bent Over Row | Form Tutorial · YouTube",
