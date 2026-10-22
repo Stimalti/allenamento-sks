@@ -210,7 +210,8 @@ const FIG3 = (() => {
     if (ex.eq === 'barh') { E = ik(S, H, UA, FA); W = H; grip = H; E3n = pt3(E, ZN); W3n = pt3(W, ZN); E3f = pt3(E, ZF); W3f = pt3(W, ZF); g3n = pt3(grip, ZN); g3f = pt3(grip, ZF); }
     else {
       W3n = [W[0], W[1] + dyn, GZ + ZS]; E3n = ik3(SN, W3n, UA, FA, [pe[0], pe[1], latW], 'n', pt3(E, ZN + 6 * latW)); g3n = [grip[0], grip[1] + dyn, GZ + ZS];
-      if (ex.one) { const Ef = add([S[0], S[1] - dyn], UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
+      if (ex.one && ex.fhip) { const hz = -(LN + (rig ? 9 : 7)); E3f = [(S[0] + H[0]) / 2 + 2, (S[1] - dyn + H[1]) / 2, ZF - (rig ? 16 : 12) + SZ * .5]; W3f = [H[0], H[1] - 6, hz + SZ * .15]; g3f = g3n; }   /* braccio libero: mano sul fianco, gomito in fuori */
+      else if (ex.one) { const Ef = add([S[0], S[1] - dyn], UA, 5), Wf = add(Ef, FA, 5); E3f = pt3(Ef, ZF + SZ); W3f = pt3(Wf, ZF + SZ); g3f = g3n; }
       else { W3f = [W[0], W[1] - dyn, -GZ + ZS]; E3f = ik3(SF, W3f, UA, FA, [pe[0], pe[1], -latW], 'f', pt3(E, ZF - 6 * latW)); g3f = [grip[0], grip[1] - dyn, -GZ + ZS]; }
     }
     if (ex.arm3) {   /* braccia date in 3D: [direzione spalla→gomito, direzione gomito→polso] (x lungo il busto, y verso il pavimento, z laterale) */

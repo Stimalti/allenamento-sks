@@ -1250,7 +1250,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => {
   const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
   EX.push(cl('a-side-bend-cavo', {id: 'a-side-bend-cavo-alto', n: 'Flessione laterale al cavo alto', an: [185, 24],
-    fr: [[168, 172, {t: 180, sb: 6}], [168, 172, {t: 180, sb: -24}]], cap: ['Di lato alla torre, maniglia del cavo alto tenuta in alto accanto alla testa', 'Busto piegato dalla parte opposta alla torre: il fianco vicino al cavo si accorcia'],
+    fhip: true, tempo: [1.3, 0.7, 2.1], fr: [[170, 176, {t: 180, sb: 14}], [170, 176, {t: 180, sb: -8}], [170, 176, {t: 180, sb: -32}]], cap: ['Di lato alla torre, maniglia del cavo alto tenuta in alto accanto alla testa', 'Busto piegato dalla parte opposta alla torre: il fianco vicino al cavo si accorcia'],
     trj: 'Il braccio resta in alto e quasi disteso: si muove solo il busto, che si piega lontano dalla torre tirando giù la maniglia e torna lentamente lasciando allungare il fianco.',
     set: 'Cavo ALTO con maniglia singola. Stai di lato alla torre, maniglia nella mano vicina alla torre tenuta in alto accanto alla testa, gomito appena piegato.', pos: 'Piedi alla larghezza delle anche, ginocchia morbide, bacino fermo e ben appoggiato: si muove solo il tronco.',
     ese: ['Parti con il fianco vicino alla torre leggermente allungato (il cavo tira verso l’alto).', 'Piega il busto dalla parte opposta alla torre, tirando la maniglia verso il basso con il fianco, non con il braccio.', 'Fermati 1 secondo con le costole vicine all’anca, poi risali lentamente.', 'Cambia lato.'],

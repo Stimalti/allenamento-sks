@@ -287,11 +287,10 @@ const VDB = {
 };
 const GLU = new Set('g-hip-thrust sm-hip-thrust g-kickback g-kickback-flesso g-kickback-diag g-abd-cavo g-add-cavo g-pullthrough g-bulgaro g-split g-rdl g-rdl-cavo g-squat-cavo g-sumo g-squat sm-squat sm-rdl g-front-squat sm-front-squat'.split(' '));
 const ytSearch = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
-function creatorLinks(ex) {
-  const cr = ex.sm ? [['Team Underground Physique / Gianluca Olgiati', 'Underground Physique Gianluca Olgiati'], ['Sly05 / Team Synergic', 'Sly05 Team Synergic']]
-    : [['Niko_In_Forma Team', 'Niko In Forma Team'], ['Underground Physique', 'Underground Physique Gianluca Olgiati'], ['Filippo Rispoli / IronManager', 'Filippo Rispoli IronManager']];
+function creatorLinks(ex) {   /* ricerche YouTube solo per tipo di esercizio (niente canali) */
   const a = (l, q) => `<a class="vlink2" href="${ytSearch(q)}" target="_blank" rel="noopener noreferrer">🔎 ${esc(l)}</a>`;
-  return `<div class="vcr"><h4>Cerca su YouTube i video dei canali consigliati</h4><div class="vcrl">${cr.map(([l, q]) => a(l, ex.n + ' ' + q + ' shorts')).join('')}${GLU.has(ex.id) ? a('Shorts glutei di donne', ex.n + ' glutei shorts donna') : ''}</div><p class="vnote">Si apre la ricerca su YouTube per questo esercizio: scegli tu il video.</p></div>`;
+  const nm = ex.n.split(' (')[0];
+  return `<div class="vcr"><h4>Cerca su YouTube</h4><div class="vcrl">${a('Come si fa', nm + ' come si fa')}${a('Shorts', nm + ' shorts')}${a('Errori comuni', nm + ' errori comuni tecnica')}${GLU.has(ex.id) ? a('Shorts glutei di donne', nm + ' glutei shorts donna') : ''}</div><p class="vnote">Si apre la ricerca su YouTube per questo esercizio: scegli tu il video.</p></div>`;
 }
 function videoBlock(ex) {
   const l = DB.hideRef ? [] : ((typeof VIDEOS !== 'undefined' && VIDEOS[ex.id]) || []).filter(x => !DB.hiddenRef[x.u]);
