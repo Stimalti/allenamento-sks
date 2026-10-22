@@ -950,7 +950,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => {
   const Z = {alta: ['a-crunch-cavo', 'a-crunch-cavo-piedi', 'a-crunch-terra', 'a-situp', 'a-situp-db', 'a-situp-panca', 'a-vup', 'a-bicicletta', 'a-toes-to-bar'],
     bassa: ['a-crunch-inverso', 'a-crunch-inverso-cavo', 'a-leg-raise', 'a-leg-raise-terra', 'a-sforbiciate', 'a-ginocchia-sbarra', 'a-gambe-sbarra', 'a-toes-to-bar', 'a-vup', 'a-hollow', 'a-ginocchia-obliquo-sbarra'],
-    obliqui: ['a-woodchop', 'a-woodchop-basso', 'a-pallof-rotazione', 'a-rotazioni-cavo', 'a-russian-twist', 'a-crunch-cavo-obliquo', 'a-ginocchia-obliquo-sbarra', 'a-side-bend-db', 'a-side-bend-cavo', 'a-side-plank', 'a-side-plank-hip', 'a-bicicletta', 'a-pallof', 'a-pallof-ginocchio'],
+    obliqui: ['a-woodchop', 'a-woodchop-basso', 'a-pallof-rotazione', 'a-rotazioni-cavo', 'a-russian-twist', 'a-crunch-cavo-obliquo', 'a-ginocchia-obliquo-sbarra', 'a-side-bend-db', 'a-side-bend-cavo', 'a-side-bend-cavo-alto', 'a-side-plank', 'a-side-plank-hip', 'a-bicicletta', 'a-pallof', 'a-pallof-ginocchio'],
     profonda: ['a-plank', 'a-pallof', 'a-pallof-ginocchio', 'a-dead-bug', 'a-mountain', 'a-hollow', 'a-rollout', 'a-side-plank', 'a-side-plank-hip']};
   Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = EX.find(x => x.id === id); if (e) (e.ab = e.ab || []).push(z); }));
   EX.filter(e => e.g === 'addome' && !e.ab).forEach(e => { e.ab = ['alta']; });
@@ -1243,6 +1243,18 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     fr: [[12, -8, {}], [108, -74, {}]], cap: ['In piedi, barra alle cosce, presa poco più larga delle spalle', 'Barra alle clavicole, gomiti alti sopra le spalle'],
     set: 'Barra alla Smith all’altezza delle cosce, presa prona poco più larga delle spalle. Petto alto.', ese: ['Tira la barra in alto lungo il corpo fino alle clavicole, gomiti che salgono sopra le spalle.', 'Stringi il trapezio 1 secondo.', 'Scendi lentamente.'], cue: 'È una tirata al mento più alta e più larga: finisce il lavoro sul trapezio alto.', why: 'Chiude il circuito con il trapezio superiore, che negli altri rematori lavora poco.', err: ['Strattonare', 'Polsi piegati', 'Carico alto con la spalla che fa male: riduci l’altezza']}));
   EX.forEach(e => { if (['sm-row-basso', 'sm-row-largo', 'sm-row-supino', 'sm-row-cross', 'sm-neck-pull'].includes(e.id)) { delete e.tempo; } });
+})();
+
+
+/* ===== flessione laterale al cavo ALTO: maniglia tenuta in alto di fianco alla testa, il busto si piega dalla parte opposta alla torre ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('a-side-bend-cavo', {id: 'a-side-bend-cavo-alto', n: 'Flessione laterale al cavo alto', an: [185, 24],
+    fr: [[168, 172, {t: 180, sb: 6}], [168, 172, {t: 180, sb: -24}]], cap: ['Di lato alla torre, maniglia del cavo alto tenuta in alto accanto alla testa', 'Busto piegato dalla parte opposta alla torre: il fianco vicino al cavo si accorcia'],
+    trj: 'Il braccio resta in alto e quasi disteso: si muove solo il busto, che si piega lontano dalla torre tirando giù la maniglia e torna lentamente lasciando allungare il fianco.',
+    set: 'Cavo ALTO con maniglia singola. Stai di lato alla torre, maniglia nella mano vicina alla torre tenuta in alto accanto alla testa, gomito appena piegato.', pos: 'Piedi alla larghezza delle anche, ginocchia morbide, bacino fermo e ben appoggiato: si muove solo il tronco.',
+    ese: ['Parti con il fianco vicino alla torre leggermente allungato (il cavo tira verso l’alto).', 'Piega il busto dalla parte opposta alla torre, tirando la maniglia verso il basso con il fianco, non con il braccio.', 'Fermati 1 secondo con le costole vicine all’anca, poi risali lentamente.', 'Cambia lato.'],
+    cue: 'Immagina di avvicinare le costole all’anca dello stesso lato: il braccio è solo un gancio.', why: 'Con il cavo alto la resistenza tira verso l’alto e il fianco lavora in accorciamento contro il carico: obliqui e quadrato dei lombi del lato della torre, con allungamento completo in alto.', err: ['Tirare con il braccio (gomito che si piega)', 'Inclinarsi in avanti o ruotare', 'Spostare il bacino di lato']}));
 })();
 
 /* ===== MIDS: fotogramma intermedio e ritmo reale ricavati dai video (MediaPipe) - generato da mids.js, non modificare a mano ===== */
