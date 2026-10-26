@@ -950,7 +950,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 (() => {
   const Z = {alta: ['a-crunch-cavo', 'a-crunch-cavo-piedi', 'a-crunch-terra', 'a-situp', 'a-situp-db', 'a-situp-panca', 'a-vup', 'a-bicicletta', 'a-toes-to-bar'],
     bassa: ['a-crunch-inverso', 'a-crunch-inverso-cavo', 'a-leg-raise', 'a-leg-raise-terra', 'a-sforbiciate', 'a-ginocchia-sbarra', 'a-gambe-sbarra', 'a-toes-to-bar', 'a-vup', 'a-hollow', 'a-ginocchia-obliquo-sbarra'],
-    obliqui: ['a-woodchop', 'a-woodchop-basso', 'a-pallof-rotazione', 'a-rotazioni-cavo', 'a-russian-twist', 'a-crunch-cavo-obliquo', 'a-ginocchia-obliquo-sbarra', 'a-side-bend-db', 'a-side-bend-cavo', 'a-side-bend-cavo-alto', 'a-side-plank', 'a-side-plank-hip', 'a-bicicletta', 'a-pallof', 'a-pallof-ginocchio'],
+    obliqui: ['a-woodchop', 'a-woodchop-basso', 'a-pallof-rotazione', 'a-rotazioni-cavo', 'a-russian-twist', 'a-crunch-cavo-obliquo', 'a-crunch-cavo-obliquo-piedi', 'a-crunch-cavo-obliquo-lato', 'a-ginocchia-obliquo-sbarra', 'a-side-bend-db', 'a-side-bend-cavo', 'a-side-bend-cavo-alto', 'a-side-plank', 'a-side-plank-hip', 'a-bicicletta', 'a-pallof', 'a-pallof-ginocchio'],
     profonda: ['a-plank', 'a-pallof', 'a-pallof-ginocchio', 'a-dead-bug', 'a-mountain', 'a-hollow', 'a-rollout', 'a-side-plank', 'a-side-plank-hip']};
   Object.entries(Z).forEach(([z, ids]) => ids.forEach(id => { const e = EX.find(x => x.id === id); if (e) (e.ab = e.ab || []).push(z); }));
   EX.filter(e => e.g === 'addome' && !e.ab).forEach(e => { e.ab = ['alta']; });
@@ -1255,6 +1255,24 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     set: 'Cavo ALTO con maniglia singola. Stai di lato alla torre, maniglia nella mano vicina alla torre tenuta in alto accanto alla testa, gomito appena piegato.', pos: 'Piedi alla larghezza delle anche, ginocchia morbide, bacino fermo e ben appoggiato: si muove solo il tronco.',
     ese: ['Parti con il fianco vicino alla torre leggermente allungato (il cavo tira verso l’alto).', 'Piega il busto dalla parte opposta alla torre, tirando la maniglia verso il basso con il fianco, non con il braccio.', 'Fermati 1 secondo con le costole vicine all’anca, poi risali lentamente.', 'Cambia lato.'],
     cue: 'Immagina di avvicinare le costole all’anca dello stesso lato: il braccio è solo un gancio.', why: 'Con il cavo alto la resistenza tira verso l’alto e il fianco lavora in accorciamento contro il carico: obliqui e quadrato dei lombi del lato della torre, con allungamento completo in alto.', err: ['Tirare con il braccio (gomito che si piega)', 'Inclinarsi in avanti o ruotare', 'Spostare il bacino di lato']}));
+})();
+
+
+/* ===== crunch obliqui al cavo: in piedi e a un lato (oltre a quello in ginocchio) ===== */
+(() => {
+  const cl = (id, o) => Object.assign(JSON.parse(JSON.stringify(EX.find(e => e.id === id))), o);
+  EX.push(cl('a-crunch-cavo-piedi', {id: 'a-crunch-cavo-obliquo-piedi', n: 'Crunch obliquo al cavo in piedi', m: 'Obliqui, retto dell’addome', mm: 'obliqui esterni e interni, retto addominale, trasverso',
+    fr: [[90, -125, {t: 180}], [125, -125, {t: 135, cu: 45, tw: 42}]], cap: ['In piedi, corda ai lati della testa', 'Colonna arrotolata e ruotata: gomito verso il ginocchio opposto'],
+    trj: 'Come il crunch al cavo in piedi, ma mentre ti arrotoli ruoti il busto: un gomito va verso il ginocchio opposto. Il bacino non si muove.',
+    set: 'Cavo ALTO con corda. In piedi davanti alla torre, un passo indietro, corda ai lati della testa.', pos: 'Ginocchia morbide, bacino fermo.',
+    ese: ['Parti con il busto dritto e la corda alla testa.', 'Arrotola la colonna e ruota portando un gomito verso il ginocchio opposto.', 'Contrai 1 secondo, risali e alterna il lato.'],
+    cue: 'Ruota le spalle mentre scendi con le costole: il bacino resta fermo.', why: 'Il crunch obliquo al cavo senza dover stare in ginocchio, con carico regolabile per gli obliqui.', err: ['Piegarsi dalle anche', 'Ruotare solo le braccia', 'Peso eccessivo']}));
+  EX.push(cl('a-crunch-cavo-obliquo', {id: 'a-crunch-cavo-obliquo-lato', n: 'Crunch obliquo al cavo a un lato (maniglia singola)', one: true, m: 'Obliqui (un lato), retto dell’addome', mm: 'obliqui esterni e interni di un lato, retto addominale, trasverso',
+    fr: [[100, -120, {t: 180, tw: -8}], [125, -125, {t: 132, cu: 46, tw: 48}]], cap: ['In ginocchio, maniglia singola alla spalla', 'Colonna arrotolata e ruotata: gomito verso il ginocchio opposto'],
+    trj: 'La maniglia resta alla spalla, il gomito va verso il ginocchio opposto arrotolando e ruotando il busto: lavori un fianco per volta, con la resistenza sempre tesa.',
+    set: 'Cavo ALTO con maniglia singola. In ginocchio davanti alla torre, maniglia alla spalla (mano vicina al collo), l’altra mano sulla coscia.', pos: 'Bacino fermo, schiena neutra in partenza.',
+    ese: ['Parti col busto eretto e la maniglia alla spalla.', 'Arrotola la colonna e ruota portando il gomito verso il ginocchio opposto.', 'Contrai 1 secondo, risali lentamente. Finita la serie cambia lato.'],
+    cue: 'Il gomito non è un braccio che tira: è il busto che lo porta verso il ginocchio.', why: 'Carico unilaterale sugli obliqui: bilancia i due lati e allena la rotazione contro resistenza.', err: ['Tirare con il braccio', 'Piegarsi dalle anche', 'Slancio']}));
 })();
 
 /* ===== MIDS: fotogramma intermedio e ritmo reale ricavati dai video (MediaPipe) - generato da mids.js, non modificare a mano ===== */
