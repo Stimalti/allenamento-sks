@@ -14,6 +14,7 @@ App autonoma (nessun server, nessun account): apri `index.html` da un hosting st
 - **Animazioni** (v116): gli esercizi possono avere più di 2 fotogrammi chiave (`fr` con N voci) e un ritmo proprio (`tempo: [andata, pausa, ritorno]` in secondi). Prima di ogni pubblicazione gira `validate.js` (nello scratchpad di lavoro): blocca gomiti o ginocchia piegati al contrario e i "giri lunghi" di un arto tra due fotogrammi.
 - **Ritmo e fotogramma intermedio dai video** (v117): per 52 esercizi il tempo di andata e ritorno e, per 47, la posa di metà movimento vengono dai video di riferimento analizzati con MediaPipe (blocco `MIDS` in fondo a `calib.js`, generato da `mids.js`; rieseguire `mpseq.py` + `mids.js` per aggiornarlo).
 - **Video**: le ricerche YouTube per esercizio cercano solo il tipo di esercizio (come si fa, shorts, errori comuni), senza canali preferiti.
+- **Passo dei pesi**: i tasti −/+ delle serie salgono e scendono di un disco (di default 4,5 kg: 4,5 · 9 · 13,5 · 18…, sempre allineati ai dischi); si cambia nel profilo (4,5 / 2,5 / 5 kg). Vale anche per i suggerimenti "oggi prova +…" e i pesi di partenza (esclusi i manubri).
 - **Offline**: se il salvataggio online fallisce, i dati restano sul telefono e vengono inviati quando torna la rete o l'app torna in primo piano.
 - La versione precedente (v69) è conservata come "versione 0" nella cartella `v0/` del sito e nel tag git `v0`.
 
