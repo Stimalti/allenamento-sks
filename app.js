@@ -117,7 +117,7 @@ async function sbAct(a, b) {
     else if (a === 'sblogout') ask('Uscire dall’account? I tuoi dati restano salvati online e vengono tolti da questo telefono.', 'Esci', async () => { try { await sbPush(); } catch (e) { flash('⚠ Non riesco a salvare online: resta collegato e riprova'); return; } await SB.client.auth.signOut(); SB.user = null; remote = null; sbSet(freshDB()); DB.sbSkip = 0; try { localStorage.removeItem('sks_train'); } catch (e) {} TR.on = false; applyLogo(); go('home'); setTimeout(() => modal(sbHtml(true)), 200); });
   } catch (e) { sbMsg(sbErr(e)); }
 }
-function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => s.classList.remove('on'), 2200); }
+function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => { s.classList.remove('on'); saveTimer = setTimeout(() => { s.textContent = ''; }, 400); }, 2200); }
 
 const FIN = {forza: 'Forza', massa: 'Massa', tonificare: 'Tonificare'};
 // serie (n), intervallo serie, ripetizioni, recupero, % del massimale (p = valore medio), ripetizioni in riserva
@@ -472,7 +472,7 @@ function render(keep) {
   const y = window.scrollY;
   const t = TABS.find(x => x.id === tab);
   $('#ttl').innerHTML = tab === 'home' ? 'Allenamento SKS<small>' + esc(fmtLong(today())) + '</small>' : tab === 'lib' ? 'Esercizi<small>Libreria ricercabile · ' + EX.length + ' esercizi</small>' : esc(planOf(tabPlan(tab)).nome) + '<small>' + (planOf(tabPlan(tab)).sotto ? esc(planOf(tabPlan(tab)).sotto) + ' · ' : '') + rtList(tabPlan(tab)).length + ' esercizi scelti da te</small>';
-  $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[tabPlan(x.id)]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean).slice(0, 4); if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); if (!nm.m && nm.n.length > 7) a = [nm.n.slice(0, 7) + '.']; }
+  $('#nav').innerHTML = TABS.map(x => { let a = x.a, full = x.full; const nm = DB.names[tabPlan(x.id)]; if (nm) { a = (nm.m || '').split(/[,+·\/]/).map(v => v.trim()).filter(Boolean); if (a.length > 4) a = [...a.slice(0, 3), '+' + (a.length - 3)]; if (!a.length) a = [(nm.n || 'Scheda').trim()]; full = nm.n + (nm.m ? ': ' + nm.m : ''); if (!nm.m && nm.n.length > 7) a = [nm.n.slice(0, 7) + '.']; }
     return `<button class="${x.id === tab ? 'on' : ''}" data-act="tab" data-id="${x.id}" aria-label="${esc(full)}"><i>${x.b}</i><span>${a.map(esc).join('<br>')}</span></button>`; }).join('');
   let h;
   const training = TR.on && CUST.includes(TR.pid) && tab === (TR.pid === 'gA' ? 'giulia' : TR.pid) && planOf(TR.pid).ex.length;
@@ -658,6 +658,271 @@ function applyWeek(w) {
   w.plan.forEach(d => { rtList(d.pid).sort((a, b) => TIER(byId[a.e]) - TIER(byId[b.e])); const old = DB.names[d.pid] || {}; DB.names[d.pid] = {n: old.n || dayName(d.pid), m: d.gl.map(g => GRUPPI[g]).join(', ')}; });
   save(); return w.moves.length;
 }
+/* ---------- frequenza di allenamento: monofrequenza (ogni muscolo 1 volta a settimana) o multifrequenza (2 volte) ----------
+   Regola: gli esercizi restano ESATTAMENTE gli stessi (nessuno aggiunto, tolto o duplicato, stesse serie, ripetizioni e recuperi): si spostano solo tra i giorni.
+   Si parte sempre dalla scheda salvata in questo momento. Multifrequenza: ogni muscolo con almeno 2 esercizi viene diviso su due giorni non consecutivi, bilanciando il carico;
+   i muscoli gia' in 2 giorni non si muovono. Monofrequenza: torna la scheda di prima (giorni, ordine e nomi) ma con gli esercizi di adesso. I giorni con il lucchetto (DB.freqFix) non si toccano.
+   Pesi correnti e storico seguono l'esercizio, anche tra giorni con profili diversi, senza perdere nulla (voci gia' del profilo di arrivo restano li' se l'esercizio torna indietro). */
+let NAVLOCK = 0, FQLOCK = 0;   // dopo Applica/Annulla il secondo tocco non deve finire sulla barra sotto la finestra
+const FQ_ALL = ['petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'avambracci', 'gambe', 'addome'];
+const FQ_PRIO = ['gambe', 'petto', 'schiena', 'spalle', 'tricipiti', 'bicipiti', 'avambracci', 'addome'];   // a parita' di tipo di esercizio: prima i muscoli grandi
+const FQ_AFF = {'petto|tricipiti': -2, 'schiena|bicipiti': -2, 'petto|spalle': -1, 'spalle|tricipiti': -1, 'bicipiti|tricipiti': -1, 'schiena|avambracci': -1, 'bicipiti|avambracci': -1, 'gambe|addome': -1,   // negativo = stanno bene insieme (come nella valutazione dei giorni)
+  'spalle|schiena': 1, 'spalle|bicipiti': 1, 'gambe|schiena': 1.5, 'petto|bicipiti': 2, 'schiena|tricipiti': 2, 'petto|avambracci': 1.5, 'tricipiti|avambracci': 1.5};
+const fqAff = (a, b) => FQ_AFF[a + '|' + b] ?? FQ_AFF[b + '|' + a] ?? 0;
+function fqOk(gs, n) {   // lo stesso giudizio di pairing() sui muscoli di un giorno (le spalle contano come neutre: dipende da quali esercizi ci sono)
+  const g = gs.filter(x => x !== 'addome' && x !== 'spalle'), sub = a => g.every(x => a.includes(x)); if (g.length <= 1) return true;
+  if (g.includes('gambe')) return n <= 9;
+  if (sub(PUSH) || sub(PULL) || sub(['bicipiti', 'tricipiti', 'avambracci']) || sub(['petto', 'schiena'])) return true;
+  return g.length >= 4 && n <= 8;
+}
+const fqActive = () => DAYS.map(([t]) => dayPid(t)).filter(pid => rtList(pid).some(x => byId[x.e]));   // giorni con esercizi, come sono salvati adesso
+const fqFix = () => { const f = Array.isArray(DB.freqFix) ? DB.freqFix : []; return fqActive().filter(pid => f.includes(pid)); };   // giorni lasciati fuori (🔒): non vengono toccati
+const fqInc = () => { const f = fqFix(); return fqActive().filter(pid => !f.includes(pid)); };   // giorni da rimodulare
+const fqWd = pid => DAYS.findIndex(([t]) => dayPid(t) === pid);
+const fqAdj = (a, b) => { const d = Math.abs(a - b); return d === 1 || d === 6; };   // giorni consecutivi (domenica-lunedì compresi)
+const fqClone = o => JSON.parse(JSON.stringify(o));
+const fqSets = (x, pid) => { const c = DB.cur[pk(planOf(x._from || pid).profilo, x.e)]; return (c && c.sets && c.sets.length) || +x.s || 0; };   // le serie come le conta l'app (quelle impostate in Allenati, altrimenti quelle della scheda)
+const fqSort = (a, b) => TIER(byId[a.e]) - TIER(byId[b.e]) || FQ_PRIO.indexOf(byId[a.e].g) - FQ_PRIO.indexOf(byId[b.e].g);
+const fqPlain = x => JSON.stringify(x, (k, v) => k === '_from' ? undefined : v);
+function fqSane() {   // dati salvati da versioni diverse o incompleti: si ripara o si scarta cio' che non e' usabile
+  const m = DB.freqMono; if (m && !(typeof m === 'object' && m.rt && typeof m.rt === 'object')) delete DB.freqMono;
+  else if (m) { m.names = m.names || {}; m.set = m.set || {}; m.done = m.done || {}; m.nat = m.nat || {}; m.nat.h = m.nat.h || {}; m.nat.c = m.nat.c || {}; m.nat.cn = m.nat.cn || {}; }
+  const b = DB.freqBk; if (b && !(b.rt && b.d && b.sig)) delete DB.freqBk; else if (b) { b.names = b.names || {}; b.keys = b.keys || {}; }
+  if (DB.freqFix && !Array.isArray(DB.freqFix)) delete DB.freqFix;
+  if (DB.freqMono && fqSnapMatches(DB.freqMono)) delete DB.freqMono;   // la scheda e' gia' tornata com'era: la copia non serve piu'
+}
+const fqDaySig = () => JSON.stringify(DAYS.map(([t]) => rtList(dayPid(t)).filter(x => byId[x.e]).map(x => x.e).sort()));   // quali esercizi stanno in quale giorno (senza l'ordine)
+function fqSnapMatches(S) {   // ogni giorno della copia ha gli stessi esercizi, nello stesso ordine
+  return Object.keys(S.rt).every(pid => { const sl = (S.rt[pid] || []).filter(y => byId[y.e]).map(y => y.e); return !sl.length || JSON.stringify(sl) === JSON.stringify(rtList(pid).filter(x => byId[x.e]).map(x => x.e)); });
+}
+function fqStats(lists) {   // lists: [{pid, items}]; per gruppo: esercizi, serie e giorni in cui compare
+  const st = {}; lists.forEach(l => { const seen = new Set(); l.items.forEach(x => { const e = byId[x.e]; if (!e) return; const o = st[e.g] = st[e.g] || {n: 0, s: 0, d: 0}; o.n++; o.s += fqSets(x, l.pid); if (!seen.has(e.g)) { seen.add(e.g); o.d++; } }); }); return st;
+}
+function fqModeOf(pids) {   // com'e' organizzata una serie di giorni: contano i muscoli con almeno 2 esercizi, gli unici che si possono dividere
+  if (pids.length < 2) return null;
+  const st = fqStats(pids.map(pid => ({pid, items: rtList(pid)}))), gs = Object.keys(st).filter(g => st[g].n >= 2), n2 = gs.filter(g => st[g].d >= 2).length;
+  return n2 === 0 ? 'mono' : n2 >= gs.length / 2 ? 'multi' : 'misto';
+}
+function fqMode() { const act = fqInc(), fix = fqFix(); return {mode: fqModeOf(act), act, fix}; }   // solo nei giorni da rimodulare
+function fqItems(act) {   // gli esercizi della settimana tali e quali (anche se uno e' ripetuto in due giorni: il totale non cambia), col giorno di partenza
+  return act.flatMap(pid => rtList(pid).filter(x => byId[x.e]).map(x => ({...x, _from: pid})));
+}
+function fqSplit(act, fix) {   // multifrequenza: stessi esercizi; solo i muscoli con >=2 esercizi che stanno in 1 giorno si dividono su due giorni, gli altri restano dove sono
+  const D = act.length, wd = act.map(p => fqWd(p)), items = fqItems(act), at = {}, N = {}, V = {}, home = {}; act.forEach((p, i) => { at[p] = i; });
+  const sets = x => Math.max(1, fqSets(x));
+  items.forEach(x => { const g = byId[x.e].g, i = at[x._from]; N[g] = (N[g] || 0) + 1; V[g] = (V[g] || 0) + sets(x); (home[g] = home[g] || act.map(() => 0))[i]++; });
+  const groups = FQ_ALL.filter(g => N[g]).sort((a, b) => V[b] - V[a]), free = groups.filter(g => N[g] >= 2 && home[g].filter(c => c).length < 2);
+  const L0 = act.map(() => 0), G0 = act.map(() => new Set()), N0 = act.map(() => 0);
+  items.forEach(x => { const g = byId[x.e].g; if (free.includes(g)) return; const i = at[x._from]; L0[i] += sets(x); G0[i].add(g); N0[i]++; });
+  const fixG = fix.map(pid => ({wd: fqWd(pid), g: new Set(rtList(pid).filter(x => byId[x.e]).map(x => byId[x.e].g))})), cands = [];
+  for (let i = 0; i < D; i++) for (let j = i + 1; j < D; j++) cands.push([i, j]);
+  const cost = P => {   // P: muscolo da dividere -> i due giorni; piu' basso = meglio
+    const L = L0.slice(), S = G0.map(s => new Set(s)), n = N0.slice(); let c = 0;
+    free.forEach(g => { if (!P[g]) return; P[g].forEach(k => { L[k] += V[g] / 2; S[k].add(g); n[k] += N[g] / 2; fixG.forEach(f => { if (f.g.has(g) && fqAdj(wd[k], f.wd)) c += 300; }); }); if (fqAdj(wd[P[g][0]], wd[P[g][1]])) c += 300; });   // giorni di fila: quasi un divieto
+    const mean = L.reduce((a, b) => a + b, 0) / D; c += L.reduce((a, l) => a + (l - mean) ** 2, 0) / 4;   // carico (serie) bilanciato tra i giorni
+    S.forEach((s, k) => { const gs = [...s]; if (gs.length > 1 && !fqOk(gs, n[k])) c += 14; for (let a = 0; a < gs.length; a++) for (let b = a + 1; b < gs.length; b++) c += 1.5 * fqAff(gs[a], gs[b]); });   // abbinamenti sensati
+    free.forEach(g => { if (P[g]) P[g].forEach(k => { c -= 2 * home[g][k] / N[g]; }); });   // a parita', meno spostamenti
+    return c;
+  };
+  const start = order => { const P = {}; order.forEach(g => { let b = null, bc = 1e9; cands.forEach(p => { P[g] = p; const c = cost(P); if (c < bc - 1e-9) { bc = c; b = p; } }); P[g] = b; }); return P; };
+  const refine = P => { for (let pass = 0; pass < 40; pass++) { let ch = false; free.forEach(g => { let b = P[g], bc = cost(P); cands.forEach(p => { const o = P[g]; P[g] = p; const c = cost(P); if (c < bc - 1e-9) { bc = c; b = p; } P[g] = o; }); if (b !== P[g]) { P[g] = b; ch = true; } }); if (!ch) break; } return P; };
+  let best = {}, bc = 1e9;
+  if (free.length) {   // piu' partenze (sempre le stesse: il risultato non cambia da una volta all'altra) e si tiene la migliore
+    let sd = 20250601; const rnd = () => { sd = (sd * 1664525 + 1013904223) % 4294967296; return sd / 4294967296; };
+    const starts = [start(free), start(free.slice().reverse())]; for (let r = 0; r < 24; r++) { const P = {}; free.forEach(g => { P[g] = cands[Math.floor(rnd() * cands.length)]; }); starts.push(P); }
+    starts.forEach(P0 => { const P = refine({...P0}), c = cost(P); if (c < bc - 1e-9) { bc = c; best = P; } });
+  }
+  const out = act.map(() => []), tot = k => out[k].reduce((t, y) => t + sets(y), 0);
+  items.forEach(x => { if (!free.includes(byId[x.e].g)) out[at[x._from]].push(x); });   // gli altri restano al loro posto, nello stesso ordine
+  free.forEach(g => {
+    const P = best[g], ld = [0, 0];
+    items.filter(x => byId[x.e].g === g).sort((a, b) => TIER(byId[a.e]) - TIER(byId[b.e]) || sets(b) - sets(a)).forEach(x => { const k = ld[0] < ld[1] ? 0 : ld[0] > ld[1] ? 1 : (tot(P[0]) <= tot(P[1]) ? 0 : 1); out[P[k]].push(x); ld[k] += sets(x); });   // principali e isolamenti si alternano tra i due giorni
+  });
+  for (let guard = 0; guard < D * 3 && out.some(o => !o.length); guard++) {   // nessun giorno resta vuoto: sposto un esercizio dal giorno piu' carico, senza cambiare la frequenza dei muscoli se possibile
+    const e = out.findIndex(o => !o.length), donors = out.map((o, k) => k).filter(k => out[k].length >= 2).sort((a, b) => tot(b) - tot(a)); let pick = null;
+    for (const k of donors) {
+      const cnt = {}; out[k].forEach(y => { const g = byId[y.e].g; cnt[g] = (cnt[g] || 0) + 1; });
+      const c = out[k].find(y => N[byId[y.e].g] === 1) || out[k].find(y => { const g = byId[y.e].g; return cnt[g] === 1 && out.some((o2, k2) => k2 !== k && k2 !== e && o2.some(z => byId[z.e].g === g)); });
+      if (c) { pick = [k, c]; break; }
+    }
+    if (!pick && donors.length) pick = [donors[0], out[donors[0]][out[donors[0]].length - 1]];
+    if (!pick) break;
+    out[pick[0]].splice(out[pick[0]].indexOf(pick[1]), 1); out[e].push(pick[1]);
+  }
+  return act.map((pid, i) => ({pid, items: out[i].some(x => x._from !== pid) ? out[i].slice().sort(fqSort) : out[i].slice().sort((a, b) => items.indexOf(a) - items.indexOf(b))}));   // un giorno che riceve esercizi viene riordinato (multiarticolari prima); gli altri tengono il loro ordine
+}
+function fqConsolidate(act) {   // monofrequenza senza copia salvata: ogni muscolo in un solo giorno, spostando meno esercizi possibile, con abbinamenti sensati e senza giorni vuoti (se i muscoli bastano)
+  const items = fqItems(act), at = {}, cnt = {}, V = {}, N = {}; act.forEach((p, i) => { at[p] = i; });
+  items.forEach(x => { const g = byId[x.e].g; (cnt[g] = cnt[g] || act.map(() => 0))[at[x._from]]++; N[g] = (N[g] || 0) + 1; V[g] = (V[g] || 0) + Math.max(1, fqSets(x)); });
+  const gs = Object.keys(cnt).sort((a, b) => V[b] - V[a]), D = act.length, mean = gs.reduce((t, g) => t + V[g], 0) / D;
+  const cost = T => {
+    const load = act.map(() => 0), S = act.map(() => []), n = act.map(() => 0); let c = 0;
+    gs.forEach(g => { c += 3 * (N[g] - cnt[g][T[g]]); load[T[g]] += V[g]; S[T[g]].push(g); n[T[g]] += N[g]; });
+    c += 100 * S.filter(s => !s.length).length;
+    S.forEach((s, k) => { if (s.length > 1 && !fqOk(s, n[k])) c += 14; for (let a = 0; a < s.length; a++) for (let b = a + 1; b < s.length; b++) c += 1.5 * fqAff(s[a], s[b]); });
+    return c + load.reduce((t, l) => t + (l - mean) ** 2, 0) / 8;
+  };
+  const T = {}; gs.forEach(g => { let b = 0; act.forEach((p, i) => { if (cnt[g][i] > cnt[g][b]) b = i; }); T[g] = b; });   // di partenza: il giorno dove il muscolo ha gia' piu' esercizi
+  for (let pass = 0; pass < 30; pass++) { let ch = false; gs.forEach(g => { let b = T[g], bc = cost(T); act.forEach((p, i) => { const o = T[g]; T[g] = i; const c = cost(T); if (c < bc - 1e-9) { bc = c; b = i; } T[g] = o; }); if (b !== T[g]) { T[g] = b; ch = true; } }); if (!ch) break; }
+  return act.map((pid, i) => { const L = items.filter(x => T[byId[x.e].g] === i); return {pid, items: L.some(x => x._from !== pid) ? L.sort(fqSort) : L}; });
+}
+function fqFromSnapshot(act, bk) {   // monofrequenza: la copia salvata da' SOLO giorno e ordine; gli esercizi (serie, ripetizioni, recuperi...) sono sempre quelli salvati adesso
+  const sp = Object.keys(bk.rt).filter(pid => bk.rt[pid] && bk.rt[pid].length), slotsOf = pid => (bk.rt[pid] || []).filter(y => byId[y.e]);
+  const days = act.map(pid => ({pid, snap: sp.includes(pid)})), cur = new Map();
+  fqItems(act.filter(pid => sp.includes(pid))).forEach(x => { if (!cur.has(x.e)) cur.set(x.e, []); cur.get(x.e).push(x); });   // i giorni che non erano nella copia restano come sono
+  const take = (id, ok) => { const q = cur.get(id), i = q ? q.findIndex(ok) : -1; return i < 0 ? null : q.splice(i, 1)[0]; };
+  const rows = [...act.filter(pid => sp.includes(pid)).map(pid => ({pid, here: true})), ...sp.filter(pid => !act.includes(pid)).map(pid => ({pid, here: false}))];   // here=false: giorni della copia che ora sono 🔒
+  rows.forEach(r => { r.slot = slotsOf(r.pid); r.pick = r.slot.map(y => take(y.e, z => fqPlain(z) === fqPlain(y))); });   // 1) stesso esercizio con gli stessi valori (cosi' due copie dello stesso esercizio non si scambiano)
+  rows.forEach(r => r.slot.forEach((y, i) => { if (!r.pick[i]) r.pick[i] = take(y.e, () => true); }));   // 2) stesso esercizio con valori cambiati da te
+  const stuck = rows.filter(r => !r.here).flatMap(r => r.pick.filter(Boolean));   // il loro giorno di prima e' 🔒: restano dove sono
+  const placed = new Set(), rest = [...cur.values()].flat();
+  rest.forEach(x => {   // 3) nuovi o sostituiti: prendono il posto di un esercizio dello stesso muscolo che non c'e' piu'
+    const g = byId[x.e].g;
+    for (const r of rows) { if (!r.here) continue; const i = r.slot.findIndex((y, k) => !r.pick[k] && byId[y.e].g === g); if (i >= 0) { r.pick[i] = x; placed.add(x); break; } }
+  });
+  const res = days.map(d => ({pid: d.pid, items: d.snap ? rows.find(r => r.here && r.pid === d.pid).pick.filter(Boolean) : fqItems([d.pid])}));
+  const put = (d, x) => {   // nel blocco del suo muscolo, per tipo di esercizio
+    const g = byId[x.e].g, blk = d.items.map((y, i) => byId[y.e].g === g ? i : -1).filter(i => i >= 0); let k = blk.length ? blk[0] : d.items.length;
+    blk.forEach(i => { if (fqSort(d.items[i], x) <= 0) k = i + 1; }); d.items.splice(k, 0, x);
+  };
+  const resOf = pid => res.find(d => d.pid === pid);
+  stuck.forEach(x => put(resOf(x._from), x));
+  rest.filter(x => !placed.has(x)).forEach(x => {   // 4) aggiunti dopo: nel giorno del loro muscolo (o dove sono adesso, se quel muscolo non c'era o se il suo giorno resterebbe vuoto)
+    const g = byId[x.e].g; let bd = null, bc = 0; res.forEach(d => { const n = d.items.filter(y => byId[y.e].g === g).length; if (n > bc) { bc = n; bd = d; } });
+    const hd = resOf(x._from); if (!bd) bd = hd || res[res.length - 1];
+    if (bd !== hd && hd && !hd.items.length && rest.filter(y => !placed.has(y) && y._from === x._from).length === 1 && !stuck.some(y => y._from === x._from)) bd = hd;
+    put(bd, x);
+  });
+  res.stuck = stuck.length; return res;
+}
+function fqPlan(mode) {   // calcolato ogni volta sulla scheda salvata in questo momento
+  fqSane();
+  if (fqActive().length < 2) return {err: 'Servono almeno 2 giorni con esercizi per cambiare la frequenza.'};
+  const fix = fqFix(), bk = DB.freqMono, modeAll = fqModeOf(fqActive());
+  const sp = bk ? Object.keys(bk.rt).filter(pid => bk.rt[pid] && bk.rt[pid].length && !fix.includes(pid)) : [];
+  const snap = mode === 'mono' && sp.length > 0 && (!!bk.sig && bk.sig === fqDaySig() || modeAll !== 'mono');   // la copia serve se la scheda e' come l'ha lasciata l'app, o comunque ancora in multifrequenza (non rifatta in mono a mano)
+  const act = snap ? DAYS.map(([t]) => dayPid(t)).filter(pid => !fix.includes(pid) && (fqActive().includes(pid) || sp.includes(pid))) : fqInc();
+  if (act.length < 2) return {err: 'Scegli almeno 2 giorni da rimodulare: i giorni con il lucchetto 🔒 restano come sono.'};
+  const f0 = fqModeOf(act);
+  const days = mode === 'multi' ? fqSplit(act, fix) : snap ? fqFromSnapshot(act, bk) : f0 === 'mono' ? act.map(pid => ({pid, items: fqItems([pid])})) : fqConsolidate(act), stuck = days.stuck || 0;
+  const grp = L => FQ_ALL.filter(g => L.some(x => byId[x.e] && byId[x.e].g === g));
+  days.forEach(d => { d.groups = grp(d.items); d.moved = d.items.map(x => x._from && x._from !== d.pid ? x._from : null); });
+  const fixd = fix.map(pid => { const items = rtList(pid).filter(x => byId[x.e]); return {pid, items, groups: grp(items), fixed: true}; });
+  const prof = pid => planOf(pid).profilo, all = fqActive(), moves = [], pb = {}, pa = {};   // pb/pa: in quali profili sta ogni esercizio prima/dopo
+  all.forEach(pid => rtList(pid).forEach(x => { if (byId[x.e]) (pb[x.e] = pb[x.e] || new Set()).add(prof(pid)); }));
+  [...days, ...fixd].forEach(d => d.items.forEach(x => (pa[x.e] = pa[x.e] || new Set()).add(prof(d.pid))));
+  Object.keys(pa).forEach(e => { const L = [...(pb[e] || [])].filter(p => !pa[e].has(p)), G = [...pa[e]].filter(p => !(pb[e] || new Set()).has(p)); if (L.length && G.length) L.forEach((from, i) => moves.push({e, from, to: G[Math.min(i, G.length - 1)]})); });   // pesi e storico si spostano solo se l'esercizio lascia un profilo e ne raggiunge uno dove non c'era
+  const before = fqStats(all.map(pid => ({pid, items: rtList(pid)}))), after = fqStats([...days, ...fixd]), warn = [], W = [...days, ...fixd].sort((p, q) => fqWd(p.pid) - fqWd(q.pid));
+  for (let a = 0; a < W.length; a++) for (let b = a + 1; b < W.length; b++) if (fqAdj(fqWd(W[a].pid), fqWd(W[b].pid))) W[a].groups.filter(g => g !== 'addome' && W[b].groups.includes(g)).forEach(g => {
+    const wa = fqWd(W[a].pid), wb = fqWd(W[b].pid), pr = Math.abs(wa - wb) === 6 ? [W[b], W[a]] : [W[a], W[b]]; warn.push(`${GRUPPI[g]} in due giorni di fila (${dayName(pr[0].pid)} e ${dayName(pr[1].pid)})`); });
+  const incl = fqStats(days), single = FQ_ALL.filter(g => incl[g] && incl[g].n === 1), dup = FQ_ALL.filter(g => fixd.some(f => f.groups.includes(g)) && days.some(d => d.groups.includes(g)));   // single: un solo esercizio; dup: muscolo presente anche in un giorno lasciato fuori
+  const noop = days.every(d => fqPlain(d.items) === fqPlain(rtList(d.pid).filter(x => byId[x.e]))), nosplit = mode === 'multi' && !Object.values(incl).some(o => o.n >= 2);
+  const empty = days.filter(d => !d.items.length).map(d => d.pid);
+  return {mode, days, fixd, act, fix, snap, stuck, moves, before, after, warn, single, dup, noop, nosplit, empty, n0: Object.values(before).reduce((t, o) => t + o.n, 0), n1: Object.values(after).reduce((t, o) => t + o.n, 0)};
+}
+function fqDays(mode) {   // scelta dei giorni da rimodulare: toccando un giorno lo si lascia fuori (🔒) e resta com'e'
+  const all = fqActive(), fix = fqFix(); if (all.length < 2) return '';
+  return `<h3 style="margin:12px 0 6px">Giorni da rimodulare</h3><div class="chips wrap">${all.map(pid => { const off = fix.includes(pid), gs = FQ_ALL.filter(g => rtList(pid).some(x => byId[x.e] && byId[x.e].g === g));
+    return `<button class="chip fqd ${off ? '' : 'on'}" data-act="freqday" data-pid="${pid}" data-m="${mode || ''}" aria-pressed="${off ? 'false' : 'true'}" aria-label="${esc(dayName(pid))}: ${esc(gs.map(g => GRUPPI[g]).join(', '))}, ${off ? 'lasciato fuori, non viene toccato' : 'da rimodulare'}">${off ? '🔒' : '✓'} ${esc(dayName(pid).slice(0, 3))} · ${gs.map(g => esc(GRUPPI[g])).join(', ')}</button>`; }).join('')}</div>
+   <p class="vnote" style="margin:6px 0 0">${fix.length === 1 ? 'Il giorno con 🔒 resta <b>esattamente com’è</b>, non lo tocco. Tocca di nuovo per rimetterlo dentro.' : fix.length > 1 ? 'I giorni con 🔒 restano <b>esattamente come sono</b>, non li tocco. Tocca un giorno per rimetterlo dentro.' : 'Tocca un giorno per lasciarlo fuori (🔒): resta com’è, con i suoi esercizi, e non lo tocco. Utile se un giorno è dedicato a un solo muscolo, per esempio gli addominali.'}</p>`;
+}
+function fqHtml(mode) {
+  const w = fqPlan(mode), multi = mode === 'multi', title = multi ? 'Passa alla multifrequenza' : 'Torna alla monofrequenza';
+  if (w.err) return `<h2 style="padding-right:44px">🔁 ${title}</h2><p class="vnote">${esc(w.err)}</p>${fqDays(mode)}`;
+  const rows = FQ_ALL.filter(g => w.before[g] || w.after[g]).map(g => { const b = w.before[g] || {s: 0, d: 0, n: 0}, a = w.after[g] || {s: 0, d: 0, n: 0}; return `<tr><td>${esc(GRUPPI[g])}</td><td>${b.d}×</td><td>→</td><td><b>${a.d}×</b></td><td class="mut">${a.n} ${a.n === 1 ? 'esercizio' : 'esercizi'}</td></tr>`; }).join('');
+  const intro = multi ? 'Ogni muscolo con almeno 2 esercizi viene allenato in <b>due giorni diversi</b> della settimana. <b>Gli esercizi restano gli stessi</b>: nessuno aggiunto, tolto o duplicato, con le stesse serie e ripetizioni. Si spostano solo tra i giorni, così ogni muscolo ha due sedute più leggere invece di una lunga. I muscoli già in due dei giorni scelti non si muovono.'
+    : w.snap ? `Ritorna la scheda <b>com’era prima</b> (giorni, ordine degli esercizi e nomi)${w.stuck ? ', per quanto possibile' : ''}. Gli esercizi sono quelli che hai <b>adesso</b>: se nel frattempo ne hai aggiunti, tolti o cambiato serie e ripetizioni, resta tutto.`
+    : 'Ogni muscolo torna in <b>un solo giorno</b>: lo metto nel giorno dove ha già più esercizi, bilanciando i giorni. Gli esercizi restano gli stessi, con le stesse serie e ripetizioni.';
+  const nop = w.noop ? `<p class="gn" style="margin:10px 0">${w.nosplit ? 'Nei giorni scelti ogni muscolo ha un solo esercizio: non c’è niente da dividere su due giorni. Aggiungi un secondo esercizio a un muscolo e potrai passare alla multifrequenza.' : `✅ I giorni scelti sono già in ${multi ? 'multifrequenza' : 'monofrequenza'}: non c’è niente da spostare.`}</p>` : '';
+  return `<h2 style="padding-right:44px">🔁 ${title}</h2>
+   ${w.noop ? '' : `<p class="vnote">${intro}</p><p class="vnote" style="margin-top:6px">Parto sempre dalla scheda <b>salvata in questo momento</b>.</p>`}
+   ${nop}${fqDays(mode)}
+   <p class="gn" style="margin:8px 0">Esercizi in settimana: <b>${w.n0} → ${w.n1}</b>${w.n0 === w.n1 ? ' (invariati)' : ''}</p>
+   <h3 style="margin:12px 0 6px">${w.noop ? 'La settimana adesso' : 'Come diventa la settimana'}</h3>
+   ${[...w.days, ...w.fixd].sort((p, q) => fqWd(p.pid) - fqWd(q.pid)).map(d => `<div class="dayrow" style="cursor:default;align-items:flex-start"><span class="dn">${esc(dayName(d.pid).slice(0, 3))}</span><span class="t"><b>${d.fixed ? '🔒 ' : ''}${d.groups.map(g => esc(GRUPPI[g])).join(', ') || 'riposo'}</b><small>${d.fixed ? 'invariato · ' : ''}${d.items.length} ${d.items.length === 1 ? 'esercizio' : 'esercizi'} · ${d.items.reduce((t, x) => t + fqSets(x, d.pid), 0)} serie</small><small class="fql">${d.items.map((x, i) => esc(byId[x.e].n.split(' (')[0]) + (d.moved && d.moved[i] ? ' <i>(da ' + esc(dayName(d.moved[i]).slice(0, 3)) + ')</i>' : '')).join(' · ')}</small></span></div>`).join('')}
+   <h3 style="margin:12px 0 6px">Quante volte a settimana per muscolo</h3><table class="fqt"><tbody>${rows}</tbody></table>
+   ${multi && w.single.length ? `<p class="vnote">${w.single.map(g => esc(GRUPPI[g])).join(', ')}: con un solo esercizio ${w.single.length > 1 ? 'restano' : 'resta'} una volta a settimana (per allenar${w.single.length > 1 ? 'li' : 'lo'} due volte servono almeno 2 esercizi).</p>` : ''}
+   ${w.dup.length ? `<p class="vnote">${w.dup.map(g => esc(GRUPPI[g])).join(', ')}: ${w.dup.length > 1 ? 'compaiono' : 'compare'} anche in un giorno lasciato fuori, che conta come una seduta in più.</p>` : ''}
+   ${w.stuck ? `<p class="vnote">${w.stuck} ${w.stuck === 1 ? 'esercizio resta' : 'esercizi restano'} dove ${w.stuck === 1 ? 'è' : 'sono'}: il giorno da cui ${w.stuck === 1 ? 'veniva' : 'venivano'} è 🔒. Rimettilo dentro per far tornare tutto com’era.</p>` : ''}
+   ${w.empty.length ? `<p class="vnote">⚠ ${w.empty.map(p => esc(dayName(p))).join(', ')} ${w.empty.length > 1 ? 'resterebbero' : 'resterebbe'} senza esercizi${w.snap ? ': i suoi esercizi di prima sono in un giorno 🔒' : ': con così pochi muscoli diversi non si riescono a riempire tutti i giorni'}.${!w.snap && w.act.length > 2 ? ` Lascia fuori ${w.empty.length > 1 ? 'questi giorni' : 'questo giorno'} se vuoi evitarlo.` : ''}</p>` : ''}
+   ${w.warn.length ? `<p class="vnote">⚠ ${esc(w.warn.join('; '))}. Se puoi, lascia un giorno di pausa in mezzo.</p>` : ''}
+   ${w.noop ? '' : `<p class="vnote">Pesi, note e storico (l’ultimo salvato) seguono l’esercizio${w.moves.length ? ' (anche tra giorni con profili diversi)' : ''}. Dopo il cambio, in Home trovi “↩ Annulla l’ultimo cambio”.</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="freqapply" data-m="${mode}">✓ Applica</button><button class="ghost" data-act="no">Chiudi</button></div>`}`;
+}
+function fqMoveKey(e, a, b, nat) {   // storico e pesi correnti dell'esercizio passano dal profilo del vecchio giorno a quello del nuovo, senza perdere nulla
+  const ka = pk(a, e), kb = pk(b, e); if (ka === kb) return;
+  const sig = h => h.d + '|' + JSON.stringify(h.sets), has = c => !!(c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note));
+  const Ha = DB.hist[ka] || [], Hb = DB.hist[kb] || [];
+  if (nat && !nat.h[kb]) nat.h[kb] = Hb.map(sig);   // voci gia' del profilo di arrivo: se l'esercizio torna indietro restano li'
+  const own = {}; ((nat && nat.h[ka]) || []).forEach(s => { own[s] = (own[s] || 0) + 1; });
+  const stay = [], go = []; Ha.forEach(h => { const s = sig(h); if (own[s] > 0) { own[s]--; stay.push(h); } else go.push(h); });
+  if (go.length) DB.hist[kb] = [...Hb, ...go].sort((p, q) => p.d < q.d ? -1 : p.d > q.d ? 1 : 0);   // ordine cronologico (a parita' di data resta l'ordine di prima), nessuna voce persa
+  if (stay.length) DB.hist[ka] = stay; else delete DB.hist[ka];
+  const ca = DB.cur[ka], cb = DB.cur[kb], travels = has(ca) && !(nat && nat.cn[ka]);   // un peso segnato come nativo del profilo che lascia resta dov'e'
+  if (travels) { if (nat && has(cb) && !(kb in nat.c)) nat.c[kb] = cb; if (nat) delete nat.cn[kb]; DB.cur[kb] = ca; delete DB.cur[ka]; }   // i pesi dell'esercizio seguono l'esercizio
+  else if (nat && has(cb) && !(kb in nat.c)) nat.cn[kb] = true;   // l'esercizio arriva senza pesi: quelli del profilo di arrivo sono suoi
+  if (nat && ka in nat.c) { DB.cur[ka] = nat.c[ka]; delete nat.c[ka]; }   // quelli che erano gia' del profilo che lascia tornano al loro posto
+}
+const fqCurSig = c => c && c.sets ? c.sets.filter(z => z.kg || z.reps || z.done || z.note).map(z => [z.kg, z.reps, !!z.done, z.note || '']) : [];
+const fqSig = (pids, keys) => JSON.stringify([pids.map(p => [DB.rt[p] || [], DB.names[p] || null]), keys.map(k => [DB.hist[k] || null, fqCurSig(DB.cur[k])])]);
+const fqBkClean = () => { const bk = DB.freqBk; return !!bk && !!bk.sig && !!bk.rt && bk.sig === fqSig(Object.keys(bk.rt), Object.keys(bk.keys || {})); };   // Annulla solo se dopo il cambio non hai toccato ne' scheda ne' storico ne' pesi
+function fqApply(w) {   // w viene da fqPlan, calcolato un attimo prima sulla scheda salvata adesso
+  if (w.noop) return false;
+  fqSane();
+  const was = fqModeOf(fqActive()), pids = [...new Set([...w.act, ...w.days.map(d => d.pid)])], nameOf = pid => DB.names[pid] ? {...DB.names[pid]} : null;
+  const bk = {d: today(), to: w.mode, rt: {}, names: {}, keys: {}, prevMono: DB.freqMono ? fqClone(DB.freqMono) : null, prevFreq: DB.freq, prevFix: Array.isArray(DB.freqFix) ? DB.freqFix.slice() : null}, orphan = {}, old = {};
+  pids.forEach(pid => { bk.rt[pid] = fqClone(rtList(pid)); bk.names[pid] = nameOf(pid); old[pid] = nameOf(pid); orphan[pid] = rtList(pid).map((x, i) => byId[x.e] ? null : {i, x}).filter(Boolean); });   // orphan: voci di esercizi non piu' in libreria, restano dove sono
+  w.moves.forEach(m => [pk(m.from, m.e), pk(m.to, m.e)].forEach(k => { if (!(k in bk.keys)) bk.keys[k] = {h: DB.hist[k] ? fqClone(DB.hist[k]) : null, c: DB.cur[k] ? fqClone(DB.cur[k]) : null}; }));
+  let sn = DB.freqMono;
+  if (w.mode === 'multi') {   // copia della scheda in monofrequenza (giorno, ordine, nomi): serve solo a rimettere ogni esercizio al suo posto. Si aggiunge, non si sostituisce: i giorni gia' presenti tengono la loro voce
+    if (!(sn && DB.freq === 'multi' && (!!sn.sig && sn.sig === fqDaySig() || was !== 'mono'))) sn = DB.freqMono = {d: today(), rt: {}, names: {}, set: {}, done: {}, nat: {h: {}, c: {}, cn: {}}};
+    w.act.forEach(pid => { if (!sn.rt[pid]) { sn.rt[pid] = fqClone(rtList(pid)); sn.names[pid] = nameOf(pid); } else if (sn.set[pid] && old[pid] && old[pid].n !== sn.set[pid].n) sn.names[pid] = {...(sn.names[pid] || {m: ''}), n: old[pid].n}; });
+  }
+  const back = w.mode === 'mono' && w.snap ? DB.freqMono : null, nat = back ? back.nat : w.mode === 'multi' ? sn.nat : null;
+  pids.forEach(pid => { DB.rt[pid] = []; });
+  w.days.forEach(d => {
+    DB.rt[d.pid] = d.items.map(x => { const y = {...x}; delete y._from; return y; });   // gli esercizi sono quelli salvati adesso (serie, ripetizioni, recuperi), mai quelli della copia
+    if (!d.items.length) { if (old[d.pid] && old[d.pid].m) DB.names[d.pid] = {...old[d.pid], m: ''}; return; }   // giorno rimasto senza esercizi: non conserva l'elenco dei muscoli
+    let nm;
+    if (back && d.pid in back.rt) {   // nomi di prima, tranne quelli che hai cambiato tu nel frattempo
+      const s = back.names[d.pid], set = back.set[d.pid], cur = old[d.pid], rn = !!(cur && set && cur.n !== set.n), rm = !!(cur && set && cur.m !== set.m);
+      nm = s || rn || rm ? {n: rn ? cur.n : s ? s.n : dayName(d.pid), m: rm ? cur.m : s ? s.m : ''} : null;
+    } else if (back) nm = old[d.pid];   // giorno che non era nella copia: resta com'e'
+    else nm = {n: (old[d.pid] && old[d.pid].n) || dayName(d.pid), m: d.groups.map(g => GRUPPI[g]).join(', ')};
+    if (nm) DB.names[d.pid] = nm; else delete DB.names[d.pid];
+  });
+  pids.forEach(pid => { const used = new Set(); orphan[pid].forEach(o => { let i = o.i; if (back && back.rt[pid]) { const j = back.rt[pid].findIndex((y, k) => !used.has(k) && JSON.stringify(y) === JSON.stringify(o.x)); if (j >= 0) { i = j; used.add(j); } } DB.rt[pid].splice(Math.min(i, DB.rt[pid].length), 0, o.x); }); });   // le voci di esercizi non piu' in libreria tornano al loro posto
+  if (w.mode === 'multi') w.days.forEach(d => { if (d.items.length && DB.names[d.pid]) sn.set[d.pid] = {...DB.names[d.pid]}; });
+  if (back) { if (fqSnapMatches(back)) delete DB.freqMono; }   // la copia resta finche la scheda non e' tornata com'era (per esempio se un giorno e' rimasto 🔒): quando lo rimetti dentro torna tutto
+  else if (w.mode === 'mono') delete DB.freqMono;
+  w.moves.forEach(m => fqMoveKey(m.e, m.from, m.to, nat));
+  if (Array.isArray(DB.freqFix)) DB.freqFix = fqFix();
+  if (DB.freqMono) DB.freqMono.sig = fqDaySig();
+  DB.freqBk = bk; DB.freq = DB.freqMono ? 'multi' : w.mode; bk.sig = fqSig(Object.keys(bk.rt), Object.keys(bk.keys)); save();
+  return true;
+}
+function fqUndo() {
+  const bk = DB.freqBk; if (!bk) return 0; let n = 0;
+  Object.keys(bk.rt).forEach(pid => { DB.rt[pid] = bk.rt[pid]; if (bk.names[pid]) DB.names[pid] = bk.names[pid]; else delete DB.names[pid]; n++; });
+  Object.entries(bk.keys || {}).forEach(([k, v]) => { if (v.h) DB.hist[k] = v.h; else delete DB.hist[k]; if (v.c) DB.cur[k] = v.c; else delete DB.cur[k]; });   // storico e pesi esattamente come prima
+  if (bk.prevMono) DB.freqMono = bk.prevMono; else delete DB.freqMono;
+  if (bk.prevFix) DB.freqFix = bk.prevFix; else if ('prevFix' in bk) delete DB.freqFix;
+  delete DB.freqBk; if (bk.prevFreq) DB.freq = bk.prevFreq; else delete DB.freq; save(); return n;
+}
+function fqOpen(mode, keep) {   // anteprima in finestra; keep: dopo un cambio di giorni resta alla stessa altezza
+  const y = keep ? $('.sheet').scrollTop : 0; if (!keep) FQLOCK = Date.now() + 450; modal(fqHtml(mode)); if (keep) $('.sheet').scrollTop = y;
+  const no = $('#mbody [data-act=no]'); if (no) no.onclick = closeModal;
+}
+function fqCard() {
+  const f = fqMode(), lab = {mono: 'in monofrequenza (ogni muscolo 1 volta a settimana)', multi: 'in multifrequenza (ogni muscolo 2 volte a settimana)', misto: 'a frequenza mista (alcuni muscoli 1 volta, altri 2)'};
+  const head = '<div class="card"><h2 class="ht">🔁 Frequenza di allenamento</h2>', undo = fqBkClean() ? `<div class="sbar" style="padding:8px 0 0"><button class="ghost" data-act="frequndo">↩ Annulla l'ultimo cambio (${esc(fmtD(DB.freqBk.d))})</button></div>` : '';
+  if (fqActive().length < 2) return `${head}<p class="vnote" style="margin:0">Metti esercizi in almeno 2 giorni e qui potrai scegliere se allenare ogni muscolo 1 o 2 volte a settimana: ti riorganizzo io la scheda, con gli stessi esercizi.</p>${undo}</div>`;
+  if (!f.mode) return `${head}<p class="vnote" style="margin:0">Hai lasciato fuori troppi giorni: ne servono almeno 2 da rimodulare.</p>${fqDays('')}${undo}</div>`;
+  const chip = (m, l) => `<button class="chip ${f.mode === m ? 'on' : ''}" data-act="freqprev" data-m="${m}">${l}</button>`;
+  return `${head}<p class="vnote" style="margin:0 0 8px">Ora ${f.fix.length ? 'i giorni scelti' : 'la scheda'} ${f.fix.length ? 'sono' : 'è'} <b>${lab[f.mode]}</b>. Con un tasto sposto gli esercizi che hai già tra i giorni (gli stessi, senza aggiungerne né toglierne): vedi prima l'anteprima, poi confermi.</p>
+   <div class="chips wrap">${chip('mono', 'Monofrequenza · 1×')}${chip('multi', 'Multifrequenza · 2×')}</div>
+   ${fqDays('')}${undo}</div>`;
+}
 function evalHtml(pid) {
   const v = evalDay(pid), p = planOf(pid); if (!v) return '';
   return `<h2 style="padding-right:44px">${v.icon} ${esc(p.nome)}: ${v.score}/10, ${v.grade}</h2><p class="vnote">${v.n} esercizi · ${v.tot} serie · ~${v.mins} minuti. Giudizio automatico sull'insieme degli esercizi che hai scelto (non sul peso che usi).</p>
@@ -668,7 +933,7 @@ function evalHtml(pid) {
    ${(() => { PROP.pid = pid; PROP.list = proposeDay(pid); if (!PROP.list.length) return '<p class="gn" style="margin-top:12px">✅ Ordine ed esercizi vanno bene così: nessuna modifica da proporre.</p>';
      return `<h3 style="margin:14px 0 6px">Proposte di modifica <small style="font-weight:600;color:var(--mut)">(scegli quali seguire)</small></h3>${PROP.list.map((o, i) => `<label class="wzrow on"><input type="checkbox" data-prop="${i}" checked><span class="t"><b>${esc(o.title)}</b><small>${esc(o.why)}</small></span>${o.nid ? `<button class="ghost" data-act="open" data-id="${o.nid}" style="padding:6px 10px">3D</button>` : ''}</label>`).join('')}
      <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="propapply" data-pid="${pid}">✓ Applica le modifiche scelte</button></div>`; })()}
-   <div class="sbar" style="padding:12px 0 0">${v.pair && !v.pair.ok ? '<button class="primary" style="width:auto;padding:10px 16px" data-act="weekprop">🔀 Riorganizza i muscoli per giorno</button>' : ''}<button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
+   <div class="sbar" style="padding:12px 0 0">${v.pair && !v.pair.ok && fqMode().mode !== 'multi' ? '<button class="primary" style="width:auto;padding:10px 16px" data-act="weekprop">🔀 Riorganizza i muscoli per giorno</button>' : ''}<button class="ghost" data-act="godayedit" data-id="${pid === 'gA' ? 'giulia' : pid}">✏️ Modifica a mano</button></div>`;
 }
 // qualità dell'allenamento dallo storico
 // tutte le sedute: quelle registrate (DB.sess) più le date che compaiono solo nello storico degli esercizi (sedute salvate con le versioni precedenti)
@@ -717,7 +982,7 @@ function tipsFor(q) {
   const missP = profMus().filter(g => q.missing.includes(g) || (g === 'avambracci' && !plannedDays().some(pid => rtList(pid).some(x => byId[x.e] && inG(byId[x.e], g)))));
   if (missP.length && q.planned) tips.push({i: '🎯', t: `Nel profilo vuoi concentrarti su ${profMus().map(gName).join(', ')}, ma nella settimana non alleni: ${missP.map(gName).join(', ')}. Aggiungili con “Proponimi esercizi” o un programma pronto.`});
   if (q.missing.filter(g => !missP.includes(g)).length && q.planned) tips.push({i: '⚖️', t: `Nella settimana non alleni: ${q.missing.filter(g => !missP.includes(g)).map(gName).join(', ')}. Aggiungi almeno un esercizio per ciascuno in uno dei giorni.`});
-  plannedDays().forEach(pid => { const pr = pairing(pid); if (pr && !pr.ok) tips.push({i: '🔀', t: `${planOf(pid).nome}: ${pr.title}. Posso spostare i gruppi in altri giorni.`, week: true}); });
+  if (fqMode().mode !== 'multi') plannedDays().forEach(pid => { const pr = pairing(pid); if (pr && !pr.ok) tips.push({i: '🔀', t: `${planOf(pid).nome}: ${pr.title}. Posso spostare i gruppi in altri giorni.`, week: true}); });
   const cons = plannedDays().map(pid => ({pid, v: evalDay(pid)})).filter(x => x.v && x.v.score !== null && x.v.score < 7 && !(x.v.pair && !x.v.pair.ok));
   cons.forEach(x => tips.push({i: '🛠', t: `${planOf(x.pid).nome}: ${x.v.cons[0] || 'da sistemare'} Tocca la valutazione per i dettagli.`, pid: x.pid}));
   // esercizi pronti per aumentare il carico
@@ -752,8 +1017,9 @@ function homeView() {
     ${qbar('Costanza', q.cost, q.nsess ? Math.round(q.cost * 100) + '%' : '–')}${qbar('Progressione', q.prog, q.prog === null ? '–' : q.imp + '/' + q.cmp)}${qbar('Serie completate', q.compl, q.compl === null ? '–' : Math.round(q.compl * 100) + '%')}${qbar('Equilibrio muscoli', q.bal, Math.round(q.bal * 7) + '/7')}
     <p class="vnote">Costanza = sedute fatte su quelle programmate (4 settimane). Progressione = esercizi migliorati rispetto alla volta prima. Serie completate = serie fatte rispetto a quelle previste, ultime 4 settimane. Equilibrio = gruppi muscolari coperti nella settimana (petto, schiena, spalle, bicipiti, tricipiti, gambe, addome).</p></div>
    <div class="card"><h2 class="ht">💡 Consigli</h2><ul class="tips">${tipsFor(q).map(x => `<li><span>${x.i}</span><div>${esc(x.t)}${x.pid ? ` <button class="tlink" data-act="evalday" data-pid="${x.pid}">Vedi</button>` : x.week ? ' <button class="tlink" data-act="weekprop">Proponi</button>' : ''}</div></li>`).join('')}</ul></div>
+   ${fqCard()}
    <div class="card"><h2 class="ht">📋 Le tue giornate</h2><p class="vnote" style="margin:0 0 8px">Valutazione automatica dell’insieme di esercizi scelto per ogni giorno: tocca per la spiegazione.</p>
-    ${(() => { const w = proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
+    ${(() => { const w = fqMode().mode === 'multi' ? null : proposeWeek(); return w && w.moves.length ? `<button class="ghost addmore" data-act="weekprop" style="margin:0 0 10px">🔀 Riorganizza i muscoli per giorno (${w.moves.length} spostamenti proposti)</button>` : ''; })()}
     ${DAYS.map(([x, , full]) => { const id = dayPid(x), pp = planOf(id), e = evalDay(id); return `<button class="dayrow ${e ? '' : 'off'} ${x === tid ? 'today' : ''}" data-act="${e ? 'evalday' : 'tab'}" data-pid="${id}" data-id="${x}"><span class="dn">${full.slice(0, 3)}</span><span class="t"><b>${esc(pp.nome)}${pp.sotto ? ' · ' + esc(pp.sotto) : ''}</b><small>${e ? `${e.n} esercizi · ${e.tot} serie · ~${e.mins} min · ${e.groups.map(g => GRUPPI[g]).join(', ')}` : 'riposo / nessun esercizio'}</small></span>${e ? `<span class="sc s${Math.round(e.score)}">${e.icon} ${e.score}</span>` : '<span class="chev">›</span>'}</button>`; }).join('')}</div>`;
 }
 
@@ -1165,7 +1431,7 @@ function settings() {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act, k = b.dataset.k, i = +b.dataset.i;
-  if (a === 'tab') go(b.dataset.id);
+  if (a === 'tab') { if (Date.now() < NAVLOCK) return; go(b.dataset.id); }
   else if (a === 'sub') { giuliaSub = b.dataset.id; render(); }
   else if (a === 'open') openEx(b.dataset.id);
   else if (a === 'objset') { const x = rtList(b.dataset.pid).find(v => v.e === b.dataset.id), ex = byId[b.dataset.id], p = presOf(ex, b.dataset.f);
@@ -1217,6 +1483,10 @@ document.addEventListener('click', e => {
   else if (a === 'evalday') modal(evalHtml(b.dataset.pid));
   else if (a === 'wk') modal(weekDetHtml(b.dataset.w));
   else if (a === 'weekprop') { modal(weekPropHtml()); const no = $('#mbody [data-act=no]'); if (no) no.onclick = closeModal; }
+  else if (a === 'freqprev') fqOpen(b.dataset.m);
+  else if (a === 'freqday') { if (b.dataset.m && Date.now() < FQLOCK) return; const pid = b.dataset.pid; if (!Array.isArray(DB.freqFix)) DB.freqFix = []; const f = DB.freqFix, i = f.indexOf(pid); if (i < 0) f.push(pid); else f.splice(i, 1); DB.freqFix = DB.freqFix.filter(p => fqActive().includes(p)); save(); const open = b.dataset.m && !$('#modal').hidden; render(true); if (open) fqOpen(b.dataset.m, true); const nb = document.querySelector((open ? '#mbody' : 'main, #app, body') + ' [data-act=freqday][data-pid="' + pid + '"]'); if (nb) nb.focus(); }
+  else if (a === 'freqapply') { const w = fqPlan(b.dataset.m); if (w.err) { closeModal(); flash(w.err); return; } if (w.noop) { closeModal(); flash('Niente da spostare'); return; } NAVLOCK = Date.now() + 600; fqApply(w); closeModal(); prepEdit = false; go('home'); flash('✓ Rimodulata in ' + (w.mode === 'multi' ? 'multifrequenza' : 'monofrequenza')); }
+  else if (a === 'frequndo') { NAVLOCK = Date.now() + 600; ask('Ripristinare la scheda com’era prima dell’ultimo cambio di frequenza?', 'Ripristina', () => { NAVLOCK = Date.now() + 600; fqUndo(); prepEdit = false; go('home'); flash('✓ Scheda ripristinata'); }); }
   else if (a === 'weekapply') { const w = proposeWeek(); if (!w || !w.moves.length) { closeModal(); return; } ask('Spostare ' + w.moves.length + ' esercizi tra i giorni come proposto?', 'Sposta', () => { const n = applyWeek(w); prepEdit = false; go('home'); flash('✓ ' + n + ' esercizi spostati: settimana riorganizzata'); }); }
   else if (a === 'propapply') { const pid = b.dataset.pid, chosen = [...document.querySelectorAll('#mbody [data-prop]')].filter(c => c.checked).map(c => PROP.list[+c.dataset.prop]); if (!chosen.length) { flash('Nessuna modifica selezionata'); return; }
     ask('Applicare ' + chosen.length + (chosen.length === 1 ? ' modifica' : ' modifiche') + ' a ' + planOf(pid).nome + '? Pesi, note e storico restano salvati.', 'Applica', () => { const done = proposeApply(pid, chosen); prepEdit = false; go(pid === 'gA' ? 'giulia' : pid); flash('✓ ' + done.length + ' modifiche applicate'); setTimeout(() => modal(evalHtml(pid)), 80); }); }
@@ -1273,7 +1543,7 @@ document.addEventListener('click', e => {
   else if (a === 'rshare') reportShare(false);
   else if (a === 'rcopy') reportShare(true);
   else if (a === 'import') { const f = $('#imp'); f.onchange = () => importData(f.files[0]); f.click(); }
-  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, notes: DB.notes, fav: DB.fav, seeds: DB.seeds, noatt: DB.noatt, prof: DB.prof, v: 3}); save(); render(); })
+  else if (a === 'wipe') ask('Cancellare TUTTI i pesi e lo storico? Non si può annullare.', 'Cancella tutto', () => { DB = fixDB({cur: {}, hist: {}, rt: DB.rt, names: DB.names, myv: DB.myv, hideRef: DB.hideRef, hiddenRef: DB.hiddenRef, logo: DB.logo, notes: DB.notes, fav: DB.fav, seeds: DB.seeds, noatt: DB.noatt, prof: DB.prof, freq: DB.freq, freqFix: DB.freqFix, freqMono: DB.freqMono && {...DB.freqMono, nat: {h: {}, c: {}, cn: {}}}, v: 3}); save(); render(); })
 });
 $('#cfg').onclick = settings;
 document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.prop !== undefined) { t.closest('.wzrow').classList.toggle('on', t.checked); return; } if (t.dataset && t.dataset.act === 'wzkeep') { const id = t.dataset.id, i = WZ.keep.indexOf(id); if (t.checked && i < 0) WZ.keep.push(id); if (!t.checked && i >= 0) WZ.keep.splice(i, 1); wizRender(); } });

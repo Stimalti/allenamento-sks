@@ -17,7 +17,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;a
 .logo svg{width:22px;height:22px}
 h1{font-size:21px;font-weight:700;text-transform:uppercase;flex:1;line-height:1.05;min-width:0}
 h1 small{display:block;font:600 12px/1.2 var(--font);text-transform:none;color:var(--mut);letter-spacing:0}
-#saved{font-size:13px;color:var(--ok);font-weight:600;opacity:0;transition:opacity .3s;white-space:nowrap}#saved.on{opacity:1}
+#saved{position:fixed;left:50%;width:max-content;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);max-width:92vw;background:var(--card);color:var(--ok);border:1px solid var(--line);border-radius:99px;padding:7px 16px;font-size:13px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .3s;z-index:30}#saved:empty{display:none}#saved.on{opacity:1}
 #cfg{border:1px solid var(--line);background:var(--card);border-radius:11px;width:40px;height:38px;font-size:18px;color:var(--mut)}
 main{max-width:720px;margin:0 auto;padding:14px 16px 24px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:center;gap:2px;background:var(--navbg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
@@ -276,3 +276,10 @@ img,video,canvas,svg,iframe,table{max-width:100%}header h1,.hero h2,.exh h2,.li 
 .f{padding:0 6px;gap:3px}.f input{font-size:19px}
 .chart{width:100%;height:auto;display:block;margin:4px 0 2px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:0 0 10px}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+.fqt{width:100%;border-collapse:collapse;font-size:14px}.fqt td{padding:5px 6px;border-bottom:1px solid var(--line)}.fqt td:nth-child(3){color:var(--mut);text-align:center}
+.dayrow .t small.fql{white-space:normal;overflow:visible;text-overflow:clip;margin-top:2px}
+.fqt td.mut{color:var(--mut);font-size:12px;text-align:right}.dayrow .t small i{font-style:normal;color:var(--tx);opacity:.78;font-weight:700;font-size:11px}
+.chip.fqd{flex:0 1 auto;max-width:100%;min-height:44px;white-space:normal;overflow-wrap:anywhere;text-align:left;line-height:1.25;border-radius:14px}
+
+.chip[data-act=freqprev],[data-act=frequndo],[data-act=freqapply]{min-height:44px}
