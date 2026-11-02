@@ -683,15 +683,21 @@ const fqAdj = (a, b) => { const d = Math.abs(a - b); return d === 1 || d === 6; 
 const fqClone = o => JSON.parse(JSON.stringify(o));
 const fqSets = (x, pid) => { const c = DB.cur[pk(planOf(x._from || pid).profilo, x.e)]; return (c && c.sets && c.sets.length) || +x.s || 0; };   // le serie come le conta l'app (quelle impostate in Allenati, altrimenti quelle della scheda)
 const fqSort = (a, b) => TIER(byId[a.e]) - TIER(byId[b.e]) || FQ_PRIO.indexOf(byId[a.e].g) - FQ_PRIO.indexOf(byId[b.e].g);
-const fqPlain = x => JSON.stringify(x, (k, v) => k === '_from' ? undefined : v);
+const fqCanon = (x, skip) => JSON.stringify(x, (k, v) => skip && k === skip ? undefined : v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.keys(v).sort().map(q => [q, v[q]])) : v);   // JSON con le chiavi in ordine: il cloud (jsonb) puo' riordinarle
+const fqPlain = x => fqCanon(x, '_from');
 function fqSane() {   // dati salvati da versioni diverse o incompleti: si ripara o si scarta cio' che non e' usabile
   const m = DB.freqMono; if (m && !(typeof m === 'object' && m.rt && typeof m.rt === 'object')) delete DB.freqMono;
   else if (m) { m.names = m.names || {}; m.set = m.set || {}; m.done = m.done || {}; m.nat = m.nat || {}; m.nat.h = m.nat.h || {}; m.nat.c = m.nat.c || {}; m.nat.cn = m.nat.cn || {}; }
   const b = DB.freqBk; if (b && !(b.rt && b.d && b.sig)) delete DB.freqBk; else if (b) { b.names = b.names || {}; b.keys = b.keys || {}; }
   if (DB.freqFix && !Array.isArray(DB.freqFix)) delete DB.freqFix;
-  if (DB.freqMono && fqSnapMatches(DB.freqMono)) delete DB.freqMono;   // la scheda e' gia' tornata com'era: la copia non serve piu'
+  if (DB.freqMono && fqSnapMatches(DB.freqMono)) fqDropMono();   // la scheda e' gia' tornata com'era: la copia non serve piu'
 }
 const fqDaySig = () => JSON.stringify(DAYS.map(([t]) => rtList(dayPid(t)).filter(x => byId[x.e]).map(x => x.e).sort()));   // quali esercizi stanno in quale giorno (senza l'ordine)
+function fqDropMono() {   // scarta la copia mono; le scorte di pesi che conteneva tornano al loro posto se il posto e' libero
+  const S = DB.freqMono; if (!S) return;
+  if (S.nat && S.nat.c) Object.keys(S.nat.c).forEach(k => { const c = DB.cur[k]; if (!(c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note))) DB.cur[k] = S.nat.c[k]; });
+  delete DB.freqMono;
+}
 function fqSnapMatches(S) {   // ogni giorno della copia ha gli stessi esercizi, nello stesso ordine
   return Object.keys(S.rt).every(pid => { const sl = (S.rt[pid] || []).filter(y => byId[y.e]).map(y => y.e); return !sl.length || JSON.stringify(sl) === JSON.stringify(rtList(pid).filter(x => byId[x.e]).map(x => x.e)); });
 }
@@ -701,7 +707,7 @@ function fqStats(lists) {   // lists: [{pid, items}]; per gruppo: esercizi, seri
 function fqModeOf(pids) {   // com'e' organizzata una serie di giorni: contano i muscoli con almeno 2 esercizi, gli unici che si possono dividere
   if (pids.length < 2) return null;
   const st = fqStats(pids.map(pid => ({pid, items: rtList(pid)}))), gs = Object.keys(st).filter(g => st[g].n >= 2), n2 = gs.filter(g => st[g].d >= 2).length;
-  return n2 === 0 ? 'mono' : n2 >= gs.length / 2 ? 'multi' : 'misto';
+  return n2 === 0 ? 'mono' : n2 === gs.length ? 'multi' : 'misto';
 }
 function fqMode() { const act = fqInc(), fix = fqFix(); return {mode: fqModeOf(act), act, fix}; }   // solo nei giorni da rimodulare
 function fqItems(act) {   // gli esercizi della settimana tali e quali (anche se uno e' ripetuto in due giorni: il totale non cambia), col giorno di partenza
@@ -851,20 +857,22 @@ function fqHtml(mode) {
 }
 function fqMoveKey(e, a, b, nat) {   // storico e pesi correnti dell'esercizio passano dal profilo del vecchio giorno a quello del nuovo, senza perdere nulla
   const ka = pk(a, e), kb = pk(b, e); if (ka === kb) return;
-  const sig = h => h.d + '|' + JSON.stringify(h.sets), has = c => !!(c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note));
+  const sig = h => h.d + '|' + fqCanon(h.sets), has = c => !!(c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note));
   const Ha = DB.hist[ka] || [], Hb = DB.hist[kb] || [];
   if (nat && !nat.h[kb]) nat.h[kb] = Hb.map(sig);   // voci gia' del profilo di arrivo: se l'esercizio torna indietro restano li'
   const own = {}; ((nat && nat.h[ka]) || []).forEach(s => { own[s] = (own[s] || 0) + 1; });
   const stay = [], go = []; Ha.forEach(h => { const s = sig(h); if (own[s] > 0) { own[s]--; stay.push(h); } else go.push(h); });
   if (go.length) DB.hist[kb] = [...Hb, ...go].sort((p, q) => p.d < q.d ? -1 : p.d > q.d ? 1 : 0);   // ordine cronologico (a parita' di data resta l'ordine di prima), nessuna voce persa
   if (stay.length) DB.hist[ka] = stay; else delete DB.hist[ka];
-  const ca = DB.cur[ka], cb = DB.cur[kb], travels = has(ca) && !(nat && nat.cn[ka]);   // un peso segnato come nativo del profilo che lascia resta dov'e'
+  const ca = DB.cur[ka], cb = DB.cur[kb], mine = nat && nat.cn[ka], edited = !!mine && mine !== true && fqCanon(fqCurSig(ca)) !== fqCanon(fqCurSig(mine));   // mine: i pesi nativi del profilo che lascia (se li hai cambiati, viaggiano con l'esercizio)
+  const travels = has(ca) && (!mine || edited);
+  if (travels && edited) { nat.c[ka] = mine; delete nat.cn[ka]; }   // i nativi tornano al loro posto, quelli cambiati partono
   if (travels) { if (nat && has(cb) && !(kb in nat.c)) nat.c[kb] = cb; if (nat) delete nat.cn[kb]; DB.cur[kb] = ca; delete DB.cur[ka]; }   // i pesi dell'esercizio seguono l'esercizio
-  else if (nat && has(cb) && !(kb in nat.c)) nat.cn[kb] = true;   // l'esercizio arriva senza pesi: quelli del profilo di arrivo sono suoi
+  else if (nat && has(cb) && !(kb in nat.c)) nat.cn[kb] = fqClone(cb);   // l'esercizio arriva senza pesi: quelli del profilo di arrivo sono suoi
   if (nat && ka in nat.c) { DB.cur[ka] = nat.c[ka]; delete nat.c[ka]; }   // quelli che erano gia' del profilo che lascia tornano al loro posto
 }
 const fqCurSig = c => c && c.sets ? c.sets.filter(z => z.kg || z.reps || z.done || z.note).map(z => [z.kg, z.reps, !!z.done, z.note || '']) : [];
-const fqSig = (pids, keys) => JSON.stringify([pids.map(p => [DB.rt[p] || [], DB.names[p] || null]), keys.map(k => [DB.hist[k] || null, fqCurSig(DB.cur[k])])]);
+const fqSig = (pids, keys) => fqCanon([pids.slice().sort().map(p => [DB.rt[p] || [], DB.names[p] || null]), keys.slice().sort().map(k => [DB.hist[k] || null, fqCurSig(DB.cur[k])])]);
 const fqBkClean = () => { const bk = DB.freqBk; return !!bk && !!bk.sig && !!bk.rt && bk.sig === fqSig(Object.keys(bk.rt), Object.keys(bk.keys || {})); };   // Annulla solo se dopo il cambio non hai toccato ne' scheda ne' storico ne' pesi
 function fqApply(w) {   // w viene da fqPlan, calcolato un attimo prima sulla scheda salvata adesso
   if (w.noop) return false;
@@ -875,27 +883,28 @@ function fqApply(w) {   // w viene da fqPlan, calcolato un attimo prima sulla sc
   w.moves.forEach(m => [pk(m.from, m.e), pk(m.to, m.e)].forEach(k => { if (!(k in bk.keys)) bk.keys[k] = {h: DB.hist[k] ? fqClone(DB.hist[k]) : null, c: DB.cur[k] ? fqClone(DB.cur[k]) : null}; }));
   let sn = DB.freqMono;
   if (w.mode === 'multi') {   // copia della scheda in monofrequenza (giorno, ordine, nomi): serve solo a rimettere ogni esercizio al suo posto. Si aggiunge, non si sostituisce: i giorni gia' presenti tengono la loro voce
-    if (!(sn && DB.freq === 'multi' && (!!sn.sig && sn.sig === fqDaySig() || was !== 'mono'))) sn = DB.freqMono = {d: today(), rt: {}, names: {}, set: {}, done: {}, nat: {h: {}, c: {}, cn: {}}};
+    if (!(sn && DB.freq === 'multi' && (!!sn.sig && sn.sig === fqDaySig() || was !== 'mono'))) { const oldS = sn; fqDropMono(); sn = DB.freqMono = {d: today(), rt: {}, names: {}, set: {}, done: {}, nat: {h: {}, c: {}, cn: {}}}; if (oldS && oldS.nat && oldS.nat.c) Object.keys(oldS.nat.c).forEach(k => { const c = DB.cur[k]; if (c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note) && c !== oldS.nat.c[k]) sn.nat.c[k] = oldS.nat.c[k]; }); }   // le scorte di pesi che non hanno trovato posto passano alla copia nuova
     w.act.forEach(pid => { if (!sn.rt[pid]) { sn.rt[pid] = fqClone(rtList(pid)); sn.names[pid] = nameOf(pid); } else if (sn.set[pid] && old[pid] && old[pid].n !== sn.set[pid].n) sn.names[pid] = {...(sn.names[pid] || {m: ''}), n: old[pid].n}; });
   }
   const back = w.mode === 'mono' && w.snap ? DB.freqMono : null, nat = back ? back.nat : w.mode === 'multi' ? sn.nat : null;
   pids.forEach(pid => { DB.rt[pid] = []; });
   w.days.forEach(d => {
     DB.rt[d.pid] = d.items.map(x => { const y = {...x}; delete y._from; return y; });   // gli esercizi sono quelli salvati adesso (serie, ripetizioni, recuperi), mai quelli della copia
-    if (!d.items.length) { if (old[d.pid] && old[d.pid].m) DB.names[d.pid] = {...old[d.pid], m: ''}; return; }   // giorno rimasto senza esercizi: non conserva l'elenco dei muscoli
+    if (!d.items.length) { if (old[d.pid] && old[d.pid].m) { DB.names[d.pid] = {...old[d.pid], m: ''}; if (back && back.set[d.pid]) back.set[d.pid] = {...DB.names[d.pid]}; } return; }   // giorno rimasto senza esercizi: non conserva l'elenco dei muscoli
     let nm;
     if (back && d.pid in back.rt) {   // nomi di prima, tranne quelli che hai cambiato tu nel frattempo
       const s = back.names[d.pid], set = back.set[d.pid], cur = old[d.pid], rn = !!(cur && set && cur.n !== set.n), rm = !!(cur && set && cur.m !== set.m);
       nm = s || rn || rm ? {n: rn ? cur.n : s ? s.n : dayName(d.pid), m: rm ? cur.m : s ? s.m : ''} : null;
     } else if (back) nm = old[d.pid];   // giorno che non era nella copia: resta com'e'
+    else if (fqPlain(d.items) === fqPlain(bk.rt[d.pid].filter(x => byId[x.e]))) nm = old[d.pid];   // giorno che non cambia: resta com'e'
     else nm = {n: (old[d.pid] && old[d.pid].n) || dayName(d.pid), m: d.groups.map(g => GRUPPI[g]).join(', ')};
     if (nm) DB.names[d.pid] = nm; else delete DB.names[d.pid];
   });
-  pids.forEach(pid => { const used = new Set(); orphan[pid].forEach(o => { let i = o.i; if (back && back.rt[pid]) { const j = back.rt[pid].findIndex((y, k) => !used.has(k) && JSON.stringify(y) === JSON.stringify(o.x)); if (j >= 0) { i = j; used.add(j); } } DB.rt[pid].splice(Math.min(i, DB.rt[pid].length), 0, o.x); }); });   // le voci di esercizi non piu' in libreria tornano al loro posto
+  pids.forEach(pid => { const used = new Set(); orphan[pid].forEach(o => { let i = o.i; if (back && back.rt[pid]) { const j = back.rt[pid].findIndex((y, k) => !used.has(k) && fqCanon(y) === fqCanon(o.x)); if (j >= 0) { i = j; used.add(j); } } DB.rt[pid].splice(Math.min(i, DB.rt[pid].length), 0, o.x); }); });   // le voci di esercizi non piu' in libreria tornano al loro posto
   if (w.mode === 'multi') w.days.forEach(d => { if (d.items.length && DB.names[d.pid]) sn.set[d.pid] = {...DB.names[d.pid]}; });
-  if (back) { if (fqSnapMatches(back)) delete DB.freqMono; }   // la copia resta finche la scheda non e' tornata com'era (per esempio se un giorno e' rimasto 🔒): quando lo rimetti dentro torna tutto
-  else if (w.mode === 'mono') delete DB.freqMono;
   w.moves.forEach(m => fqMoveKey(m.e, m.from, m.to, nat));
+  if (back) { if (fqSnapMatches(back)) fqDropMono(); }   // la copia resta finche la scheda non e' tornata com'era (per esempio se un giorno e' rimasto 🔒): quando lo rimetti dentro torna tutto
+  else if (w.mode === 'mono') fqDropMono();
   if (Array.isArray(DB.freqFix)) DB.freqFix = fqFix();
   if (DB.freqMono) DB.freqMono.sig = fqDaySig();
   DB.freqBk = bk; DB.freq = DB.freqMono ? 'multi' : w.mode; bk.sig = fqSig(Object.keys(bk.rt), Object.keys(bk.keys)); save();
@@ -1484,7 +1493,7 @@ document.addEventListener('click', e => {
   else if (a === 'wk') modal(weekDetHtml(b.dataset.w));
   else if (a === 'weekprop') { modal(weekPropHtml()); const no = $('#mbody [data-act=no]'); if (no) no.onclick = closeModal; }
   else if (a === 'freqprev') fqOpen(b.dataset.m);
-  else if (a === 'freqday') { if (b.dataset.m && Date.now() < FQLOCK) return; const pid = b.dataset.pid; if (!Array.isArray(DB.freqFix)) DB.freqFix = []; const f = DB.freqFix, i = f.indexOf(pid); if (i < 0) f.push(pid); else f.splice(i, 1); DB.freqFix = DB.freqFix.filter(p => fqActive().includes(p)); save(); const open = b.dataset.m && !$('#modal').hidden; render(true); if (open) fqOpen(b.dataset.m, true); const nb = document.querySelector((open ? '#mbody' : 'main, #app, body') + ' [data-act=freqday][data-pid="' + pid + '"]'); if (nb) nb.focus(); }
+  else if (a === 'freqday') { if (b.dataset.m && Date.now() < FQLOCK) return; const pid = b.dataset.pid; if (!Array.isArray(DB.freqFix)) DB.freqFix = []; const f = DB.freqFix, i = f.indexOf(pid); if (i < 0) f.push(pid); else f.splice(i, 1); DB.freqFix = DB.freqFix.filter(p => fqActive().includes(p)); save(); const open = b.dataset.m && !$('#modal').hidden; render(true); if (open) fqOpen(b.dataset.m, true); const nb = document.querySelector((open ? '#mbody' : '#main') + ' [data-act=freqday][data-pid="' + pid + '"]'); if (nb) nb.focus(); }
   else if (a === 'freqapply') { const w = fqPlan(b.dataset.m); if (w.err) { closeModal(); flash(w.err); return; } if (w.noop) { closeModal(); flash('Niente da spostare'); return; } NAVLOCK = Date.now() + 600; fqApply(w); closeModal(); prepEdit = false; go('home'); flash('✓ Rimodulata in ' + (w.mode === 'multi' ? 'multifrequenza' : 'monofrequenza')); }
   else if (a === 'frequndo') { NAVLOCK = Date.now() + 600; ask('Ripristinare la scheda com’era prima dell’ultimo cambio di frequenza?', 'Ripristina', () => { NAVLOCK = Date.now() + 600; fqUndo(); prepEdit = false; go('home'); flash('✓ Scheda ripristinata'); }); }
   else if (a === 'weekapply') { const w = proposeWeek(); if (!w || !w.moves.length) { closeModal(); return; } ask('Spostare ' + w.moves.length + ' esercizi tra i giorni come proposto?', 'Sposta', () => { const n = applyWeek(w); prepEdit = false; go('home'); flash('✓ ' + n + ' esercizi spostati: settimana riorganizzata'); }); }
