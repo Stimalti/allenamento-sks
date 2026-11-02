@@ -1370,5 +1370,12 @@ const VIDEOS = {
 "n": "kickback a due braccia ai cavi, circa 0:15-0:17",
 "v": "02"
 }
+],
+"b-corda-alta-petto": [
+{
+"u": "https://www.facebook.com/share/r/14tiBJVsMAR/",
+"n": "Back exercises with cable (Steve Nguyễn) · secondo esercizio: corda tenuta sui cordoni, tirata al petto con i gomiti larghi, circa 0:07-0:14",
+"v": "125"
+}
 ]
 };
