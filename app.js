@@ -16,6 +16,16 @@ function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; i
   if (!d.seeds.bic46) { // i 3 curl del video "STOP doing this for biceps": preferiti e inseriti nel lunedì (una volta sola)
     d.seeds.bic46 = 1; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; if (!Array.isArray(d.rt.g1)) d.rt.g1 = [];
     ['c-curl-dietro', 'c-curl-davanti', 'c-hammer-singolo'].forEach(id => { d.fav[id] = 1; if (!d.rt.g1.some(x => x.e === id)) d.rt.g1.push({e: id, s: 3, r: '10-12', rec: '75 s', obj: 'massa'}); }); } if (!d.hiddenRef || typeof d.hiddenRef !== 'object') d.hiddenRef = {}; if (!d.myv || typeof d.myv !== 'object') d.myv = {}; if (!d.names || typeof d.names !== 'object') d.names = {}; if (!d.rt || typeof d.rt !== 'object') d.rt = {}; CUST.forEach(id => { if (!Array.isArray(d.rt[id])) d.rt[id] = []; });
+  { /* un solo profilo per tutti i giorni (prima il Venerdì usava il profilo "giulia" e il Sabato "mia"): storico e pesi si uniscono sotto "io", con una copia di sicurezza in profBk. Vale a ogni avvio: se un altro dispositivo rimasto alla versione vecchia riscrive le chiavi, si riuniscono */
+    const H = d.hist && typeof d.hist === 'object' ? d.hist : (d.hist = {}), C = d.cur && typeof d.cur === 'object' ? d.cur : (d.cur = {}), old = k => /^(giulia|mia):/.test(k);
+    if (Object.keys(H).some(old) || Object.keys(C).some(old)) {
+      const has = c => !!(c && c.sets && c.sets.some(z => z.kg || z.reps || z.done || z.note)), lastD = a => (a || []).reduce((m, h) => h && h.d > m ? h.d : m, ''), pm = d.freqMono && d.freqMono.nat && d.freqMono.nat.c;
+      if (pm && typeof pm === 'object') Object.keys(pm).forEach(k => { if (!has(C[k])) C[k] = pm[k]; });   // pesi di scorta della copia mono: tornano al loro posto
+      const bk = d.profBk && typeof d.profBk === 'object' ? d.profBk : (d.profBk = {d: new Date().toISOString().slice(0, 10), hist: {}, cur: {}});
+      Object.keys(C).filter(old).forEach(k => { const io = 'io:' + k.replace(/^[a-z]+:/, ''); if (has(C[k])) { bk.cur[k] = C[k]; if (!has(C[io]) || lastD(H[k]) > lastD(H[io])) C[io] = C[k]; } delete C[k]; });   // se hanno pesi entrambi vince il profilo con la seduta piu' recente
+      Object.keys(H).filter(old).forEach(k => { const io = 'io:' + k.replace(/^[a-z]+:/, ''); bk.hist[k] = H[k]; H[io] = [...(H[io] || []), ...(Array.isArray(H[k]) ? H[k] : [])].sort((p, q) => p.d < q.d ? -1 : p.d > q.d ? 1 : 0); delete H[k]; });
+      delete d.freqBk; if (d.freqMono && d.freqMono.nat) d.freqMono.nat = {h: {}, c: {}, cn: {}};   // l'Annulla e le scorte parlavano delle chiavi di prima
+    } }
   if (d.seeds.lat125 && !d.seeds.lat125u) { d.seeds.lat125u = 1; /* la lat machine presa larga messa nel mercoledì per errore (v125) si toglie, solo se e' ancora come l'avevo messa */
     for (const id of Object.keys(d.rt)) { const L = d.rt[id], i = Array.isArray(L) ? L.findIndex(x => x && x.e === 'b-lat-larga' && x.s === 3 && x.r === '10-12' && x.rec === '90 s' && Object.keys(x).length === 4) : -1; if (i >= 0) { L.splice(i, 1); break; } } }
   d.seeds.lat125 = 1;
@@ -230,7 +240,7 @@ const tabPlan = id => id === 'giulia' ? 'gA' : id;
 
 const rtList = id => DB.rt[id] || (DB.rt[id] = []);
 const customPlan = id => { const base = PLAN.find(p => p.id === id);
-  return {id, custom: true, profilo: id === 'mia' ? 'mia' : id[0] === 'g' && id.length === 2 && id[1] > '9' ? 'giulia' : 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : dayName(id), sotto: DB.names[id] ? (DB.names[id].m || '') : '',
+  return {id, custom: true, profilo: 'io', nome: DB.names[id] ? (DB.names[id].n || 'Senza nome') : dayName(id), sotto: DB.names[id] ? (DB.names[id].m || '') : '',
     obiettivo: 'Tocca ALLENATI per fare gli esercizi uno alla volta, con pesi, timer di recupero e spiegazioni. Qui sotto prepari la scheda: aggiungi, togli, riordina.',
     ex: rtList(id).filter(x => byId[x.e]).map(x => ({...x, ruolo: 'Scelto da te'}))}; };
 const planOf = id => CUST.includes(id) ? customPlan(id) : PLAN.find(p => p.id === id);
@@ -798,7 +808,12 @@ function fqFromSnapshot(act, bk) {   // monofrequenza: la copia salvata da' SOLO
   };
   const resOf = pid => res.find(d => d.pid === pid);
   stuck.forEach(x => put(resOf(x._from), x));
-  rest.filter(x => !placed.has(x)).forEach(x => put(resOf(x._from) || res[res.length - 1], x));   // 4) aggiunti dopo: restano nel giorno dove li hai messi tu
+  rest.filter(x => !placed.has(x)).forEach(x => {   // 4) aggiunti dopo: nel giorno del loro muscolo (o dove sono adesso, se quel muscolo non c'era o se il suo giorno resterebbe vuoto)
+    const g = byId[x.e].g; let bd = null, bc = 0; res.forEach(d => { const n = d.items.filter(y => byId[y.e].g === g).length; if (n > bc) { bc = n; bd = d; } });
+    const hd = resOf(x._from); if (!bd) bd = hd || res[res.length - 1];
+    if (bd !== hd && hd && !hd.items.length && rest.filter(y => !placed.has(y) && y._from === x._from).length === 1 && !stuck.some(y => y._from === x._from)) bd = hd;
+    put(bd, x);
+  });
   res.stuck = stuck.length; return res;
 }
 function fqPlan(mode) {   // calcolato ogni volta sulla scheda salvata in questo momento
@@ -1579,7 +1594,7 @@ document.addEventListener('toggle', e => {
   loadMine(d);
 }, true);
 
-function planFind(k) { const [prof, id] = k.split(':'); if (TR.on) { const x = rtList(TR.pid).find(x => x.e === id); if (x) return x; } if (prof !== 'giulia') { for (const r of (prof === 'mia' ? ['mia'] : ['g1', 'g2', 'g3', 'g4', 'dom'])) { const x = rtList(r).find(x => x.e === id); if (x) return x; } return null; } { const x = rtList('gA').find(x => x.e === id); if (x) return x; } const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
+function planFind(k) { const [prof, id] = k.split(':'); if (TR.on) { const x = rtList(TR.pid).find(x => x.e === id); if (x) return x; } if (prof !== 'giulia') { for (const r of (prof === 'mia' ? ['mia'] : CUST)) { const x = rtList(r).find(x => x.e === id); if (x) return x; } return null; } { const x = rtList('gA').find(x => x.e === id); if (x) return x; } const ps = PLAN.filter(p => (p.profilo || 'io') === prof); for (const p of ps) { const x = p.ex.find(x => x.e === id); if (x) return x; } return null; }
 function refreshProgress() {
   const p = planOf(tabPlan(tab)); if (!p) return;
   const prof = p.profilo || 'io'; let tot = 0, dn = 0;
