@@ -798,12 +798,7 @@ function fqFromSnapshot(act, bk) {   // monofrequenza: la copia salvata da' SOLO
   };
   const resOf = pid => res.find(d => d.pid === pid);
   stuck.forEach(x => put(resOf(x._from), x));
-  rest.filter(x => !placed.has(x)).forEach(x => {   // 4) aggiunti dopo: nel giorno del loro muscolo (o dove sono adesso, se quel muscolo non c'era o se il suo giorno resterebbe vuoto)
-    const g = byId[x.e].g; let bd = null, bc = 0; res.forEach(d => { const n = d.items.filter(y => byId[y.e].g === g).length; if (n > bc) { bc = n; bd = d; } });
-    const hd = resOf(x._from); if (!bd) bd = hd || res[res.length - 1];
-    if (bd !== hd && hd && !hd.items.length && rest.filter(y => !placed.has(y) && y._from === x._from).length === 1 && !stuck.some(y => y._from === x._from)) bd = hd;
-    put(bd, x);
-  });
+  rest.filter(x => !placed.has(x)).forEach(x => put(resOf(x._from) || res[res.length - 1], x));   // 4) aggiunti dopo: restano nel giorno dove li hai messi tu
   res.stuck = stuck.length; return res;
 }
 function fqPlan(mode) {   // calcolato ogni volta sulla scheda salvata in questo momento
