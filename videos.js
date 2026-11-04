@@ -452,6 +452,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1Co99dY3CH/",
 "n": "presa prona, circa 0:17-0:21",
 "v": "15"
+},
+{
+"u": "https://www.facebook.com/share/r/1JcraBPAM4/",
+"n": "Fitness Point Shymkent · reverse curl al cavo basso con barra corta, circa 0:00-0:05",
+"v": "129"
 }
 ],
 "t-push-corda": [
@@ -1376,6 +1381,27 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/14tiBJVsMAR/",
 "n": "Back exercises with cable (Steve Nguyễn) · secondo esercizio: corda tenuta sui cordoni, tirata al petto con i gomiti larghi, circa 0:07-0:14",
 "v": "125"
+}
+],
+"w-wrist-curl-piedi": [
+{
+"u": "https://www.facebook.com/share/r/1JcraBPAM4/",
+"n": "Fitness Point Shymkent · wrist curl in piedi al cavo basso, presa supina, circa 0:09-0:14",
+"v": "129"
+}
+],
+"w-wrist-ext-piedi": [
+{
+"u": "https://www.facebook.com/share/r/1JcraBPAM4/",
+"n": "Fitness Point Shymkent · estensioni del polso in piedi al cavo basso, presa prona, circa 0:05-0:09",
+"v": "129"
+}
+],
+"w-wrist-dietro": [
+{
+"u": "https://www.facebook.com/share/r/1JcraBPAM4/",
+"n": "Fitness Point Shymkent · wrist curl dietro la schiena al cavo basso, circa 0:14-0:18",
+"v": "129"
 }
 ]
 };

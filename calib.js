@@ -942,7 +942,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ['tricipiti', /pushdown|push ?down|spinte in basso/, 'Pushdown'], ['tricipiti', /sopra la testa|overhead|french/, 'Estensioni sopra la testa'], ['tricipiti', /dip/, 'Dip'], ['tricipiti', /kickback/, 'Kickback'], ['tricipiti', /presa stretta/, 'Panca presa stretta'],
     ['gambe', /stacco|rdl|pull-through/, 'Stacco rumeno'], ['gambe', /hip thrust/, 'Hip thrust'], ['gambe', /calf/, 'Calf raise'], ['gambe', /kickback/, 'Kickback glutei'], ['gambe', /leg curl/, 'Leg curl'], ['gambe', /leg extension/, 'Leg extension'], ['gambe', /abduzione|adduzione/, 'Abduzione / adduzione'], ['gambe', /squat|affond|split/, 'Squat e affondi'],
     ['addome', /crunch|sit-up|v-up/, 'Crunch e sit-up'], ['addome', /plank|hollow|dead bug|mountain/, 'Plank e tenute'], ['addome', /pallof|woodchop|rotazion|russian/, 'Rotazioni e anti-rotazione'], ['addome', /leg raise|sollevamento|toes|sforbiciate/, 'Sollevamento gambe'], ['addome', /side bend|flessione laterale/, 'Flessione laterale'],
-    ['avambracci', /./, 'Polsi e avambracci']];
+    ['avambracci', /^/, 'Polsi e avambracci']];
   EX.forEach(e => { delete e.vars; delete e.varsLabel; const n = e.n.toLowerCase(); const f = F.find(([g, re]) => g === e.g && re.test(n)); if (f) { e.fam = f[2]; e.famRe = f[1]; } });
 })();
 
@@ -1328,6 +1328,38 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     err: ['Gomiti che scendono lungo i fianchi (diventa un rematore)', 'Busto che si inclina indietro per fare leva', 'Spalle che salgono verso le orecchie', 'Peso troppo alto e tirare con le braccia']});
   delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe;
   EX.push(e);
+})();
+
+/* ===== avambracci in piedi e dietro la schiena al cavo basso: dal video "Fitness Point Shymkent" (reverse curl, estensioni, wrist curl, wrist curl dietro la schiena) ===== */
+(() => {
+  const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; EX.push(e); };
+  mk('w-wrist-curl', {id: 'w-wrist-curl-piedi', n: 'Wrist curl in piedi al cavo basso, avambracci liberi (presa supina)', st: 'stand', an: [245, 212], fr: [[8, 72, {hd: -38}], [8, 100, {hd: 38}]],
+    cap: ['Gomiti ai fianchi, avambracci in avanti, barra in basso e polsi aperti', 'Polsi flessi, pugno chiuso verso di te, barra in alto'],
+    trj: 'La barra descrive un arco corto: dal basso, con le dita aperte, all’alto, con il pugno chiuso. Gomiti e avambracci restano quasi fermi.',
+    set: 'Cavo BASSO con barra corta (o EZ). In piedi di fronte alla torre, presa supina (palmi verso l’alto) alla larghezza delle spalle. Gomiti ai fianchi piegati a circa 90°, avambracci in avanti senza appoggio.',
+    pos: 'Piedi alla larghezza del bacino, busto fermo, gomiti inchiodati ai fianchi, cavo in tensione.',
+    ese: ['Lascia scendere la barra aprendo le dita e piegando i polsi verso il basso.', 'Chiudi le dita e fletti i polsi portando la barra verso l’alto e verso di te.', 'Contrai 1 secondo.', 'Torna lentamente alla posizione di partenza.'],
+    cue: 'Gomiti fermi ai fianchi: lavorano solo polsi e dita. Se per far salire la barra devi piegare i gomiti, il carico è troppo alto.',
+    why: 'Stesso lavoro dei flessori dell’avambraccio del wrist curl da seduto, ma in piedi e senza appoggio: l’avambraccio è libero e fa da stabilizzatore. Utile per la presa su stacchi, rematori e trazioni.',
+    err: ['Piegare i gomiti per sollevare la barra', 'Peso troppo alto', 'Corsa corta (dita che non si aprono in basso)']});
+  mk('w-wrist-ext', {id: 'w-wrist-ext-piedi', n: 'Estensioni polso in piedi al cavo basso, avambracci liberi (presa prona)', st: 'stand', an: [245, 212], fr: [[8, 72, {hd: -38}], [8, 92, {hd: 36}]],
+    cap: ['Gomiti ai fianchi, avambracci in avanti, barra in basso e polsi piegati verso il basso', 'Polsi estesi, dorso della mano verso l’alto'],
+    trj: 'La barra descrive un arco corto: dal basso (polsi piegati verso il basso) all’alto (polsi estesi). Gomiti e avambracci restano quasi fermi.',
+    set: 'Cavo BASSO con barra corta. In piedi di fronte alla torre, presa prona (palmi verso il basso) alla larghezza delle spalle. Gomiti ai fianchi piegati a circa 90°, avambracci in avanti senza appoggio.',
+    pos: 'Piedi alla larghezza del bacino, busto fermo, gomiti inchiodati ai fianchi, cavo in tensione.',
+    ese: ['Lascia scendere la barra flettendo i polsi verso il basso.', 'Estendi i polsi portando il dorso della mano verso l’alto.', 'Contrai 1 secondo.', 'Scendi lentamente.'],
+    cue: 'Peso leggero e movimenti lenti: gli estensori sono piccoli e si stancano subito. Gomiti fermi ai fianchi.',
+    why: 'Come le estensioni da seduto ma in piedi e senza appoggio: equilibra i flessori e protegge i gomiti (epicondilite) quando i carichi salgono.',
+    err: ['Piegare i gomiti per sollevare la barra', 'Peso troppo alto', 'Corsa limitata']});
+  mk('w-wrist-curl', {id: 'w-wrist-dietro', n: 'Wrist curl dietro la schiena al cavo basso (presa supina)', st: 'stand', an: [55, 212], fr: [[-9, -7, {hd: -30}], [-9, -7, {hd: 42}]], presa: 'sup',
+    cap: ['Braccia distese lungo i fianchi, barra dietro di te, dita aperte', 'Polsi flessi, pugno chiuso verso i glutei'],
+    trj: 'La barra resta dietro le cosce e sale di pochi centimetri: si muovono solo polsi e dita, le braccia restano distese.',
+    set: 'Cavo BASSO con barra corta o dritta. Dai le spalle alla torre e afferra la barra dietro di te, con i palmi rivolti verso i glutei (presa supina). Braccia distese lungo i fianchi, barra all’altezza dei glutei, cavo in tensione.',
+    pos: 'Piedi alla larghezza del bacino, petto alto, spalle indietro e giù, braccia ferme.',
+    ese: ['Lascia scendere la barra aprendo le dita e piegando i polsi indietro.', 'Chiudi le dita e fletti i polsi portando la barra verso l’alto e verso i glutei.', 'Contrai 1 secondo.', 'Scendi lentamente.'],
+    cue: 'Le braccia non si muovono: lavorano solo polsi e dita. Corsa completa, partendo dalle dita aperte.',
+    why: 'Con le braccia dietro il corpo i flessori dell’avambraccio lavorano in una posizione diversa da quella seduta davanti alla torre: allena la presa e la forza di polsi e dita per stacchi, rematori e trazioni.',
+    err: ['Muovere le braccia o dondolare il busto', 'Peso troppo alto', 'Corsa corta (dita che non si aprono in basso)']});
 })();
 
 /* ===== MIDS: fotogramma intermedio e ritmo reale ricavati dai video (MediaPipe) - generato da mids.js, non modificare a mano ===== */
