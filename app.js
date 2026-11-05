@@ -182,10 +182,10 @@ const pfTxt = () => { const P = DB.prof, f = pesoForma(P.h, P.sex, P.tipo, P.kg)
 const profTxt = () => { const P = DB.prof; if (!profOk()) return ''; return [P.sex === 'f' ? 'donna' : P.sex === 'm' ? 'uomo' : '', P.h ? P.h + ' cm' : '', P.kg ? P.kg + ' kg' : '', P.tipo ? TIPO[P.tipo].split(' (')[0].toLowerCase() : '', LVL[P.lvl].toLowerCase(), 'obiettivo ' + FIN[P.fin].toLowerCase(), profMus().length ? profMus().map(gName).join(' + ') : 'tutti i muscoli', profAtt().length ? profAtt().join(', ') : 'tutti gli attrezzi'].filter(Boolean).join(' · '); };
 // peso di partenza: frazione del peso corporeo per schema di movimento (uomo, livello intermedio, 8-12 ripetizioni), corretta per genere, livello e obiettivo. Rack con rapporto 1:1 sui cavi: il numero sul pacco pesi è il carico vero.
 const START_C = [[/trazion|pull-?up|\bchin|\bdip|parallele|plank|crunch inverso|leg raise|toes|mountain|bicycle|sit-?up|hollow|dead bug|bird|superman|flutter|scissor|v-?up|hanging|gambe alla sbarra/i, 0],
-  [/panca piana|chest press.*smith|floor press/i, .55], [/panca inclinata|incl/i, .45], [/panca declinata|decl/i, .5], [/chest press|spinta.*petto|press.*petto|jammer press/i, .3], [/croci|fly|pec/i, .12],
+  [/pullover|braccia tese/i, .25], [/panca piana|chest press.*smith|floor press/i, .55], [/panca inclinata|incl/i, .45], [/panca declinata|decl/i, .5], [/chest press|spinta.*petto|press.*petto|jammer press/i, .3], [/croci|fly|pec/i, .12],
   [/squat|hack|pressa|leg press/i, .6], [/stacco|rdl|rumeno|hip thrust|good morning/i, .6], [/affond|bulgar|split|step/i, .2], [/leg extension|leg curl|calf|polpacc/i, .3], [/pull-?through|kickback|abduz|adduz|glute|ponte/i, .2],
   [/military|shoulder press|press con manubri|arnold|press.*spalle|press.*jammer/i, .3], [/upright/i, .2], [/alzate|laterali|frontali|face pull|rear|posterior|reverse fly|aperture/i, .07],
-  [/lat machine|pulldown|pull-?down/i, .5], [/pullover|braccia tese/i, .25], [/rematore|row|pulley|tirata/i, .45], [/shrug|scrollate/i, .5],
+  [/lat machine|pulldown|pull-?down/i, .5], [/rematore|row|pulley|tirata/i, .45], [/shrug|scrollate/i, .5],
   [/curl.*polsi|polsi|wrist|farmer|presa/i, .15], [/curl|hammer|martello|bicip/i, .12], [/pushdown|french|estensioni|overhead|kickback|tricip|skull/i, .2],
   [/crunch al cavo|crunch.*cavo/i, .3], [/pallof|woodchop|russian|side bend|twist|rotaz/i, .12]];
 function startKg(ex, f) {

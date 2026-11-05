@@ -75,6 +75,8 @@ const FIG = (() => {
       s += `<rect x="56" y="186" width="84" height="9" rx="3" fill="${c}"/>` + line([68,195],[68,FLOOR],5,c) + line([128,195],[128,FLOOR],5,c);
     } else if (st === 'seat') {
       s += `<rect x="${h[0]-26}" y="${h[1]+6}" width="72" height="9" rx="3" fill="${c}"/>` + line([h[0]-12,h[1]+8],[h[0]-12,h[1]-72], 9, c) + line([h[0]+8,h[1]+15],[h[0]+8,FLOOR],5,c);
+    } else if (st === 'edge') {
+      s += `<rect x="${h[0]-76}" y="${h[1]+6}" width="120" height="9" rx="3" fill="${c}"/>` + line([h[0]-64,h[1]+15],[h[0]-64,FLOOR],5,c) + line([h[0]+32,h[1]+15],[h[0]+32,FLOOR],5,c);
     } else if (st === 'flat') {
       s += `<rect x="100" y="${h[1]+7}" width="150" height="9" rx="3" fill="${c}"/>` + line([120,h[1]+16],[120,FLOOR],5,c) + line([230,h[1]+16],[230,FLOOR],5,c);
     } else if (st === 'inc') {

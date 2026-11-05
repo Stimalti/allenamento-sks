@@ -147,6 +147,7 @@ const FIG3 = (() => {
     const padBox = (a, b) => { P.push(box(a, b, 9, D, pad)); };
     if (st === 'ht') { padBox(pt3([56,190],0), pt3([140,190],0)); P.push(cyl(pt3([68,195],-12), pt3([68,FLOOR],-12), 2.5, c), cyl(pt3([128,195],12), pt3([128,FLOOR],12), 2.5, c)); }
     else if (st === 'seat') { padBox(pt3([h[0]-26,h[1]+10],0), pt3([h[0]+46,h[1]+10],0)); padBox(pt3([h[0]-14,h[1]+8],0), pt3([h[0]-14,h[1]-74],0)); P.push(cyl(pt3([h[0]+8,h[1]+15],0), pt3([h[0]+8,FLOOR],0), 3, c)); }
+    else if (st === 'edge') { padBox(pt3([h[0]-76,h[1]+10],0), pt3([h[0]+44,h[1]+10],0)); P.push(cyl(pt3([h[0]-64,h[1]+15],-12), pt3([h[0]-64,FLOOR],-12), 2.5, c), cyl(pt3([h[0]+32,h[1]+15],12), pt3([h[0]+32,FLOOR],12), 2.5, c)); }   // seduto sul bordo di una panca piana, senza schienale
     else if (st === 'flat') { padBox(pt3([100,h[1]+11],0), pt3([250,h[1]+11],0)); P.push(cyl(pt3([120,h[1]+16],-12), pt3([120,FLOOR],-12), 2.5, c), cyl(pt3([230,h[1]+16],12), pt3([230,FLOOR],12), 2.5, c)); }
     else if (st === 'inc') { const a = [h[0]-4, h[1]+10]; padBox(pt3(a,0), pt3(add(a,88,270 - (ex.inc || 45)),0)); padBox(pt3([h[0]-20,h[1]+12],0), pt3([h[0]+44,h[1]+12],0)); P.push(cyl(pt3([h[0]+10,h[1]+17],0), pt3([h[0]+10,FLOOR],0), 3, c)); }
     else if (st === 'floor') { P.push(box(pt3([50,FLOOR-2],0), pt3([230,FLOOR-2],0), 4, 46, '#2a7fb8')); if (ex.eq === 'cable' && !ex.cp) P.push(box(pt3([218,FLOOR-34],0), pt3([218,FLOOR],0), 5, 46, pad)); }   // pedana solo per i rematori seduti a terra

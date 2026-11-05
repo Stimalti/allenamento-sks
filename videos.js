@@ -1403,5 +1403,47 @@ const VIDEOS = {
 "n": "Fitness Point Shymkent · wrist curl dietro la schiena al cavo basso, circa 0:14-0:18",
 "v": "129"
 }
+],
+"b-row-db-seduto-alt": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 1 «Dumbbell Seated Bent Over Alternate Row on Bench», circa 0:24-1:04",
+"v": "130"
+}
+],
+"b-braccia-tese-db": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 2 «Dumbbell Incline Straight-Arm Row», circa 1:04-1:44",
+"v": "130"
+}
+],
+"p-pullover-bar": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 3 «Barbell Bent Arm Pullover», circa 1:44-2:20",
+"v": "130"
+}
+],
+"b-cavo-rotazione": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 4 «Cable Twisting Pull» (nell'animazione il cavo è basso, il testo dice puleggia alta), circa 2:20-3:00",
+"v": "130"
+}
+],
+"b-gorilla-row": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 6 «Kettlebell Gorilla Row», circa 3:40-4:23",
+"v": "130"
+}
+],
+"b-row-db2": [
+{
+"u": "https://www.facebook.com/share/v/1FaPaTztcj/",
+"n": "Gym Habit (animazioni Workout Motivation) · esercizio 5 «Dumbbell Bent Over Row», circa 3:00-3:40",
+"v": "130"
+}
 ]
 };
