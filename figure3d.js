@@ -568,7 +568,7 @@ const FIG3 = (() => {
         while (pool.length > prims.length) group.remove(pool.pop());
         const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.presa];
         const back = ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
-        cap.innerHTML = '<b>' + esc3(k < .5 ? ex.cap[0] : ex.cap[1]) + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
+        cap.innerHTML = '<b>' + esc3((k < .5 ? ex.cap[0] : ex.cap[1]) ?? ex.cap[0] ?? '') + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }
       if (o.spin && !o.drag) o.az += .006;

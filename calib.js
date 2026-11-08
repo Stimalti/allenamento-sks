@@ -829,7 +829,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     set: 'Sbarra del powerrack, presa prona.', pos: 'Gambe tese e unite, spalle attive.',
     ese: ['Dalle gambe distese, alzale tese fino all’orizzontale.', 'Se riesci continua fino alla sbarra.', 'Scendi lentamente.'],
     cue: 'Prima arrotola il bacino, poi le gambe seguono.', why: 'Versione avanzata del sollevamento ginocchia: più leva, più lavoro.', err: ['Dondolare', 'Piegare le ginocchia', 'Scendere di colpo']});
-  A({id: 'a-toes-to-bar', n: 'Toes to bar (piedi alla sbarra)', m: 'Retto dell’addome, flessori anca, dorsali', mm: 'retto addominale, ileopsoas, gran dorsale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['forza', 'massa', 'tonificare'],
+  A({id: 'a-toes-to-bar', n: 'Toes to bar (piedi alla sbarra)', m: 'Retto dell’addome, flessori anca, dorsali', mm: 'retto addominale, ileopsoas, gran dorsale, obliqui, presa', st: 'hang', eq: 'hb', presa: 'pro', fin: ['massa', 'tonificare'],
     fr: [[180, 180, {...HANG, th: 8, sh: 8}], [152, 152, {t: 198, h: [130, 118], th: 146, sh: 146}]], cap: ['Appeso, gambe tese', 'Bacino su e indietro, busto inclinato: i piedi arrivano alla sbarra davanti al viso'],
     set: 'Sbarra del powerrack, presa prona.', pos: 'Spalle attive; si parte senza dondolio.',
     ese: ['Alza le gambe tese portando i piedi a toccare la sbarra.', 'Usa anche i dorsali spingendo la sbarra verso il basso.', 'Scendi controllato.'],
@@ -986,7 +986,7 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     set: 'Sbarra per trazioni, presa prona poco più larga delle spalle.', pos: 'Spalle attive (non lasciarti appendere), ginocchia almeno a 90°, bacino leggermente arrotolato.',
     ese: ['Appenditi e attiva le spalle.', 'Porta le ginocchia all’altezza delle anche arrotolando un po’ il bacino.', 'Tieni 15-30 secondi senza dondolare.'],
     cue: 'Pensa a portare il pube verso l’ombelico, non solo le ginocchia in alto.', why: 'Versione in tenuta del sollevamento ginocchia: parte bassa dell’addome e presa senza slanci.', err: ['Oscillare', 'Spalle rilassate', 'Ginocchia troppo basse']});
-  A({id: 'a-l-sit', n: 'L-sit alle parallele (tenuta)', hold: '10-20 s', fr: [[0, 0, {h: [150, 198], t: 180, th: 100, sh: 40}], [0, 0, {h: [150, 198], t: 180, th: 90, sh: 90}]], m: 'Addome basso, flessori anca, tricipiti (isometrico)', mm: 'retto addominale, ileopsoas, quadricipiti, tricipiti, deltoidi', noanim: true, fin: ['tonificare'],
+  A({id: 'a-l-sit', n: 'L-sit alle parallele (tenuta)', hold: '10-20 s', fr: [[0, 0, {h: [150, 198], t: 180, th: 100, sh: 40}], [0, 0, {h: [150, 198], t: 180, th: 90, sh: 90}]], m: 'Addome basso, flessori anca, tricipiti (isometrico)', mm: 'retto addominale, ileopsoas, quadricipiti, tricipiti, deltoidi', noanim: true, fin: ['tonificare'], cap: ['Seduto tra le parallele, mani sulle impugnature, gambe tese davanti', 'Tenuta: braccia tese, gambe orizzontali, spalle basse'],
     cap: ['Sospeso tra le parallele, braccia tese e gambe orizzontali a formare una L'], trj: 'Nessun movimento: sospeso sulle parallele a braccia tese, gambe distese in avanti parallele al pavimento. Esercizio difficile: inizia con le ginocchia piegate (tuck) o una gamba sola.',
     set: 'Parallele del rack. Mani sulle impugnature, braccia tese, spalle basse.', pos: 'Spalle spinte in basso, gambe tese e unite, punte dei piedi in avanti.',
     ese: ['Sollevati a braccia tese.', 'Porta le gambe in avanti fino all’orizzontale (o le ginocchia al petto per iniziare).', 'Tieni 10-20 secondi.'],
@@ -1003,12 +1003,12 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     set: 'Tappetino a terra. Sdraiato, braccia verso il soffitto, anche e ginocchia a 90°.', pos: 'Zona lombare appoggiata (nessuno spazio tra schiena e tappetino), mento dentro.',
     ese: ['Solleva braccia e gambe nella posizione del tavolino.', 'Schiaccia la zona lombare a terra espirando.', 'Tieni 20-40 secondi; per progredire allontana un po’ le ginocchia.'],
     cue: 'Espira a fondo: le costole scendono e il trasverso si attiva.', why: 'La tenuta più sicura per chi ha la schiena delicata: impara a stabilizzare il bacino.', err: ['Schiena inarcata', 'Trattenere il respiro', 'Ginocchia verso il petto (troppo facile)']});
-  A({id: 'a-bird-dog-hold', n: 'Bird dog in tenuta (quadrupedia)', hold: '20-30 s per lato', fr: [[0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}], [0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}]], m: 'Core, erettori spinali, glutei (isometrico)', mm: 'trasverso dell’addome, multifido, erettori spinali, grande gluteo, obliqui', noanim: true,
+  A({id: 'a-bird-dog-hold', n: 'Bird dog in tenuta (quadrupedia)', hold: '20-30 s per lato', fr: [[0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}], [0, 0, {h: [150, 160], t: 92, th: 24, sh: -66}]], m: 'Core, erettori spinali, glutei (isometrico)', mm: 'trasverso dell’addome, multifido, erettori spinali, grande gluteo, obliqui', noanim: true, cap: ['In quadrupedia, mani sotto le spalle e ginocchia sotto le anche', 'Tenuta: braccio e gamba opposti distesi in linea con la schiena'],
     cap: ['A quattro zampe, un braccio avanti e la gamba opposta indietro, in linea con la schiena'], trj: 'Nessun movimento: a quattro zampe allunghi un braccio in avanti e la gamba opposta indietro e resti fermo, schiena piatta. Poi cambi lato.',
     set: 'Tappetino a terra. In quadrupedia: mani sotto le spalle, ginocchia sotto le anche.', pos: 'Schiena neutra (puoi immaginare un bicchiere d’acqua sui lombi), sguardo a terra.',
     ese: ['Allunga il braccio destro in avanti e la gamba sinistra indietro.', 'Tieni il bacino fermo e parallelo al pavimento.', 'Tieni 20-30 secondi e cambia lato.'],
     cue: 'Allungati, non alzare: la mano e il piede vanno lontano, non in alto.', why: 'Stabilità della colonna e dei glutei: ottimo prima di stacchi e rematori e per chi lavora seduto.', err: ['Bacino che ruota', 'Schiena inarcata', 'Gamba alzata sopra la linea del corpo']});
-  A({id: 'a-plank-inverso', n: 'Plank inverso (tenuta)', hold: '20-40 s', fr: [[30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}], [30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}]], m: 'Glutei, catena posteriore, core (isometrico)', mm: 'grande gluteo, erettori spinali, femorali, trasverso dell’addome, deltoidi posteriori', noanim: true,
+  A({id: 'a-plank-inverso', n: 'Plank inverso (tenuta)', hold: '20-40 s', fr: [[30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}], [30, 30, {h: [150, 176], t: 245, th: 75, sh: 75}]], m: 'Glutei, catena posteriore, core (isometrico)', mm: 'grande gluteo, erettori spinali, femorali, trasverso dell’addome, deltoidi posteriori', noanim: true, cap: ['Seduto con le mani a terra dietro al bacino, dita verso i piedi', 'Tenuta: bacino alto, corpo in linea dalle spalle ai talloni'],
     cap: ['Seduto con le mani dietro, sollevi il bacino: corpo dritto a pancia in su'], trj: 'Nessun movimento: seduto con le mani a terra dietro al bacino, sollevi i fianchi finché il corpo è una linea retta a pancia in su, appoggiato su mani e talloni.',
     set: 'Tappetino a terra. Seduto, gambe tese, mani a terra dietro al bacino con le dita verso i piedi.', pos: 'Braccia tese, corpo in linea da spalle a talloni, sguardo al soffitto.',
     ese: ['Spingi su mani e talloni e solleva il bacino.', 'Stringi i glutei finché il corpo è dritto.', 'Tieni 20-40 secondi.'],
@@ -1418,6 +1418,86 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue: 'Fianchi fermi e livellati: se ruotano o il busto si alza, il peso è troppo alto.',
     why: 'Il peso torna a terra a ogni ripetizione e la mano d’appoggio ti stabilizza la schiena: lavori forte sul dorsale senza panca né rack.',
     err: ['Ruotare i fianchi per aiutarsi', 'Far salire il busto durante la tirata', 'Schiena che si arrotonda', 'Peso troppo alto']});
+})();
+
+/* ===== revisione di tutte le animazioni (v131): correzioni di posa, attrezzo e didascalie emerse dal controllo foglio per foglio ===== */
+(() => {
+  const g = id => EX.find(e => e.id === id), set = (id, o) => { const e = g(id); if (e) Object.assign(e, o); };
+  // polsi: il verso della flessione era al contrario (inizio = mano aperta in basso, fine = pugno chiuso in alto)
+  set('w-wrist-curl', {fr: [[25, 90, {t: 150, hd: -45}], [25, 90, {t: 150, hd: 40}]]});
+  set('w-wrist-ext', {fr: [[25, 90, {t: 150, hd: -40}], [25, 90, {t: 150, hd: 35}]]});
+  set('w-wrist-db', {fr: [[25, 90, {t: 150, hd: -45}], [25, 90, {t: 150, hd: 40}]]});
+  // gomiti "leggermente piegati" davvero piegati nelle croci e nelle alzate posteriori
+  set('p-croci-petto', {fr: [[102, 72, {t: 168}], g('p-croci-petto').fr[1]]});
+  set('p-croci-singolo', {fr: [[102, 72, {t: 168}], g('p-croci-singolo').fr[1]]});
+  set('s-posteriori', {fr: [g('s-posteriori').fr[0], [102, 72]]});
+  set('s-posteriori-singolo', {fr: [g('s-posteriori-singolo').fr[0], [102, 72]]});
+  set('s-posteriori-pullacross', {fr: [g('s-posteriori-pullacross').fr[0], [102, 72]]});
+  set('p-croci-panca', {fr: [[172, 192], g('p-croci-panca').fr[1]]});
+  set('p-croci-db', {fr: [[172, 192], g('p-croci-db').fr[1]]});
+  // chest press ai cavi: partenza ai lati del petto, spinta in linea all'altezza dello sterno
+  set('p-press-cavi', {fr: [[-25, 105, {t: 170}], [80, 80, {t: 170}]]});
+  // press con manubri: gomiti un po' piu' aperti (manubri ai lati delle orecchie, non davanti al viso)
+  set('s-press-db', {lat: 2.4});
+  set('s-frontali', {cap: ['Barra davanti alle cosce, braccia distese', 'Barra all’altezza delle spalle, braccia davanti']});
+  // rack pull: in alto si sta dritti (il vincolo della barra verticale piegava il busto)
+  set('b-rackpull', {lin: true});
+  // lat pulldown in ginocchio: busto fermo, leggermente indietro
+  set('b-lat-ginocchio', {fr: [[172, 176, {t: 186}], [10, 155, {t: 186}]], cap: ['Braccia distese in alto verso la puleggia', g('b-lat-ginocchio').cap[1]]});
+  set('b-lat-ginocchio-singolo', {fr: [[172, 176, {t: 184}], [10, 155, {t: 190}]], pos: 'Core contratto, bacino neutro, petto alto, glutei leggermente indietro rispetto alle ginocchia; la mano libera al fianco o al rack.'});
+  // pulldown a braccia tese: puleggia sopra la testa, mani all'altezza del viso (prima la mano partiva sulla carrucola)
+  set('b-pulldown-braccia-tese', {an: [250, 6], fr: [[115, 115, {t: 160}], [5, 5, {t: 166}]]});
+  // curl concentrato: braccio all'interno della coscia
+  set('c-concentrato', {fr: [[10, 18, {t: 140, zs: -16}], [10, 86.9, {t: 140, zs: -16}], [10, 140, {t: 140, zs: -16}]], tempo: [1.4, 0.4, 0.9]});
+  // corda: presa stretta (il motore non ha una corda); al pushdown le mani si aprono in basso
+  set('c-hammer', {gz: 12});
+  set('t-push-corda', {gz: 12, gz2: 34});
+  set('t-french-cavo', {fr: [g('t-french-cavo').fr[0], [178, 265]]});
+  set('t-kickback', {tzf: 30});
+  set('t-panca-stretta', {gz: 30});
+  set('sm-panca-stretta', {gz: 26, lat: 1.2});
+  set('t-over-db', {gz: 8, lat: 0.5, fr: [g('t-over-db').fr[0], [178, -182, {}]]});   // gomito teso in alto (non iperesteso); il fotogramma intermedio arriva dal blocco MIDS
+  set('t-kickback-doppio', {fr: [[-52, 38, {t: 128}], ...g('t-kickback-doppio').fr.slice(1)]});
+  // gambe
+  set('g-front-squat', {fr: [g('g-front-squat').fr[0], Object.assign([], g('g-front-squat').fr[1], {2: Object.assign({}, g('g-front-squat').fr[1][2], {t: 166})})]});
+  set('g-leg-ext', {fr: [[14, 22, {t: 185, sh: 0}], [14, 22, {t: 185, sh: 45.9, th: 90}], [14, 22, {t: 185, sh: 85}]], tempo: [1.1, 0.4, 1.1]});   // 3 fotogrammi espliciti (il blocco MIDS salta chi ne ha gia' 3): braccia lungo i fianchi, non gomiti al contrario
+  set('g-bulgaro', {fr: [g('g-bulgaro').fr[0], [0, 0, {t: 174, h: [140, 140], th: 47, sh: -10}], g('g-bulgaro').fr[1]], tempo: [0.8, 0.4, 3]});   // a meta' corsa il piede davanti resta piatto a terra (il fotogramma MIDS lo alzava sulle punte)
+  set('g-rdl', {fr: [g('g-rdl').fr[0], [0, 0, {t: 120, h: [108, 124], th: 22, sh: -4}]]});
+  set('g-sumo', {gz: 6});
+  set('g-squat-cavo', {tzf: 0, gz: 6, fr: [g('g-squat-cavo').fr[0], Object.assign([], g('g-squat-cavo').fr[1], {2: Object.assign({}, g('g-squat-cavo').fr[1][2], {t: 170})})]});
+  set('g-rdl-cavo', {tzf: 0});
+  set('g-add-cavo', {cap: [g('g-add-cavo').cap[0], 'Gamba portata davanti all’altra, fino alla linea centrale']});
+  set('g-kickback-diag', {lb: 34, fr: [g('g-kickback-diag').fr[0], Object.assign([], g('g-kickback-diag').fr[1], {2: Object.assign({}, g('g-kickback-diag').fr[1][2], {ab: 30})})]});
+  // addome
+  set('a-crunch-cavo', {fr: [g('a-crunch-cavo').fr[0], [65, -140, {t: 128, cu: 50}]]});
+  set('a-pallof', {fr: [[-50, 88, {t: 180}], g('a-pallof').fr[1]]});
+  set('a-pallof-hold', {fr: [[-50, 88, {t: 180}], [-50, 88, {t: 180}]]});
+  set('a-woodchop', {fr: [g('a-woodchop').fr[0], [16, 24, {t: 160, tw: -42, zs: -58}]]});
+  set('a-woodchop-basso', {fr: [[16, 24, Object.assign({}, g('a-woodchop-basso').fr[0][2])], g('a-woodchop-basso').fr[1]]});
+  set('a-leg-raise', {fr: [g('a-leg-raise').fr[0], [-90, -90, {h: [185, 178], th: 172, sh: 172, lift: 7}]]});
+  set('a-rollout', {fr: [g('a-rollout').fr[0], [50, 50, {h: [132, 182], t: 105, th: -45, sh: -90}]]});
+  // schiena: barra davanti all'addome, non dentro
+  set('b-row-barra-sup', {fr: [g('b-row-barra-sup').fr[0], [-67, 14, {t: 135}]]});
+  set('b-row-barra-pro', {fr: [g('b-row-barra-pro').fr[0], [-76, 40, {t: 135}]]});
+  set('b-row-terra', {fr: [[62, 62, {t: 168}], g('b-row-terra').fr[1]]});
+  set('b-row-terra-singolo', {fr: [[62, 62, {t: 168}], g('b-row-terra-singolo').fr[1]]});
+  set('b-shrug-cavo', {an: [255, 212], fr: [[8, 8], [8, 8, {tl: 64}]], cap: ['Spalle rilassate, barra del cavo davanti alle cosce', g('b-shrug-cavo').cap[1]]});
+  set('s-laterali-doppio', {cross: true, pos: 'Busto dritto e fermo, gomiti leggermente piegati, mani in presa neutra.'});
+  set('sm-row', {pos: 'Piedi alla larghezza delle anche, ginocchia morbide, busto inclinato a circa 60° dalla verticale (come nel rematore con bilanciere), schiena neutra, sguardo verso il pavimento poco davanti ai piedi.', cap: ['Busto inclinato, braccia distese: la barra pende davanti alle cosce, sulla verticale dell’addome', g('sm-row').cap[1]]});
+  // testi: esercizi a un braccio con didascalie al plurale, refusi
+  set('p-jammer-press', {err: g('p-jammer-press').err.map(x => x.replace('Spingere con una sola braccia più dell’altra', 'Spingere con un solo braccio più dell’altro'))});
+  set('j-incl', {err: g('j-incl').err.map(x => x.replace('Spingere con una sola braccia più dell’altra', 'Spingere con un solo braccio più dell’altro'))});
+  set('c-curl-alti-singolo', {pos: 'Braccio a T, gomito all’altezza della spalla e fermo, petto alto; l’altra mano sul fianco.', cue: 'Il gomito resta alto e fermo; porta la mano vicino all’orecchio.'});
+  set('b-lat-supina', {ese: g('b-lat-supina').ese.map(x => x.replace('Tira il triangolo verso lo sterno', 'Tira la barra verso la parte alta del petto, portando i gomiti in basso e indietro'))});
+  set('s-posteriori-singolo', {pos: 'Piedi alla larghezza delle spalle, petto alto, gomito leggermente piegato; l’altra mano sul fianco.', cue: 'Apri il gomito verso l’esterno e porta il braccio indietro, senza sollevare la spalla.'});
+  set('t-overhead-singolo', {cap: ['Gomito in alto, mano dietro la testa', 'Braccio disteso sopra la testa'], trj: 'Il gomito resta fermo in alto vicino all’orecchio: si muove solo l’avambraccio, che da dietro la testa ruota fino a braccio disteso.'});
+  set('j-row-singolo', {cap: ['Impugnatura davanti al ginocchio, braccio disteso', 'Gomito indietro e in alto, impugnatura all’anca']});
+  set('c-hammer-singolo', {cap: ['Maniglia lungo la coscia, presa neutra', 'Mano alla spalla, polso dritto']});
+  set('t-push-prono-singolo', {cap: ['Gomito a 90° lungo il fianco', 'Braccio disteso, maniglia alla coscia']});
+  set('b-lat-singolo', {cap: ['Braccio disteso, maniglia sopra la testa', 'Maniglia alla spalla, gomito lungo il fianco']});
+  set('s-press-cavo-singolo', {cap: ['Maniglia all’altezza della spalla, avambraccio verticale', 'Braccio disteso sopra la testa']});
+  set('p-incl-cavo-singolo', {cap: ['Maniglia al lato del petto alto, gomito basso', 'Braccio disteso sopra il petto'], ese: g('p-incl-cavo-singolo').ese.map((x, i) => i === 0 ? 'Parti con la maniglia all’altezza del petto alto.' : x)});
+  set('c-curl-panca-cavo-singolo', {cap: ['Braccio disteso, bicipite in allungamento', 'Maniglia alla spalla'], ese: g('c-curl-panca-cavo-singolo').ese.map((x, i) => i === 0 ? 'Parti con il braccio disteso e il bicipite ben allungato.' : i === 1 ? 'Fletti il gomito portando la maniglia alla spalla, palmo verso l’alto.' : x)});
 })();
 
 /* ===== MIDS: fotogramma intermedio e ritmo reale ricavati dai video (MediaPipe) - generato da mids.js, non modificare a mano ===== */
