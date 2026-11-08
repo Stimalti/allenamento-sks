@@ -59,7 +59,7 @@ const FIG = (() => {
     } else if (ex.eq === 'hb') {
       s += line([98,20],[202,20], 5, 'var(--tower)') + line([98,20],[98,FLOOR],3,'var(--tower)') + line([202,20],[202,FLOOR],3,'var(--tower)');
     } else if (ex.eq === 'dip') {
-      s += line([112,131],[196,131], 5, 'var(--tower)') + line([120,131],[120,FLOOR],3,'var(--tower)') + line([188,131],[188,FLOOR],3,'var(--tower)');
+      const dy = ex.dipY || 131; s += line([112,dy],[196,dy], 5, 'var(--tower)') + line([120,dy],[120,FLOOR],3,'var(--tower)') + line([188,dy],[188,FLOOR],3,'var(--tower)');
     } else if (ex.eq === 'pad') {
       s += `<rect x="${f1(ankle[0]-6)}" y="${f1(ankle[1]-16)}" width="12" height="14" rx="5" fill="var(--plate)" stroke="var(--body)" stroke-width="1.5"/>`;
     }

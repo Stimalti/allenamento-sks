@@ -298,3 +298,4 @@ nav button{overflow:hidden}nav button span{max-width:100%;overflow-wrap:anywhere
 .qrow{grid-template-columns:110px 1fr auto}.qrow b{white-space:nowrap;min-width:48px}
 /* timer a 320 px: la X usciva dalla card */
 @media(max-width:359px){#timer .trow{gap:5px}#timer .trow button{min-width:42px;padding:0 6px;font-size:15px}#timer .tclock{font-size:28px}}
+.lw .li .t small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}

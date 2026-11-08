@@ -237,7 +237,7 @@ E({id:'b-row-jammer', n:'Rematore con Jammer Arms (T-bar)', g:'schiena', a:'Jamm
  pos:'Busto inclinato a ~45-60°, schiena neutra, ginocchia morbide.',
  ese:['Parti con le braccia distese.','Tira le impugnature verso il petto basso portando i gomiti indietro.','Contrai le scapole.','Scendi lentamente.'],
  cue:'Gomiti alle costole, scapole che si avvicinano; il busto resta fermo.',
- why:'Permette di rematare pesante con una traiettoria guidata e una presa neutra, più facile per i dorsali e meno stressante per i polsi e la schiena bassa.',
+ why:'Permette un rematore pesante con una traiettoria guidata e una presa neutra, più facile per i dorsali e meno stressante per i polsi e la schiena bassa.',
  err:['Inclinarsi troppo in piedi','Usare lo slancio delle gambe','Schiena arrotondata']});
 
 E({id:'b-trazioni', n:'Trazioni alla sbarra', g:'schiena', a:'Corpo libero', m:'Gran dorsale, bicipiti, romboidi, core',
@@ -712,14 +712,14 @@ const PLAN = [
  {id:'g3', nome:'Giorno 3', sotto:'Spalle + Bicipiti + Tricipiti + Avambracci', obiettivo:'Forza sopra la testa e salute della spalla, poi braccia insieme ai cavi in superserie (un esercizio di bicipiti e uno di tricipiti senza pausa, poi recuperi).',
   ex:[
    {e:'s-military', s:5, r:'5', rec:'3 min', ruolo:'Esercizio principale di forza: spalle e tronco.'},
-   {e:'s-jammer-press', s:3, r:'8', rec:'2 min', ruolo:'Forza monolaterale, anti-rotazione del core.'},
+   {e:'s-jammer-press', s:3, r:'8 per lato', rec:'2 min', ruolo:'Forza monolaterale, anti-rotazione del core.'},
    {e:'s-press-cavo', s:3, r:'10-12', rec:'90 s', ruolo:'Spinta sopra la testa ai cavi: tensione continua.'},
-   {e:'s-laterali', s:4, r:'12-15', rec:'60 s', ruolo:'Larghezza delle spalle (deltoide laterale) al cavo.'},
+   {e:'s-laterali', s:4, r:'12-15 per lato', rec:'60 s', ruolo:'Larghezza delle spalle (deltoide laterale) al cavo.'},
    {e:'s-facepull', s:4, r:'15', rec:'60 s', ruolo:'Salute della spalla: deltoide posteriore e cuffia.'},
    {e:'s-posteriori', s:3, r:'15', rec:'60 s', ruolo:'Deltoide posteriore ai cavi incrociati.', opt:true},
-   {e:'s-rot-est', s:2, r:'15', rec:'45 s', ruolo:'Cuffia dei rotatori (prevenzione).', opt:true},
+   {e:'s-rot-est', s:2, r:'15 per lato', rec:'45 s', ruolo:'Cuffia dei rotatori (prevenzione).', opt:true},
    {e:'t-french-cavo', s:3, r:'10-12', rec:'senza pausa', ruolo:'Superserie 1A: tricipiti (capo lungo e mediale).'},
-   {e:'c-curl-singolo', s:3, r:'10-12', rec:'90 s dopo la coppia', ruolo:'Superserie 1B: bicipiti, un braccio alla volta.'},
+   {e:'c-curl-singolo', s:3, r:'10-12 per lato', rec:'90 s dopo la coppia', ruolo:'Superserie 1B: bicipiti, un braccio alla volta.'},
    {e:'t-push-barra', s:3, r:'12', rec:'senza pausa', ruolo:'Superserie 2A: tricipiti, volume ai cavi.'},
    {e:'c-hammer', s:3, r:'12', rec:'90 s dopo la coppia', ruolo:'Superserie 2B: brachiale e spessore del braccio.'},
    {e:'w-reverse-curl', s:3, r:'12', rec:'60 s', ruolo:'Avambracci (brachioradiale ed estensori): completano il lavoro sulle braccia.'}
@@ -749,15 +749,5 @@ const PLAN = [
    {e:'g-calf', s:3, r:'15', rec:'60 s', ruolo:'Polpacci.', opt:true},
    {e:'a-crunch-cavo', s:3, r:'12-15', rec:'60 s', ruolo:'Addominali al cavo.'},
    {e:'a-pallof', s:3, r:'10 per lato', rec:'60 s', ruolo:'Core anti-rotazione.', opt:true}
-  ]},
- {id:'gB', profilo:'giulia', nome:'Giulia B', sotto:'Gambe + Femorali + Addominali', obiettivo:'Catena posteriore quasi tutta ai cavi: glutei e femorali. Stacco rumeno al cavo come esercizio principale, poi pull-through, kickback e leg curl.',
-  ex:[
-   {e:'g-rdl-cavo', s:4, r:'10', rec:'2 min', ruolo:'Esercizio principale: femorali e glutei con tensione costante.'},
-   {e:'g-pullthrough', s:4, r:'12-15', rec:'90 s', ruolo:'Cerniera d’anca al cavo: gluteo in contrazione a ogni ripetizione.'},
-   {e:'g-kickback', s:3, r:'12-15 per lato', rec:'60 s', ruolo:'Isolamento del gluteo grande.'},
-   {e:'g-leg-curl', s:3, r:'12', rec:'75 s', ruolo:'Femorali al cavo con cavigliera.'},
-   {e:'g-bulgaro', s:3, r:'10 per gamba', rec:'90 s', ruolo:'Gluteo e quadricipiti in unilaterale.'},
-   {e:'g-add-cavo', s:3, r:'15 per lato', rec:'60 s', ruolo:'Adduttori (equilibrio con l’abduzione).', opt:true},
-   {e:'a-woodchop', s:3, r:'12 per lato', rec:'60 s', ruolo:'Addominali obliqui al cavo.'}
   ]}
 ];

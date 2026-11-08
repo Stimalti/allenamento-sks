@@ -178,8 +178,6 @@ const VIDEOS = {
 "v": "08"
 }
 ],
-"p-press-cavi": [],
-"p-croci-panca": [],
 "s-laterali": [
 {
 "u": "https://www.facebook.com/share/r/1CYqELgiKD/",

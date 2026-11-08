@@ -67,7 +67,7 @@ const FIG3 = (() => {
   /* ---- muscoli in rosso con fibre ---- */
   const MUS = '#e11d2e', FIB = '#ff9aa2';
   const musOf = ex => {
-    const t = (ex.m + ' ' + ex.n).toLowerCase(), r = [], first = String(ex.m).split(/[,;(]/)[0].toLowerCase();   // 'core' conta solo se è il muscolo principale
+    const t = String(ex.m).toLowerCase(), r = [], first = String(ex.m).split(/[,;(]/)[0].toLowerCase();   /* solo i muscoli dichiarati: il nome puo' citare parti del corpo che non lavorano ("al petto", "alle spalle") */   // 'core' conta solo se è il muscolo principale
     const has = (...k) => k.some(x => t.includes(x));
     if (has('pettoral', 'petto')) r.push('pecs');
     if (has('deltoid', 'spalle', 'cuffia')) r.push('delts');
@@ -498,7 +498,7 @@ const FIG3 = (() => {
     const handOf = p => { const S = sOf(p), E = add(S, UA, p.ua); return {S, E, W: add(E, FA, p.fa)}; };
     /* fotogrammi chiave multipli: k in [0,1] scorre i segmenti fr[0]->fr[1]->...->fr[n-1] (2 fotogrammi = come prima) */
     const segOf = k => { const n = pose.length; if (n <= 2) return [0, k]; const s = Math.min(n - 2, Math.max(0, Math.floor(k * (n - 1)))); return [s, k * (n - 1) - s]; };
-    const poseAt = k => { const [s, kk] = segOf(k); return lerp(pose[s], pose[s + 1], kk); };
+    const poseAt = k => { const [s, kk] = segOf(k); const p = lerp(pose[s], pose[s + 1], kk); p.k = k; return p; };   /* k globale (0..1 sull'intero movimento), anche con piu' fotogrammi */
     function linearize(pp, k) {
       const [sg, kk] = segOf(k), S = sOf(pp), W0 = o.lw[sg].W, W1 = o.lw[sg + 1].W, Wt = [W0[0] + (W1[0] - W0[0]) * kk, W0[1] + (W1[1] - W0[1]) * kk];
       const dx = Wt[0] - S[0], dy = Wt[1] - S[1]; let d = Math.min(Math.hypot(dx, dy), UA + FA - .5); d = Math.max(d, Math.abs(UA - FA) + .5);
@@ -567,7 +567,7 @@ const FIG3 = (() => {
         }
         while (pool.length > prims.length) group.remove(pool.pop());
         const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.presa];
-        const back = ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
+        const back = ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.benchSt === 'ht' ? 'scapole appoggiate al bordo della panca' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
         cap.innerHTML = '<b>' + esc3((k < .5 ? ex.cap[0] : ex.cap[1]) ?? ex.cap[0] ?? '') + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }
       if (!rigInst) { mM.opacity = .28 + .34 * k; mM.emissiveIntensity = .35 + .5 * k; }

@@ -34,7 +34,7 @@ function fixDB(d) { if (!d.notes || typeof d.notes !== 'object') d.notes = {}; i
   if (!d.seeds.rd114) { d.seeds.rd114 = 1; d.fav['s-posteriori-pullacross'] = 1; } /* rear delt pull-across dal video Facebook: tra i preferiti (una volta sola) */
   if (!d.seeds.drv1 && typeof DRIVEV !== 'undefined') { /* video 3D dalla libreria Drive: primo "mio video" di ogni esercizio (una volta sola) */
     d.seeds.drv1 = 1; Object.entries(DRIVEV).forEach(([id, list]) => { const L = d.myv[id] = Array.isArray(d.myv[id]) ? d.myv[id] : []; list.slice().reverse().forEach(([vid, lab]) => { const k = 'drv:' + vid; if (!L.some(x => x.k === k)) L.unshift({t: 'u', k, u: 'https://drive.google.com/file/d/' + vid + '/view', n: '🎬 Video 3D · ' + lab}); }); }); }
-  Object.keys(d.hist).forEach(k => { const h = d.hist[k]; if (!Array.isArray(h)) { delete d.hist[k]; return; } const seen = new Set(); d.hist[k] = h.filter(e => { if (!e || !e.d) return false; const sg = e.d + '|' + JSON.stringify(e.sets || []); if (seen.has(sg)) return false; seen.add(sg); return true; }); });   /* voci identiche (stessa data e stesse serie) salvate due volte */
+  Object.keys(d.hist).forEach(k => { const h = d.hist[k]; if (!Array.isArray(h)) { delete d.hist[k]; return; } const seen = new Set(); d.hist[k] = h.filter(e => { if (!e || !e.d) return false; (e.sets || []).forEach(z => ['kg', 'reps'].forEach(f => { if (typeof z[f] === 'string' && /[.,].*[.,]/.test(z[f])) { const v = parseFloat(z[f].replace(/,/g, '.')); z[f] = isNaN(v) ? '' : String(v); } })); const sg = e.d + '|' + JSON.stringify(e.sets || []); if (seen.has(sg)) return false; seen.add(sg); return true; }); });   /* voci identiche (stessa data e stesse serie) salvate due volte */
   delete d.mia;
   if (d.v !== 3) { d.v = 3; d.names = {}; CUST.forEach(id => d.rt[id] = []); }
   return d; }
@@ -156,12 +156,13 @@ function est1RM(id) {
 function pesoTxt(ex, f) {
   const p = presOf(ex, f); if (!p) return '';
   const rir = ex.isom ? `${p.rir} secondi di margine` : `${p.rir} ripetizioni in riserva`;
-  if (ex.a === 'Corpo libero') return p.p ? `corpo libero: scegli la variante (assistita, con zavorra o inclinazione) che ti lascia ${rir}` : `carico: ${p.pct}; ${rir}`;
+  const car = (/^carico/i.test(p.pct) ? p.pct : 'carico: ' + p.pct) + '; ' + rir;
+  if (ex.a === 'Corpo libero') return p.p ? `corpo libero: scegli la variante (assistita, con zavorra o inclinazione) che ti lascia ${rir}` : car;
   const e = est1RM(ex.id);
   if (e && p.p) { const raw = e * p.p, st = ex.a === 'Manubri' ? (raw <= 10 ? 1 : 2) : kgStep(), kg = Math.max(st, Math.round(raw / st) * st); return `peso indicativo ≈ ${fmtKg(kg)} kg (${p.pct} del tuo massimale stimato)`; }
   const sk = startKg(ex, f); if (sk && p.p) return `peso di partenza consigliato ≈ ${fmtKg(sk.kg)} kg${sk.unit ? ' ' + sk.unit : ''} (dal tuo profilo${sk.cue ? ', ' + sk.cue : ''}); tieni ${rir} e aumenta quando chiudi tutte le serie`;
   if (p.p) return `peso: ${p.pct} del tuo massimale (se non lo conosci, scegli un carico che ti lasci ${rir})`;
-  return `carico: ${p.pct}; ${rir}`;
+  return car;
 }
 /* ---------- profilo: genere, peso corporeo, livello, obiettivo, muscoli e attrezzi preferiti ---------- */
 const LVL = {principiante: 'Principiante', intermedio: 'Intermedio', avanzato: 'Avanzato'};
@@ -201,7 +202,7 @@ function startKg(ex, f) {
   let c = null; for (const [re, v] of START_C) if (re.test(ex.n)) { c = v; break; }
   if (c === null) c = ex.tipo === 'comp' ? .4 : ex.tipo === 'semi' ? .25 : ex.g === 'addome' ? .1 : .12;
   if (!c) return null;
-  const ff = f || profFin(), fe = presOf(ex, ff) ? ff : (presOf(ex, 'massa') ? 'massa' : 'tonificare');   /* obiettivo davvero previsto per questo esercizio (un isolamento non ha la riga Forza) */
+  const ff = f || profFin(), okF = g => presOf(ex, g) && (!ex.fin || ex.fin.includes(g)), fe = okF(ff) ? ff : okF('massa') ? 'massa' : okF('tonificare') ? 'tonificare' : ff;   /* obiettivo davvero previsto per questo esercizio (un isolamento non ha la riga Forza) */
   const sex = P.sex === 'f' ? .6 : 1, lvl = {principiante: .8, intermedio: 1, avanzato: 1.3}[P.lvl] || .8, fin = {forza: 1.2, massa: 1, tonificare: .75}[fe] || 1;
   let kg = P.kg * c * sex * lvl * fin, unit = '', cue = '';
   if (ex.one) kg *= .5;   /* un braccio / una gamba */
@@ -238,7 +239,7 @@ function profHtml(first) {
    <div class="sbar" style="padding:12px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="pfsave">${first ? 'Salva e inizia' : 'Salva'}</button>${first ? '<button class="ghost" data-act="pflater">Più tardi</button>' : ''}</div>`;
 }
 function profRead() { const i = $('#pfkg'); if (i) { const v = num(i.value); if (v >= 30 && v <= 250) DB.prof.kg = Math.round(v * 2) / 2; } const j = $('#pfh'); if (j) { const v = num(j.value); if (v >= 120 && v <= 230) DB.prof.h = Math.round(v); } }
-const finLine = (ex, f) => { const p = presOf(ex, f); return p ? `<li><b>${FIN[f]}</b>: ${p.sr} serie × ${p.r}${ex.isom ? ' di tenuta' : ' ripetizioni'}, recupero ${p.rec}. ${esc(pesoTxt(ex, f))}.</li>` : ''; };
+const finLine = (ex, f) => { const p = presOf(ex, f); return p ? `<li><b>${FIN[f]}</b>: ${p.sr} serie × ${ex.isom ? String(p.r).replace(/ per lato$/, '') + ' di tenuta' + (/per lato$/.test(p.r) ? ' per lato' : '') : p.r + ' ripetizioni'}, recupero ${p.rec}. ${esc(pesoTxt(ex, f))}.</li>` : ''; };
 const GCOL = {petto:'#ef476f', spalle:'#f59e0b', schiena:'#3b82f6', bicipiti:'#10b981', tricipiti:'#8b5cf6', avambracci:'#14b8a6', gambe:'#ff6b35', addome:'#06b6d4'};
 const ICON_LIB = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>';
 const DAYS = [['g1', 'Lun', 'Lunedì'], ['g2', 'Mar', 'Martedì'], ['g3', 'Mer', 'Mercoledì'], ['g4', 'Gio', 'Giovedì'], ['giulia', 'Ven', 'Venerdì'], ['mia', 'Sab', 'Sabato'], ['dom', 'Dom', 'Domenica']];
@@ -352,9 +353,9 @@ function techHtml(ex, sr) {
   const pr = presOf(ex, profFin()) || presOf(ex, 'massa') || presOf(ex, 'tonificare') || presOf(ex, 'forza');
   const fam = ex.fam ? EX.filter(x => x.fam === ex.fam && (x.id === ex.id || avail(x))) : [];
   /* etichette delle varianti: via la parola di famiglia (la RegExp puo' essersi persa nei cloni: si riprende da un fratello), nome intero se l'etichetta resta vuota o uguale a un'altra */
-  const fre = x => { const r = x.famRe && x.famRe.source ? x.famRe : (EX.find(y => y.fam === x.fam && y.famRe && y.famRe.source) || {}).famRe; return r ? new RegExp(r.source, 'i') : /$^/; };
+  const fre = x => { const r = x.famRe && x.famRe.source ? x.famRe : (EX.find(y => y.fam === x.fam && y.famRe && y.famRe.source) || {}).famRe; return r ? new RegExp('\\S*(?:' + r.source + ')\\S*', 'i') : /$^/; };
   const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
-  const vn0 = x => { let n = x.varName || x.n.replace(/\(.*?\)/g, '').replace(fre(x), '').replace(/^[\s,\-–·]+/, '').replace(/^(con|al|ai|alla|alle|allo|a|su|in|di|dal|dall’|tra)\s+/i, '').replace(/\s+/g, ' ').trim(); if (!n) n = x.n.replace(/\(.*?\)/g, '').replace(/\s+/g, ' ').trim() || x.a; return cap1(n); };
+  const vn0 = x => { const n0 = x.n.replace(/\(.*?\)/g, '').replace(/\s+/g, ' ').trim(); let n = x.varName || n0.replace(fre(x), '').replace(/^[\s,\-–·]+/, '').replace(/^(con|al|ai|alla|alle|allo|a|su|in|di|del|della|dei|delle|dal|dall’|dalla|tra|per)\s+/i, '').replace(/\s+/g, ' ').trim(); if (n.length < 4 || /^(hold|tenuta|in tenuta|e)$/i.test(n)) n = n0 || x.a; return cap1(n); };
   const labs = {}; fam.forEach(x => { labs[x.id] = vn0(x); }); const dup = {}; Object.values(labs).forEach(v => { dup[v] = (dup[v] || 0) + 1; }); fam.forEach(x => { if (dup[labs[x.id]] > 1) labs[x.id] = cap1(x.n.replace(/\s+/g, ' ').trim()); });
   const vn = x => trunc(labs[x.id] || x.n, 40);
   const vars = fam.length > 1 ? `<div class="vars"><span>${esc(ex.fam)}: ${fam.length} varianti</span>${fam.map(x => `<button class="${x.id === ex.id ? 'on' : ''}" data-act="open" data-id="${x.id}" title="${esc(x.n)}">${esc(vn(x))}</button>`).join('')}</div>` : '';
@@ -377,7 +378,7 @@ function techHtml(ex, sr) {
 function lastLine(k) {
   const h = lastHist(k); if (!h) return '';
   const isom = !!(byId[k.split(':')[1]] || {}).isom;
-  return `<div class="last">Ultima volta (${fmtD(h.d)}): ${h.sets.map(s => `${esc(s.kg || '–')} kg × ${esc(s.reps || '–')}${isom ? ' s' : ''}`).join(' · ')}</div>`;
+  return `<div class="last">Ultima volta (${fmtD(h.d)}): ${h.sets.map(s => `${s.kg ? fmtKg(num(s.kg)) : '–'} kg × ${s.reps ? num(s.reps) : '–'}${isom ? ' s' : ''}`).join(' · ')}</div>`;
 }
 function hintLine(k, target) {
   const h = lastHist(k), u = upper(target); if (!h || !u) return '';
@@ -432,7 +433,7 @@ function planView(p, prof) {
   const cav = p.ex.filter(x => byId[x.e].a === 'Cavi').length, edit = p.custom && (prepEdit || !p.ex.length);
   const last = (DB.sess || []).filter(z => z.pid === p.id).slice(-1)[0], isToday = tabPlan(todayTabId()) === p.id;
   return `<section class="hero"><div class="eyebrow">${isToday ? 'Oggi · ' : ''}${esc(dayName(p.id))}${last ? ' · ultima seduta ' + esc(fmtWd(last.d)) : ''}</div><h2>${esc(p.nome)}</h2>${p.sotto ? `<div class="sub">${esc(p.sotto)}</div>` : ''}
-   ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>${p.ex.length === 1 ? 'esercizio' : 'esercizi'}</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 600) * 10}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
+   ${p.ex.length ? `<div class="stats"><div class="stat"><b>${p.ex.length}</b><span>${p.ex.length === 1 ? 'esercizio' : 'esercizi'}</span></div><div class="stat"><b>${tot}</b><span>serie</span></div><div class="stat"><b>~${Math.round(mins / 60)}</b><span>minuti</span></div><div class="stat"><b>${cav}</b><span>ai cavi</span></div></div>
    <div class="prog"><i style="width:${tot ? Math.round(dn / tot * 100) : 0}%"></i></div><div class="progt">${dn}/${tot} serie completate · <button class="tlink" data-act="tmopen">⏱ Timer recupero</button></div>
    ${p.custom && evalDay(p.id) ? `<button class="evalchip" data-act="evalday" data-pid="${p.id}">${evalDay(p.id).icon} Valutazione ${evalDay(p.id).score}/10 · ${evalDay(p.id).grade} ›</button>` : ''}
    <button class="primary trainbtn" data-act="train" data-pid="${p.id}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button>` : `<p>Scheda vuota. Qui sotto scegli un <b>programma pronto</b>, fatti <b>proporre</b> esercizi oppure aggiungili uno a uno.</p>`}</section>
@@ -471,11 +472,11 @@ function trainView() {
 }
 
 const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
-const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean);
+const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean), score = e => !q.length ? 0 : q.every(t => norm(e.n).includes(t)) ? 2 : q.some(t => norm(e.n).includes(t)) ? 1 : 0;
   return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.nb))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
-    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0)); };
+    const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0) || score(b) - score(a)); };   /* preferiti, poi chi ha le parole cercate nel nome */
 const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
-  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''}${e.ab ? ' · <b>' + esc(abTxt(e)) + '</b>' : ''} · ${esc(e.mm || e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</span></button><button class="favb col ${DB.fav[e.id] ? 'on' : ''}" data-act="fav" data-id="${e.id}" aria-label="Preferito">${DB.fav[e.id] ? '⭐' : '☆'}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
+  return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''}${e.ab ? ' · <b>' + esc(abTxt(e)) + '</b>' : ''} · ${esc(e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</span></button><button class="favb col ${DB.fav[e.id] ? 'on' : ''}" data-act="fav" data-id="${e.id}" aria-label="Preferito">${DB.fav[e.id] ? '⭐' : '☆'}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
   const atts = ATT_AV();
   return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
@@ -1159,7 +1160,7 @@ function histChart(h) {
 function weekSets() {
   const wk = mondayOf(today()), out = {}; const add = (id, n) => { const e = byId[id]; if (!e || !n) return; out[e.g] = (out[e.g] || 0) + n; (e.g2 || []).forEach(g => { out[g] = (out[g] || 0) + n * .5; }); };
   Object.entries(DB.hist).forEach(([k, h]) => (h || []).forEach(e => { if (e.d >= wk) add(k.split(':')[1], e.sets.filter(s => num(s.reps) > 0).length); }));
-  Object.entries(DB.cur).forEach(([k, c]) => add(k.split(':')[1], (c.sets || []).filter(s => s.done).length));
+  Object.entries(DB.cur).forEach(([k, c]) => { const id = k.split(':')[1]; if (inAny(id)) add(id, (c.sets || []).filter(s => s.done).length); });
   return out;
 }
 function weekSetsHtml() {
@@ -1489,7 +1490,7 @@ document.addEventListener('click', e => {
   else if (a === 'rensave') { const id = b.dataset.id, nn = $('#rn-n').value.trim(), nm = $('#rn-m').value.trim(); if (!nn && !nm) delete DB.names[id]; else DB.names[id] = {n: nn || dayName(id), m: nm}; save(); closeModal(); render(true); }
   else if (a === 'renreset') { const id = b.dataset.id; delete DB.names[id]; save(); closeModal(); render(true); }
   else if (a === 'done') { const s = DB.cur[k].sets[i]; s.done = !s.done; let pr = '';
-    if (s.done) { const row = b.closest('.set'); ['kg', 'reps'].forEach(f => { if (s[f] === '' || s[f] === undefined) { const inp = row && row.querySelector(`input[data-f="${f}"]`); if (inp && inp.placeholder && num(inp.placeholder) > 0) { s[f] = inp.placeholder; inp.value = inp.placeholder; } } });   /* serie fatta senza scrivere nulla = come suggerito (ultima volta / peso di partenza) */
+    if (s.done) { const row = b.closest('.set'); ['kg', 'reps'].forEach(f => { if (s[f] === '' || s[f] === undefined) { const inp = row && row.querySelector(`input[data-f="${f}"]`); if (inp && inp.placeholder && num(inp.placeholder) > 0) { s[f] = String(num(inp.placeholder)); inp.value = s[f]; } } });   /* serie fatta senza scrivere nulla = come suggerito (ultima volta / peso di partenza) */
       pr = prCheck(k, s); if (pr) setTimeout(() => flash(pr), 900); }
     save(); b.classList.toggle('on', s.done); refreshProgress();
     if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); }
@@ -1626,10 +1627,10 @@ const WD = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerd
 const wdOf = d => WD[new Date(d + 'T12:00:00').getDay()];
 const dShift = n => { const t = new Date(); t.setDate(t.getDate() - n); return new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const fmtWd = d => wdOf(d).slice(0, 3) + ' ' + fmtD(d);
-const finAnyDone = () => Object.values(DB.cur).some(c => (c.sets || []).some(s => s.done));   /* se almeno una serie ha la ✓, si archiviano solo le serie spuntate (i valori restano per la prossima volta) */
+const finAnyDone = (p, prof) => p.ex.some(x => ((DB.cur[pk(prof, x.e)] || {sets: []}).sets).some(s => s.done));   /* se almeno una serie ha la ✓, si archiviano solo le serie spuntate (i valori restano per la prossima volta) */
 function finish(pid, prof) {   // chiede quando è stata fatta la seduta (es. scheda del venerdì fatta di sabato → salvata per sabato)
-  const p = planOf(pid), anyDone = finAnyDone(), hasSets = c => c && c.sets.some(s => anyDone ? s.done : (s.kg || s.reps || s.note));
-  const inPlan = new Set(p.ex.map(x => pk(prof, x.e))), done = p.ex.filter(x => hasSets(DB.cur[pk(prof, x.e)])).length + (anyDone ? Object.keys(DB.cur).filter(k => !inPlan.has(k) && hasSets(DB.cur[k])).length : 0);
+  const p = planOf(pid), anyDone = finAnyDone(p, prof), hasSets = c => c && c.sets.some(s => anyDone ? s.done : (s.kg || s.reps || s.note));
+  const done = p.ex.filter(x => hasSets(DB.cur[pk(prof, x.e)])).length;
   if (!done) { flash(anyDone ? 'Nessuna serie spuntata in questa scheda' : 'Compila almeno una serie'); return; }
   const opt = n => { const d = dShift(n); return `<button class="chip ${n === 0 ? 'on' : ''}" data-act="findate" data-d="${d}">${n === 0 ? 'Oggi' : n === 1 ? 'Ieri' : wdOf(d)}<small style="margin-left:6px;opacity:.75">${fmtD(d)}</small></button>`; };
   modal(`<h2 style="padding-right:44px">🏁 Fine allenamento</h2><p class="vnote">${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}: ${pl(done, 'esercizio', 'esercizi')} ${anyDone ? 'con serie spuntate ✓' : (done === 1 ? 'compilato' : 'compilati')}. <b>Quando l'hai fatto?</b> Lo storico lo salva con questa data (anche se la scheda è di un altro giorno).</p>
@@ -1640,14 +1641,15 @@ function finish(pid, prof) {   // chiede quando è stata fatta la seduta (es. sc
 }
 function finishDo(pid, prof, d) {
   const p = planOf(pid); let n = 0, sd = 0; if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) d = today();
-  const anyDone = finAnyDone(), keys = p.ex.map(x => pk(prof, x.e)); if (anyDone) Object.keys(DB.cur).forEach(k => { if (!keys.includes(k) && byId[k.split(':')[1]]) keys.push(k); });   /* con la ✓ si archivia anche un esercizio fatto fuori scheda */
+  const anyDone = finAnyDone(p, prof), keys = p.ex.map(x => pk(prof, x.e)); let dup = 0;
   keys.forEach(k => {
     const c = DB.cur[k]; if (!c) return;
     const sets = c.sets.filter(s => anyDone ? s.done : (s.kg || s.reps || s.note)).map(s => ({kg: s.kg, reps: s.reps, note: s.note || undefined}));
     if (!sets.length) return;
-    (DB.hist[k] = DB.hist[k] || []).push({d, sets}); DB.hist[k].sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); n++; sd += sets.length;
+    const H = (DB.hist[k] = DB.hist[k] || []), sg = JSON.stringify(sets); if (H.some(e => e.d === d && JSON.stringify(e.sets) === sg)) { dup++; return; }   /* stessa seduta salvata due volte nello stesso giorno */
+    H.push({d, sets}); H.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); n++; sd += sets.length;
   });
-  if (!n) { flash(anyDone ? 'Nessuna serie spuntata' : 'Compila almeno una serie'); return; }
+  if (!n) { Object.values(DB.cur).forEach(c => (c.sets || []).forEach(s => { s.done = false; })); if (dup) { closeModal(); save(); render(true); flash('Questa seduta era già nello storico con gli stessi valori: niente da salvare'); return; } flash(anyDone ? 'Nessuna serie spuntata in questa scheda' : 'Compila almeno una serie'); return; }
   Object.values(DB.cur).forEach(c => (c.sets || []).forEach(s => { s.done = false; }));
   const st = p.ex.reduce((t, x) => t + ((DB.cur[pk(prof, x.e)] || {sets: []}).sets.length || x.s), 0);
   DB.sess.push({d, pid, n, tot: p.ex.length, sd, st, name: p.nome + (p.sotto ? ' · ' + p.sotto : '')}); DB.sess.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); if (DB.sess.length > 400) DB.sess.splice(0, DB.sess.length - 400);
