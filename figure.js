@@ -84,7 +84,9 @@ const FIG = (() => {
     } else if (st === 'kneel') {
       s += `<rect x="60" y="${FLOOR-2}" width="140" height="5" rx="2" fill="${c}" opacity=".6"/>`;
     }
-    if (ex.bench === 'bulg') s += `<rect x="36" y="184" width="54" height="9" rx="3" fill="${c}"/>` + line([48,193],[48,FLOOR],5,c) + line([80,193],[80,FLOOR],5,c);
+    if (ex.wall !== undefined) s += `<rect x="${ex.wall - 3}" y="40" width="6" height="${FLOOR - 40}" fill="${c}"/>`;
+    const bb = ex.bench === 'bulg' ? [36, 90, 188] : Array.isArray(ex.bench) ? ex.bench : null;
+    if (bb) s += `<rect x="${bb[0]}" y="${bb[2] - 4}" width="${bb[1] - bb[0]}" height="9" rx="3" fill="${c}"/>` + line([bb[0] + 12, bb[2] + 5], [bb[0] + 12, FLOOR], 5, c) + line([bb[1] - 10, bb[2] + 5], [bb[1] - 10, FLOOR], 5, c);
     return s;
   }
 
@@ -101,6 +103,9 @@ const FIG = (() => {
     // gamba lontana / d'appoggio
     if (ex.rl) {
       const K2 = ik(H, ex.rl, TH, SH); s += poly([H, K2, ex.rl], 8, 'var(--far)');
+    } else if (ex.sup && Array.isArray(ex.bench)) {   // step-up: la gamba libera arriva a terra finche' ci arriva, poi pende
+      const L = TH + SH - .5, F2 = [ex.bench[0] - 34, FLOOR - 2], dd = Math.hypot(F2[0] - H[0], F2[1] - H[1]), A2 = dd < L ? F2 : [H[0] + (F2[0] - H[0]) * L / dd, H[1] + (F2[1] - H[1]) * L / dd], K2 = ik(H, A2, TH, SH);   // il piede resta a terra dietro la panca, poi si stacca senza scatti
+      s += poly([H, K2, A2], 8, 'var(--far)') + line(A2, add(A2, 14, 90), 6, 'var(--far)');
     } else if (ex.sup) {
       s += poly([H, add(H,TH,0), add(add(H,TH,0),SH,0)], 8, 'var(--far)') + line(add(add(H,TH,0),SH,0), add(add(add(H,TH,0),SH,0),14,90), 6, 'var(--far)');
     } else {
@@ -165,14 +170,23 @@ const FIG = (() => {
     s += `<path d="M${cx-26},${sy+2} L${cx+26},${sy+2} L${cx+16},${hy} L${cx-16},${hy} Z" fill="var(--body)"/>`;
     s += circ([cx, sy-20], 11, 'var(--body)');
     s += poly([Ls, lArm.E, lArm.W], 8, ex.one ? 'var(--far)' : 'var(--acc)') + poly([Rs, rArm.E, rArm.W], 8, 'var(--acc)');
+    if (ex.eq === 'db') [rArm.W, ...(ex.one ? [] : [lArm.W])].forEach(w => { s += `<rect x="${f1(w[0] - 9)}" y="${f1(w[1] - 5)}" width="18" height="10" rx="3" fill="var(--plate)" stroke="var(--body)" stroke-width="1.5"/>`; });   /* manubri anche nella vista frontale di riserva */
     return s;
   }
 
   function svg(ex, p) {
     return `<svg viewBox="0 -34 300 270" role="img" aria-label="${ex.n}">${ex.v === 'f' ? front(ex, p) : side(ex, p)}</svg>`;
   }
-  function poses(ex) { return ex.fr.map(f => resolve(ex, f)); }
-  const poseAt = (P, k) => { const n = P.length; if (n <= 2) return lerpPose(P[0], P[1], k); const s = Math.min(n - 2, Math.max(0, Math.floor(k * (n - 1)))); return lerpPose(P[s], P[s + 1], k * (n - 1) - s); };
+  function poses(ex) {
+    const P = (ex.fr2d || ex.fr).map(f => resolve(ex, f));   // fr2d: fotogrammi solo per il 2D, quando la posa 3D non si legge di lato (croci con le braccia aperte)
+    if (ex.st === 'stand' && ex.sup && Array.isArray(ex.bench) && ex.cp !== 'ankle') {   // step-up: il piede sulla panca resta fermo e il corpo sale (come nel 3D); non leg curl e kickback
+      const ank = q => add(add(q.h, TH, q.th), SH, q.sh), a0 = ank(P[0]);
+      P.forEach(q => { const a = ank(q); q.h = [q.h[0] + a0[0] - a[0], q.h[1] + a0[1] - a[1]]; }); P.a0 = a0;
+    }
+    return P;
+  }
+  const poseAt0 = (P, k) => { const n = P.length; if (n <= 2) return lerpPose(P[0], P[1], k); const s = Math.min(n - 2, Math.max(0, Math.floor(k * (n - 1)))); return lerpPose(P[s], P[s + 1], k * (n - 1) - s); };
+  const poseAt = (P, k) => { const q = poseAt0(P, k); if (P.a0) { const a = add(add(q.h, TH, q.th), SH, q.sh); q.h = [q.h[0] + P.a0[0] - a[0], q.h[1] + P.a0[1] - a[1]]; } return q; };   // step-up: il piede sulla panca resta fermo anche tra un fotogramma e l'altro
 
   const live = new Set(); let raf = 0;
   function tick(t) {
@@ -182,10 +196,10 @@ const FIG = (() => {
       let k;
       if (o.hold !== null) k = o.hold;
       else if (o.ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); }
-      else { const T = o.ex.tempo || [1.4, .6, 1.4], a = .6, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }
+      else { const T = o.ex.tempo || [1.4, .6, 1.4], a = .6, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c || o.ex.jump ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }
       if (k !== o.last) {
         o.last = k; o.svgHost.innerHTML = svg(o.ex, poseAt(o.p, k));
-        if (o.cap) o.cap.textContent = k < .5 ? o.ex.cap[0] : o.ex.cap[1];
+        if (o.cap) o.cap.textContent = (k < .5 ? o.ex.cap[0] : o.ex.cap[1]) ?? o.ex.cap[0] ?? '';
         if (o.btns) o.btns.forEach((b, i) => b.classList.toggle('on', o.hold === null ? false : i === Math.round(k)));
       }
     });

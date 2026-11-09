@@ -177,6 +177,9 @@ nav button span{font-size:10.5px;line-height:1.15;min-height:36px;display:block}
 .set .snote{grid-column:1/-1;border:1px dashed var(--line);background:transparent;border-radius:8px;padding:5px 8px;font-size:13px;color:var(--tx);width:100%;min-width:0;margin-top:-3px}
 .set .snote:focus{border-style:solid;outline:none;border-color:var(--acc)}
 .set .snote::placeholder{color:var(--mut);opacity:.8}
+.set.old input{color:var(--mut);font-style:italic}
+.oldhint{margin:0 0 7px;font-size:12.5px;color:var(--mut)}
+.finold{display:flex;gap:9px;align-items:flex-start;margin:12px 0 0;font-size:14px;line-height:1.35}.finold input{margin-top:2px;width:18px;height:18px;flex:none}
 .gnote{display:block;padding:4px 14px 8px}
 .gnote span{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}
 .gnote textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--in);color:var(--tx);padding:8px 10px;font:inherit;font-size:14px;resize:vertical}
@@ -299,3 +302,6 @@ nav button{overflow:hidden}nav button span{max-width:100%;overflow-wrap:anywhere
 /* timer a 320 px: la X usciva dalla card */
 @media(max-width:359px){#timer .trow{gap:5px}#timer .trow button{min-width:42px;padding:0 6px;font-size:15px}#timer .tclock{font-size:28px}}
 .lw .li .t small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lw .li .t{overflow-wrap:anywhere}
+@media(max-width:359px){.tbarnav .primary{font-size:16px}}
+@media(max-width:340px){nav button span{font-size:8.5px}}

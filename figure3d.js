@@ -76,8 +76,8 @@ const FIG3 = (() => {
     if (has('avambracc', 'polso', 'brachioradiale', 'flessori delle dita')) r.push('forearms');
     if (has('dorsal', 'romboid')) r.push('lats');
     if (has('trapez')) r.push('traps');
-    if (has('erettori', 'lombar')) r.push('lowerback');
-    if (has('addominal', 'retto dell', 'obliqui') || first.includes('core')) r.push('abs');
+    if (has('erettori', 'lombar', 'quadrato dei lombi')) r.push('lowerback');
+    if (has('addominal', 'addome', 'retto dell', 'obliqui', 'trasverso') || first.includes('core')) r.push('abs');
     if (has('obliqui')) r.push('obliques');
     if (has('quadric')) r.push('quads');
     if (has('femoral')) r.push('hams');
@@ -152,7 +152,9 @@ const FIG3 = (() => {
     else if (st === 'inc') { const a = [h[0]-4, h[1]+10]; padBox(pt3(a,0), pt3(add(a,88,270 - (ex.inc || 45)),0)); padBox(pt3([h[0]-20,h[1]+12],0), pt3([h[0]+44,h[1]+12],0)); P.push(cyl(pt3([h[0]+10,h[1]+17],0), pt3([h[0]+10,FLOOR],0), 3, c)); }
     else if (st === 'floor') { P.push(box(pt3([50,FLOOR-2],0), pt3([230,FLOOR-2],0), 4, 46, '#2a7fb8')); if (ex.eq === 'cable' && !ex.cp) P.push(box(pt3([218,FLOOR-34],0), pt3([218,FLOOR],0), 5, 46, pad)); }   // pedana solo per i rematori seduti a terra
     else if (st === 'kneel') { P.push(box(pt3([60,FLOOR-2],0), pt3([200,FLOOR-2],0), 4, 46, '#2a7fb8')); }
-    if (ex.bench === 'bulg') { padBox(pt3([36,188],0), pt3([90,188],0)); P.push(cyl(pt3([48,193],-12), pt3([48,FLOOR],-12), 2.5, c), cyl(pt3([80,193],12), pt3([80,FLOOR],12), 2.5, c)); }
+    if (ex.wall !== undefined) P.push(Object.assign(box(pt3([ex.wall, FLOOR], 0), pt3([ex.wall, 40], 0), 6, 150, '#a9b3c6'), {m: 3}));   // muro dietro la schiena (wall sit), semitrasparente: da dietro non copre la figura
+    const bb = ex.bench === 'bulg' ? [36, 90, 188] : Array.isArray(ex.bench) ? ex.bench : null;   // panca in un punto preciso: [x inizio, x fine, altezza del piano]
+    if (bb) { P.push(box(pt3([bb[0],bb[2]],0), pt3([bb[1],bb[2]],0), 9, bb[3] || D, pad)); P.push(cyl(pt3([bb[0]+12,bb[2]+5],-12), pt3([bb[0]+12,FLOOR],-12), 2.5, c), cyl(pt3([bb[1]-10,bb[2]+5],12), pt3([bb[1]-10,FLOOR],12), 2.5, c)); }
   }
 
   /* torre del cavo ai lati del corpo (z), cavo dalla mano alla puleggia: non attraversa mai il corpo */
@@ -179,7 +181,7 @@ const FIG3 = (() => {
   const tzSide = (an, sg) => an[1] < 60 ? 0 : 80 * sg;
   const ankleOf = q => [q.h[0] + TH * Math.sin(q.th * R) + SH * Math.sin(q.sh * R), q.h[1] + TH * Math.cos(q.th * R) + SH * Math.cos(q.sh * R)];
   function anchorFeet(ex, p, rig) {
-    if (!rig || !['stand', 'hinge'].includes(ex.st) || ex.legs || ex.cp === 'ankle') return p;
+    if (!rig || !['stand', 'hinge'].includes(ex.st) || ex.legs || ex.cp === 'ankle' || ex.jump) return p;   // ex.jump: salto che si sposta (box jump), i piedi lasciano il punto di partenza
     const a0 = ankleOf(resolve(ex, ex.fr[0])), a1 = ankleOf(p);
     return Object.assign({}, p, {h: [p.h[0] + (a0[0] - a1[0]), p.h[1] + (a0[1] - a1[1])]});
   }
@@ -252,7 +254,7 @@ const FIG3 = (() => {
       if (ex.cp === 'ankle') { cableTo(P, pt3(A, LN), an, tzSide(an, 1)); P.push(cyl(pt3(A, LN - 4), pt3(A, LN + 4), 6.6, BLK)); }
       else if (ex.one) cableTo(P, g1, an, tzSide(an, 1));
       else if (ex.tzf !== undefined) { const m = [(g1[0] + g2[0]) / 2, (g1[1] + g2[1]) / 2, (g1[2] + g2[2]) / 2]; cableTo(P, m, an, ex.tzf); P.push(cyl(g1, g2, 1.4, BLK)); }   // una sola torre di lato (woodchop, Pallof): le due mani sulla stessa maniglia
-      else { cableTo(P, g1, an, tzSide(an, 1)); cableTo(P, g2, an, tzSide(an, -1)); P.push(cyl(g1, g2, 1.4, BLK)); }
+      else { cableTo(P, g1, an, tzSide(an, 1)); cableTo(P, g2, an, tzSide(an, -1)); if (!ex.due) P.push(cyl(g1, g2, 1.4, BLK)); }   // due cavi = una maniglia per mano, niente barra tra le mani
     } else if (ex.eq === 'jam' && ex.an) {
       const pv = pt3(ex.an, 0);
       [ZN, ex.one ? null : ZF].forEach(z => { if (z === null) return; P.push(cyl(pt3(ex.an, z * 1.6), pt3(grip, z), 3.6, TW), sph(pt3(ex.an, z * 1.6), 6.5, '#8d99b3')); });
@@ -470,7 +472,7 @@ const FIG3 = (() => {
     const floor = new THREE.Mesh(new THREE.CircleGeometry(2.0, 64), new THREE.MeshStandardMaterial({color: 0x303850, roughness: .92}));
     floor.rotation.x = -Math.PI / 2; floor.position.y = -.005; floor.receiveShadow = true; scene.add(floor);
     const ring = new THREE.Mesh(new THREE.RingGeometry(1.97, 2.0, 64), new THREE.MeshBasicMaterial({color: 0xff6b35, transparent: true, opacity: .55})); ring.rotation.x = -Math.PI / 2; scene.add(ring);
-    const mM = matM(), mF = new THREE.MeshBasicMaterial({color: 0xff9aa2, transparent: true, opacity: .95});
+    const mM = matM(), mF = new THREE.MeshBasicMaterial({color: 0xff9aa2, transparent: true, opacity: .95}), mW = new THREE.MeshStandardMaterial({color: 0xa9b3c6, roughness: .9, transparent: true, opacity: .3, depthWrite: false});
     const cylG = {}; const gCylR = rr => { const k = Math.round(rr * 20); return cylG[k] || (cylG[k] = new THREE.CylinderGeometry(k / 20, 1, 1, 16)); };
     const gSph = new THREE.SphereGeometry(1, 16, 12), gBox = new THREE.BoxGeometry(1, 1, 1);
     const group = new THREE.Group(); scene.add(group); const pool = [];
@@ -522,7 +524,7 @@ const FIG3 = (() => {
         if (m) group.remove(m);
         m = new THREE.Mesh(type === 'c' ? gCylR(pr.rr) : (type === 's' || type === 'e') ? gSph : gBox, mat(pr.col)); m.userData.k = type; m.castShadow = true; group.add(m); pool[i] = m;
       }
-      m.material = pr.m === 1 ? mM : pr.m === 2 ? mF : mat(pr.col);
+      m.material = pr.m === 1 ? mM : pr.m === 2 ? mF : pr.m === 3 ? mW : mat(pr.col);
       if (pr.k === 'c') {
         const a = V(pr.a), b = V(pr.b); d.subVectors(b, a); const len = Math.max(d.length(), 1e-4);
         m.position.copy(a).add(b).multiplyScalar(.5); q.setFromUnitVectors(up, d.normalize()); m.quaternion.copy(q); m.scale.set(pr.rx / S3, len, pr.rz / S3);
@@ -556,7 +558,7 @@ const FIG3 = (() => {
       let k;
       if (o.hold !== null) k = o.hold;
       else if (ex.isom) { const ph = ((t - o.t0) / 1000) % 5.6; k = ph < .4 ? 0 : ph < 1.4 ? (ph - .4) : ph < 4.6 ? 1 : 1 - (ph - 4.6); k = k*k*(3-2*k); if (ph >= 1.4 && ph < 4.6) k = 1 - .015 * (1 - Math.cos((ph - 1.4) * 2 * Math.PI / 1.6)); }   /* isometria: entra in posizione, tieni (lieve respiro), torna */
-      else { const T = ex.tempo || [1.4, .5, 2.2], a = .5, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }   /* tempo reale della ripetizione: ex.tempo = [secondi di andata, pausa, ritorno] */
+      else { const T = ex.tempo || [1.4, .5, 2.2], a = .5, b = a + T[0], c = b + T[1], d = c + T[2]; const ph = ((t - o.t0) / 1000) % d; k = ph < a ? 0 : ph < b ? (ph - a) / T[0] : ph < c || ex.jump ? 1 : 1 - (ph - c) / T[2]; k = k*k*(3-2*k); }   /* tempo reale della ripetizione: ex.tempo = [secondi di andata, pausa, ritorno] */
       if (k !== lastK) {
         if (lastK >= 0 && Math.abs(k - lastK) > .25) { ikReset(); o.lastUa = undefined; }   // salto (pulsanti Partenza/Arrivo): si riparte da una soluzione pulita
         lastK = k; const pp = poseAt(k); pp.showM = o.showM; if (ex.lin && o.lw) linearize(pp, k); const prims = geo(ex, pp, !!rigInst); o.J = prims.J; prims.forEach((pr, i) => place(i, pr));
@@ -566,7 +568,7 @@ const FIG3 = (() => {
           const act = {}; if (o.showM) musOf(ex).forEach(g => { act[g] = .35 + .65 * k; }); rigInst.setMuscles(act);
         }
         while (pool.length > prims.length) group.remove(pool.pop());
-        const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.presa];
+        const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.eq || ex.a !== 'Corpo libero' ? ex.presa : null];
         const back = ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.benchSt === 'ht' ? 'scapole appoggiate al bordo della panca' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
         cap.innerHTML = '<b>' + esc3((k < .5 ? ex.cap[0] : ex.cap[1]) ?? ex.cap[0] ?? '') + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }
@@ -579,7 +581,9 @@ const FIG3 = (() => {
     }
     const CT = {lie:[.42,.4,4.1], inc:[.3,.65,4.0], kneel:[.05,.78,4.0], hang:[0,1.05,4.5], seat:[.05,.85,4.0], floor:[.05,.45,3.7]}[ex.st] || [0,1.0,4.3];
     const over = ex.fr.some(f => f[0] > 125);
-    o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : CT;
+    const climb = ex.st === 'stand' && ex.sup && Array.isArray(ex.bench);   // step-up: il corpo sale sulla panca, la testa non deve uscire dall'inquadratura
+    const air = ex.fr.some(f => ((f[2] || {}).lift || 0) > 20);   // salto alto (jump squat): la testa non deve uscire dall'inquadratura
+    o.ct = over ? [CT[0], CT[1] + .3, CT[2] * 1.3] : air && !ex.jump ? [CT[0], CT[1] + .22, CT[2] * 1.18] : ex.jump ? [CT[0] + .3, CT[1] + .22, CT[2] * 1.28] : climb ? [CT[0], CT[1] + .15, CT[2] * 1.12] : CT;   // box jump: la figura si sposta in avanti e in alto sulla panca
     const towerFront = ex.v === 'f' && (ex.bar || (ex.an && ex.an.length === 1 && Math.abs(ex.an[0][0] - 150) < 40));
     o.base = ex.az ?? (ex.v === 'f' ? (towerFront ? .9 : 0) : (ex.eq === 'hb' ? .95 : 0));
     const sideAz = ex.v === 'f' ? 1.5708 : 0, frontAz = ex.v === 'f' ? 0 : 1.5708;
