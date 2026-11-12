@@ -1458,10 +1458,80 @@ function wizAdd() {
   const msg = `<h2 style="padding-right:44px">Fatto</h2><p><b>Aggiunti a ${esc(planOf(WZ.pid).nome)}:</b></p><ul>${added.map(n => `<li>${esc(n)}</li>`).join('') || '<li>nessuno (erano già presenti)</li>'}</ul>${removed.length ? `<p><b>Tolti perché lavorano esattamente gli stessi muscoli:</b></p><ul>${removed.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}<p class="vnote">Serie, ripetizioni e recupero sono impostati per l’obiettivo “${esc(FIN[WZ.fin])}”. Puoi cambiarli nella scheda.</p>`;
   setTimeout(() => modal(msg), 50);
 }
+/* ---------- avviso di fine recupero anche a schermo spento o con un'altra app: notifica push programmata online (funzione Supabase rest-timer) ---------- */
+const RP = {sub: null, key: '', id: null, t: null, gen: 0};   /* gen: cresce a ogni Attiva/Disattiva, cosi' un controllo d'avvio ancora in corso non li annulla */
+try { const p = JSON.parse(localStorage.getItem('sks_push') || 'null'); if (p && p.sub) { RP.sub = p.sub; RP.key = p.key || ''; } } catch (e) {}
+const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const pushCan = () => !!(!window.claude && (location.protocol === 'https:' || location.hostname === 'localhost') && window.SKS_CLOUD && SKS_CLOUD.url && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
+const pushOk = () => pushCan() && !!RP.sub && !!RP.key && Notification.permission === 'granted';
+const pushBell = () => { if (pushOk() || window.claude) return false; try { if (localStorage.getItem('sks_bellno')) return false; } catch (e) {} return pushCan() || (isIOS() && !isStandalone()); };
+const pushBellNo = () => { try { localStorage.setItem('sks_bellno', '1'); } catch (e) {} };
+const pushUrl = () => SKS_CLOUD.url.replace(/\/$/, '') + '/functions/v1/rest-timer';
+const b64uBytes = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), o = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) o[i] = b.charCodeAt(i); return o; };
+const bytesB64u = buf => { const a = new Uint8Array(buf); let s = ''; for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+function pushPost(o) { try { return fetch(pushUrl(), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(o), keepalive: true}).then(r => r.ok).catch(() => false); } catch (e) { return Promise.resolve(false); } }
+async function pushKeyGet() { try { const r = await fetch(pushUrl(), {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{"op":"key"}'}); const j = r.ok ? await r.json() : null; return j && typeof j.key === 'string' && /^[A-Za-z0-9_-]{80,90}$/.test(j.key) ? j.key : ''; } catch (e) { return ''; } }   /* chiave pubblica VAPID: la crea e la tiene la funzione online */
+function pushStore() { try { if (RP.sub) localStorage.setItem('sks_push', JSON.stringify({sub: RP.sub, key: RP.key})); else localStorage.removeItem('sks_push'); } catch (e) {} }
+const PUSH_IOS_DATA = 'Attenzione: l’app della schermata Home non vede i dati salvati in Safari. Prima entra con l’account online (⚙ → ☁️ Account online), oppure esporta un backup qui (⚙ → ⬇ Esporta backup) e importalo nell’app appena aggiunta.';
+const pushPermHelp = () => isIOS() ? 'Impostazioni dell’iPhone → Notifiche → Allenamento → Consenti notifiche.' : isStandalone() ? 'Impostazioni del telefono → App → Allenamento SKS → Notifiche → consenti.' : 'in Chrome tocca il lucchetto (o ⓘ) accanto all’indirizzo → Autorizzazioni → Notifiche → Consenti.';
+function pushNoText() {
+  if (window.claude) return 'In questa anteprima non si può attivare: apri l’app dal sito o dalla schermata Home del telefono.';
+  if (isIOS() && !isStandalone()) return 'Su iPhone l’avviso a schermo spento funziona solo con l’app aggiunta alla schermata Home (iOS 16.4 o successivo): in Safari tocca Condividi → <b>Aggiungi alla schermata Home</b>, apri l’app da lì e attiva l’avviso in ⚙ Impostazioni. ' + PUSH_IOS_DATA;
+  if (isIOS()) return 'Su iPhone l’avviso a schermo spento richiede iOS 16.4 o successivo: aggiorna da Impostazioni → Generali → Aggiornamento software. Intanto tieni l’app aperta durante il recupero.';
+  return 'Questo browser non permette le notifiche, quindi a schermo spento il timer non può suonare. Prova con Chrome, oppure tieni l’app aperta durante il recupero.';
+}
+const pushInfo = html => modal(`<h2 style="padding-right:44px">🔔 Avviso a schermo spento</h2><p>${html}</p>`, true);
+async function pushEnable(silent, gen) {   /* silent: riattivazione da sola all'avvio, senza chiedere nulla e senza messaggi; gen: quella del controllo d'avvio */
+  if (!silent) gen = ++RP.gen;
+  const stale = () => RP.gen !== gen;
+  if (!pushCan()) { if (!silent) { pushBellNo(); pushInfo(pushNoText()); } return false; }
+  let perm = Notification.permission;
+  if (perm !== 'granted') { if (silent) return false; perm = await Notification.requestPermission(); }
+  if (perm === 'default') { flash('Non hai risposto alla richiesta: tocca di nuovo 🔔 e scegli Consenti'); return false; }
+  if (perm !== 'granted') { pushBellNo(); if (!$('#modal').hidden && $('#mbody [data-act=pushask]')) flash('Notifiche bloccate: qui sotto trovi come sbloccarle'); else pushInfo('Le notifiche per questa app sono bloccate, quindi l’avviso non può arrivare. Per sbloccarle: ' + pushPermHelp()); return false; }   /* dalle Impostazioni le istruzioni compaiono nella scheda, ridisegnata dal gestore */
+  const key = await pushKeyGet(); if (stale()) return false;
+  if (!key) { if (!silent) flash('Il servizio dell’avviso non risponde: controlla la connessione e riprova tra poco'); return false; }
+  try {
+    const reg = await navigator.serviceWorker.ready; let sub = await reg.pushManager.getSubscription();
+    if (sub) { let k = ''; try { k = sub.options && sub.options.applicationServerKey ? bytesB64u(sub.options.applicationServerKey) : ''; } catch (e) {} if ((k && k !== key) || (!k && RP.key !== key)) { await sub.unsubscribe(); sub = null; } }   /* iscrizione con un'altra chiave: se ne fa una nuova */
+    if (stale()) return false;
+    if (!sub) sub = await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: b64uBytes(key)});
+    if (stale()) return false;   /* nel frattempo Attiva o Disattiva: decide quello */
+    RP.sub = sub.toJSON(); RP.key = key; pushStore(); try { localStorage.removeItem('sks_bellno'); } catch (e) {} return true;
+  } catch (e) { console.warn(e); if (!silent) flash(navigator.brave ? 'Brave blocca le notifiche push: Impostazioni → Privacy e sicurezza → «Usa i servizi Google per la messaggistica push», poi riprova' : isIOS() || /Chrome\//.test(navigator.userAgent) ? 'Non riesco ad attivare l’avviso: controlla la connessione e riprova tra poco' : 'Questo browser non riesce ad attivare le notifiche: prova con Chrome'); return false; }
+}
+async function pushDisable() { RP.gen++; pushCancel(); RP.sub = null; pushStore(); pushBellNo(); try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {} }
+function pushSchedule(min) {   /* min: anticipo minimo in ms (3 s di norma; 0 quando lo schermo si spegne negli ultimi secondi) */
+  clearTimeout(RP.t); pushCancel(); const left = TM.end - Date.now();
+  if (!pushOk() || !TM.run || left < (min === undefined ? 3000 : min)) return;
+  const id = RP.id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  /* left: i ms che mancano, cosi' un orologio del telefono avanti o indietro non sposta l'avviso */
+  pushPost({op: 'schedule', id, at: Math.round(TM.end), left: Math.max(0, Math.round(left)), sub: RP.sub, title: '⏱ Recupero finito', body: 'Via con la prossima serie!' + (TM.lbl ? ' · ' + TM.lbl : '')})
+    .then(ok => { if (!ok && RP.id === id) { RP.id = null; pushPost({op: 'cancel', id}); tmSave(); if (TM.run && !document.hidden) flash('📴 L’avviso a schermo spento non è partito (manca la rete?): per questo recupero tieni l’app aperta'); } });
+  tmSave();
+}
+function pushLater() { clearTimeout(RP.t); RP.t = setTimeout(() => pushSchedule(), 800); }   /* +30/−30 toccati di fila: una sola nuova programmazione */
+function pushCancel() { clearTimeout(RP.t); if (!RP.id) return; const id = RP.id; RP.id = null; pushPost({op: 'cancel', id}); tmSave(); }
+/* all'avvio: l'iscrizione puo' essersi persa ("Ripristina app", il browser) o la chiave online essere cambiata: se il permesso c'e' si rifa' da sola */
+if (pushCan() && RP.sub) { const g = RP.gen; navigator.serviceWorker.ready.then(r => r.pushManager.getSubscription()).then(async sub => {
+  if (RP.gen !== g) return;
+  const k = await pushKeyGet(); if (RP.gen !== g) return;
+  if (sub && (!k || k === RP.key)) { RP.sub = sub.toJSON(); pushStore(); return; }
+  if (await pushEnable(true, g)) { if (TM.run) pushSchedule(); return; }
+  if (RP.gen !== g) return;
+  RP.sub = null; pushStore(); try { localStorage.removeItem('sks_bellno'); } catch (e) {}
+  const el = document.getElementById('timer'); if (el && !el.hidden) tmShow();
+}).catch(() => {}); }
+/* schermo acceso durante il recupero: il telefono non va in standby da solo mentre il timer conta */
+const WL = {s: null};
+const wlWant = () => { try { return localStorage.getItem('sks_wl') !== '0'; } catch (e) { return true; } };
+async function wlOn() { if (WL.s || !wlWant() || document.hidden || !('wakeLock' in navigator)) return; try { const s = await navigator.wakeLock.request('screen'); if (!TM.run || WL.s) { s.release().catch(() => {}); return; } WL.s = s; s.addEventListener('release', () => { if (WL.s === s) WL.s = null; }); } catch (e) {} }
+function wlOff() { const s = WL.s; WL.s = null; if (s) s.release().catch(() => {}); }
 /* ---------- timer di recupero ---------- */
 const TM = {end: 0, left: 0, total: 90, run: false, iv: null, ac: null, last: 90};
-try { const t = JSON.parse(localStorage.getItem('sks_timer') || 'null'); if (t && t.end > Date.now()) { TM.end = t.end; TM.total = t.total; TM.run = true; } if (t && t.last) TM.last = t.last; } catch (e) {}
-const tmSave = () => { try { localStorage.setItem('sks_timer', JSON.stringify({end: TM.run ? TM.end : 0, total: TM.total, last: TM.last})); } catch (e) {} };
+try { const t = JSON.parse(localStorage.getItem('sks_timer') || 'null'); if (t && t.end > Date.now()) { TM.end = t.end; TM.total = t.total; TM.run = true; TM.lbl = t.lbl || ''; RP.id = t.pid || null; } if (t && t.last) TM.last = t.last; } catch (e) {}
+const tmSave = () => { try { localStorage.setItem('sks_timer', JSON.stringify({end: TM.run ? TM.end : 0, total: TM.total, last: TM.last, lbl: TM.lbl || '', pid: RP.id})); } catch (e) {} };
 const tmFmt = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 function tmAudio() { try { if (!TM.ac) TM.ac = new (window.AudioContext || window.webkitAudioContext)(); if (TM.ac.state === 'suspended') TM.ac.resume(); } catch (e) {} }
 function tmBeep(n, f) { // n bip da 0.18 s, frequenza f
@@ -1470,21 +1540,22 @@ function tmBeep(n, f) { // n bip da 0.18 s, frequenza f
   try { if (navigator.vibrate) navigator.vibrate(n === 1 ? 60 : [200, 100, 200, 100, 400]); } catch (e) {}
 }
 function tmEl() { let el = document.getElementById('timer'); if (el) return el;
-  el = document.createElement('div'); el.id = 'timer'; el.innerHTML = `<div class="tbar"><i></i></div><div class="trow"><button data-act="tmadj" data-d="-30" aria-label="meno 30 secondi">−30</button><b class="tclock">0:00</b><button data-act="tmadj" data-d="30" aria-label="più 30 secondi">+30</button><button class="tplay" data-act="tmplay" aria-label="pausa / riprendi">⏸</button><button data-act="tmclose" aria-label="chiudi timer">✕</button></div><div class="tpre">${[60, 90, 120, 180].map(x => `<button data-act="tmset" data-s="${x}">${tmFmt(x)}</button>`).join('')}<span>recupero</span></div>`;
+  el = document.createElement('div'); el.id = 'timer'; el.innerHTML = `<div class="tbar"><i></i></div><div class="trow"><button data-act="tmadj" data-d="-30" aria-label="meno 30 secondi">−30</button><b class="tclock">0:00</b><button data-act="tmadj" data-d="30" aria-label="più 30 secondi">+30</button><button class="tplay" data-act="tmplay" aria-label="pausa / riprendi">⏸</button><button data-act="tmclose" aria-label="chiudi timer">✕</button></div><div class="tpre">${[60, 90, 120, 180].map(x => `<button data-act="tmset" data-s="${x}">${tmFmt(x)}</button>`).join('')}<button class="tbell" data-act="pushask" title="Avviso a fine recupero anche a schermo spento" hidden>🔔<i> Avviso</i></button><span>recupero</span></div>`;
   document.body.appendChild(el); return el; }
-function tmStart(sec, label) { tmAudio(); TM.total = Math.max(5, Math.round(sec)); TM.last = TM.total; TM.end = Date.now() + TM.total * 1000; TM.run = true; TM.done = false; TM.pre = false; tmShow(); tmSave(); if (label) flash('⏱ Recupero ' + tmFmt(TM.total) + (label ? ' · ' + label : '')); }
-function tmShow() { const el = tmEl(); el.hidden = false; document.body.classList.add('has-timer'); if (!TM.iv) TM.iv = setInterval(tmTick, 250); tmTick(); }
-function tmHide() { const el = document.getElementById('timer'); if (el) el.hidden = true; document.body.classList.remove('has-timer'); TM.run = false; if (TM.iv) { clearInterval(TM.iv); TM.iv = null; } tmSave(); }
+function tmStart(sec, label) { tmAudio(); TM.total = Math.max(5, Math.round(sec)); TM.last = TM.total; TM.end = Date.now() + TM.total * 1000; TM.run = true; TM.done = false; TM.pre = false; TM.lbl = label || ''; tmShow(); tmSave(); pushSchedule(); wlOn(); if (label) flash('⏱ Recupero ' + tmFmt(TM.total) + (label ? ' · ' + label : '')); }
+function tmShow() { const el = tmEl(); el.hidden = false; const bell = el.querySelector('.tbell'); if (bell) bell.hidden = !pushBell(); document.body.classList.add('has-timer'); if (!TM.iv) TM.iv = setInterval(tmTick, 250); tmTick(); }
+function tmHide() { const el = document.getElementById('timer'); if (el) el.hidden = true; document.body.classList.remove('has-timer'); TM.run = false; pushCancel(); wlOff(); if (TM.iv) { clearInterval(TM.iv); TM.iv = null; } tmSave(); }
 function tmTick() {
   const el = document.getElementById('timer'); if (!el) return;
   const left = TM.run ? (TM.end - Date.now()) / 1000 : TM.left;
   el.querySelector('.tclock').textContent = tmFmt(left); el.querySelector('.tbar i').style.width = Math.max(0, Math.min(100, left / TM.total * 100)) + '%';
   el.querySelector('.tplay').textContent = TM.run ? '⏸' : '▶'; el.classList.toggle('warn', left <= 10 && left > 0); el.classList.toggle('over', left <= 0);
   if (TM.run && left <= 10.2 && left > 9.8 && !TM.pre) { TM.pre = true; tmBeep(1, 660); }
-  if (TM.run && left <= 0 && !TM.done) { TM.done = true; TM.run = false; TM.left = 0; tmBeep(3, 1046); flash('⏱ Recupero finito: via con la prossima serie!'); tmSave(); setTimeout(() => { if (!TM.run && document.getElementById('timer') && !document.getElementById('timer').hidden && TM.left <= 0) tmHide(); }, 15000); }
+  if (TM.run && left <= 2 && left > 0 && RP.id && !document.hidden && TM.ac && TM.ac.state === 'running') pushCancel();   /* app aperta a fine recupero: suona qui, niente notifica doppia */
+  if (TM.run && left <= 0 && !TM.done) { TM.done = true; TM.run = false; TM.left = 0; RP.id = null; wlOff(); tmBeep(3, 1046); flash('⏱ Recupero finito: via con la prossima serie!'); tmSave(); setTimeout(() => { if (!TM.run && document.getElementById('timer') && !document.getElementById('timer').hidden && TM.left <= 0) tmHide(); }, 15000); }
 }
-document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) tmTick(); });
-if (TM.run) { setTimeout(tmShow, 50); document.addEventListener('pointerdown', () => tmAudio(), {once: true}); }   /* timer ripreso all'avvio: l'audio si sblocca al primo tocco */
+document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) { tmTick(); wlOn(); } else if (document.hidden && TM.run && !RP.id && TM.end > Date.now() && pushOk()) pushSchedule(0); });
+if (TM.run) { setTimeout(() => { tmShow(); wlOn(); }, 50); document.addEventListener('pointerdown', () => tmAudio(), {once: true}); }   /* timer ripreso all'avvio: l'audio si sblocca al primo tocco */
 const attlHtml = () => `<div class="attl">${ATT_ALL().map(a => `<button class="${DB.noatt[a] ? '' : 'on'}" data-act="atttog" data-a="${esc(a)}">${DB.noatt[a] ? '✕' : '✓'} ${esc(a)} <small>(${attCount(a)}${a === 'Panca' ? ' esercizi la usano' : ''})</small></button>`).join('')}</div>`;
 function settings() {
   setTimeout(applyLogo, 0);
@@ -1496,6 +1567,8 @@ function settings() {
    <div class="card"><h2>Foto profilo</h2><p>Scegli una foto da mostrare in alto a sinistra nell'app (viene ritagliata al centro in un quadrato). Si salva con i tuoi dati e nel backup. L'icona dell'app sulla schermata Home non cambia.</p>
    <div id="logoprev" class="logoprev"></div><p id="logost" class="vnote"></p>
    <p><button class="ghost" data-act="logopick">🖼 Scegli la foto profilo</button> <button class="ghost" data-act="logoreset">↺ Foto originale</button></p><input type="file" id="logofile" accept="image/*" hidden></div>
+   <div class="card"><h2>⏱ Timer a schermo spento</h2>${pushOk() ? `<p>Attivo su questo telefono: a fine recupero arriva una <b>notifica</b> anche con lo schermo spento o con un’altra app aperta, con il suono e la vibrazione delle notifiche del telefono (in silenzioso o con Non disturbare resta muta). Serve internet quando parte il recupero. Con l’app aperta suona il timer, come sempre.</p><p><button class="ghost" data-act="pushtest">🔔 Prova (6 secondi)</button> <button class="ghost" data-act="pushoff">Disattiva</button></p>` : pushCan() && Notification.permission === 'denied' ? `<p>Le notifiche per questa app sono bloccate, quindi con lo schermo spento il timer non può avvisarti. Per sbloccarle: ${pushPermHelp()} Poi torna qui e tocca il pulsante.</p><p><button class="primary" style="width:auto;padding:10px 18px" data-act="pushask">🔔 Attiva l’avviso</button></p>` : pushCan() ? `<p>Con lo schermo spento o con un’altra app aperta il telefono ferma l’app e il timer non può suonare. Attiva l’avviso: a fine recupero arriva una notifica, con il suono delle notifiche del telefono. La prima volta il telefono chiede il permesso.</p><p><button class="primary" style="width:auto;padding:10px 18px" data-act="pushask">🔔 Attiva l’avviso</button></p>` : `<p class="vnote">${pushNoText()}</p>`}
+   ${'wakeLock' in navigator ? `<p class="vnote" style="margin-top:10px"><label style="display:flex;gap:9px;align-items:center"><input type="checkbox" data-act="wltog" ${wlWant() ? 'checked' : ''} style="width:18px;height:18px;flex:none"> Tieni lo schermo acceso durante il recupero, così il telefono non va in standby da solo</label></p>` : `<p class="vnote" style="margin-top:10px">Questo browser non può tenere lo schermo acceso durante il recupero: se serve, allunga lo spegnimento automatico dello schermo nelle impostazioni del telefono.</p>`}</div>
    <div class="card"><h2>Stato</h2><p class="vnote">Versione app ${APPV} · esercizi: ${EX.length} · video di riferimento disponibili: ${Object.values(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).reduce((t, l) => t + l.length, 0)} link su ${Object.keys(typeof VIDEOS !== 'undefined' ? VIDEOS : {}).length} esercizi · ${DB.hideRef ? '<b style="color:#d33">tutti nascosti</b>' : 'nascosti: ' + Object.keys(DB.hiddenRef).length} · tuoi video: ${Object.values(DB.myv).reduce((t, l) => t + (Array.isArray(l) ? l.filter(x => !/^drv:/.test(x.k)).length : 0), 0)}</p><p><button class="ghost" data-act="sksreset">🔄 Ripristina app (svuota cache, i dati restano)</button></p>
 </div>
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
@@ -1534,10 +1607,14 @@ document.addEventListener('click', e => {
     save(); b.classList.toggle('on', s.done); { const rw = b.closest('.set'); if (rw) rw.classList.toggle('old', !!s.old && !s.done); hintSync(k, b); } refreshProgress();
     if (s.done) { const x = planFind(k), ex = byId[k.split(':')[1]]; tmStart(x ? secs(x.rec) : 90, ex ? ex.n.split(' (')[0] : ''); }
     if (TR.on && s.done && DB.cur[k].sets.every(z => z.done)) setTimeout(() => flash('✓ Esercizio completato: quando sei pronto tocca Prossimo'), pr ? 3600 : 1200); }
-  else if (a === 'tmadj') { const d = +b.dataset.d; if (TM.run) TM.end += d * 1000; else TM.left = Math.max(0, TM.left + d); TM.total = Math.max(TM.total, TM.run ? (TM.end - Date.now()) / 1000 : TM.left); if (TM.run && TM.end - Date.now() > 10500) TM.pre = false; tmTick(); tmSave(); }
-  else if (a === 'tmplay') { tmAudio(); if (TM.run) { TM.left = Math.max(0, (TM.end - Date.now()) / 1000); TM.run = false; } else { if (TM.left <= 0) TM.left = TM.last || 90; TM.end = Date.now() + TM.left * 1000; TM.run = true; TM.done = false; TM.pre = TM.left <= 10; } tmTick(); tmSave(); }
+  else if (a === 'tmadj') { const d = +b.dataset.d; if (TM.run) TM.end += d * 1000; else TM.left = Math.max(0, TM.left + d); TM.total = Math.max(TM.total, TM.run ? (TM.end - Date.now()) / 1000 : TM.left); if (TM.run && TM.end - Date.now() > 10500) TM.pre = false; if (TM.run && TM.end <= Date.now()) pushCancel(); tmTick(); tmSave(); if (TM.run) pushLater(); }
+  else if (a === 'tmplay') { tmAudio(); if (TM.run) { TM.left = Math.max(0, (TM.end - Date.now()) / 1000); TM.run = false; pushCancel(); wlOff(); } else { if (TM.left <= 0) TM.left = TM.last || 90; TM.end = Date.now() + TM.left * 1000; TM.run = true; TM.done = false; TM.pre = TM.left <= 10; pushSchedule(); wlOn(); } tmTick(); tmSave(); }
   else if (a === 'tmset') { TM.pre = false; tmStart(+b.dataset.s); }
   else if (a === 'tmclose') tmHide();
+  else if (a === 'pushask') pushEnable().then(ok => { const el = document.getElementById('timer'); if (el && !el.hidden) tmShow(); if (ok) { flash('🔔 Avviso attivo: a fine recupero arriva una notifica anche a schermo spento o con un’altra app'); if (TM.run) pushSchedule(); } if (!$('#modal').hidden && $('#mbody [data-act=pushask]')) { const y = $('.sheet').scrollTop; settings(); $('.sheet').scrollTop = y; } });
+  else if (a === 'pushtest') { if (!pushOk()) { flash('Prima attiva l’avviso'); return; } pushPost({op: 'test', delay: 6, sub: RP.sub, title: '⏱ Prova dell’avviso', body: 'Così suona a fine recupero, anche a schermo spento'}).then(ok => flash(ok ? 'Spegni lo schermo o apri un’altra app: tra 6 secondi arriva la prova' : 'Il servizio online non risponde: riprova tra poco')); }
+  else if (a === 'pushoff') pushDisable().then(() => { flash('Avviso a schermo spento disattivato su questo telefono'); const el = document.getElementById('timer'); if (el && !el.hidden) tmShow(); const y = $('.sheet').scrollTop; settings(); $('.sheet').scrollTop = y; });
+  else if (a === 'wltog') { try { localStorage.setItem('sks_wl', wlWant() ? '0' : '1'); } catch (e) {} if (wlWant() && TM.run) wlOn(); else wlOff(); const y = $('.sheet').scrollTop; settings(); $('.sheet').scrollTop = y; }
   else if (a === 'tmopen') { tmAudio(); TM.pre = false; tmStart(TM.last || 90); }
   else if (a === 'stp') { const s = curFor(k, i + 1).sets[i], f = b.dataset.f, inp = b.parentElement.querySelector('input'), dir = +b.dataset.d < 0 ? -1 : 1, base = s[f] !== '' && s[f] !== undefined ? num(s[f]) : num(inp.placeholder); let v;
     if (f === 'kg') { const st = kgStep(); v = dir > 0 ? (Math.floor(base / st + 1e-6) + 1) * st : Math.max(0, (Math.ceil(base / st - 1e-6) - 1) * st); v = Math.round(v * 100) / 100; }   /* si sale e si scende di un disco: 4,5 · 9 · 13,5 · 18… */
