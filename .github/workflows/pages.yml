@@ -7,20 +7,28 @@ permissions:
   contents: read
   pages: write
   id-token: write
+# una pubblicazione alla volta: quella in corso finisce sempre, le successive in coda si riducono all'ultima
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
+  # 1) prepara e carica il sito
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+  # 2) lo pubblica in un job separato, come consiglia GitHub: il pacchetto caricato e' gia' registrato
+  #    (nello stesso job a volte non veniva trovato) e se serve si rilancia solo questo passaggio
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
