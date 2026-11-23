@@ -1390,6 +1390,26 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     err: ['Piegare i gomiti o sollevare le braccia', 'Peso troppo alto', 'Corsa corta']});
 })();
 
+/* ===== petto: chest press ai cavi dall'alto verso il basso, per il pettorale basso (stessa direzione di spinta del dip: pettorale basso, tricipiti, deltoide anteriore) ===== */
+(() => {
+  const b = EX.find(e => e.id === 'p-press-cavi'); if (!b || EX.some(e => e.id === 'p-press-cavi-decl')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'p-press-cavi-decl', n: 'Chest press ai cavi dall’alto verso il basso, in piedi (pettorale basso)', varName: 'Dall’alto verso il basso',
+    g: 'petto', g2: ['tricipiti'], m: 'Pettorale basso, tricipiti, deltoidi anteriori',
+    mm: 'grande pettorale (fasci sternali e costali, cioè la parte bassa), tricipite brachiale, deltoide anteriore, dentato anteriore',
+    an: [45, 8], tzs: 80, rl: [108, 220], gz: 30, gz2: 14, lin: true,   /* tzs: due torri ai lati, non una puleggia sola al centro */
+    fr: [[-28, 100, {t: 166, h: [150, 120], th: 14, sh: -4}], [38, 38, {t: 166, h: [150, 120], th: 14, sh: -4}]],
+    cap: ['Gomiti indietro, mani ai lati del petto, cavi che arrivano dall’alto', 'Braccia distese in avanti e in basso, pugni vicini davanti alla pancia'],
+    trj: 'Le mani partono ai lati del petto e scendono in diagonale, in avanti e verso il basso, fino davanti alla pancia: la stessa direzione di spinta del dip. Tornano sulla stessa linea.',
+    set: 'Due cavi ALTI (puleggia in cima), maniglie singole. Stai di schiena alle torri, al centro, con un piede avanti: i cavi passano sopra le spalle.',
+    pos: 'Busto inclinato appena in avanti, core contratto, stabile sul piede avanti. Gomiti a circa 45° dal busto, spalle basse e lontane dalle orecchie.',
+    ese: ['Parti con le mani ai lati del petto, gomiti indietro.', 'Spingi le mani in avanti e verso il basso, in diagonale, fino a braccia distese davanti alla pancia, avvicinando i pugni.', 'Stringi petto e tricipiti per 1 secondo.', 'Ritorna lentamente sulla stessa linea, fino alle mani accanto al petto.'],
+    cue: 'Spingi verso il basso come per salire dalle parallele: gomiti vicini al corpo, spalle basse, busto fermo.',
+    why: 'È la spinta al cavo più simile al dip: la direzione verso il basso fa lavorare insieme pettorale basso, tricipiti e deltoide anteriore, ma senza caricare le spalle in fondo alla discesa e con il peso che si regola a piccoli passi. Rispetto alle croci dall’alto è una spinta: si usano carichi più alti e lavorano anche i tricipiti.',
+    err: ['Piegarsi in avanti per spingere con il peso del corpo', 'Spalle che salgono verso le orecchie', 'Gomiti che si aprono troppo in fuori', 'Tornare su di scatto lasciando andare il cavo']});
+  delete e.alt; delete e.vars; delete e.varsLabel;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };

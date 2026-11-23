@@ -254,7 +254,7 @@ const FIG3 = (() => {
       if (ex.cp === 'ankle') { cableTo(P, pt3(A, LN), an, tzSide(an, 1)); P.push(cyl(pt3(A, LN - 4), pt3(A, LN + 4), 6.6, BLK)); }
       else if (ex.one) cableTo(P, g1, an, tzSide(an, 1));
       else if (ex.tzf !== undefined) { const m = [(g1[0] + g2[0]) / 2, (g1[1] + g2[1]) / 2, (g1[2] + g2[2]) / 2]; cableTo(P, m, an, ex.tzf); P.push(cyl(g1, g2, 1.4, BLK)); }   // una sola torre di lato (woodchop, Pallof): le due mani sulla stessa maniglia
-      else { cableTo(P, g1, an, tzSide(an, 1)); cableTo(P, g2, an, tzSide(an, -1)); if (!ex.due) P.push(cyl(g1, g2, 1.4, BLK)); }   // due cavi = una maniglia per mano, niente barra tra le mani
+      else { const zs = sg => ex.tzs !== undefined ? ex.tzs * sg : tzSide(an, sg); cableTo(P, g1, an, zs(1)); cableTo(P, g2, an, zs(-1)); if (!ex.due) P.push(cyl(g1, g2, 1.4, BLK)); }   // due cavi = una maniglia per mano, niente barra tra le mani; ex.tzs = torri ai lati anche con le pulegge alte (chest press dall'alto)
     } else if (ex.eq === 'jam' && ex.an) {
       const pv = pt3(ex.an, 0);
       [ZN, ex.one ? null : ZF].forEach(z => { if (z === null) return; P.push(cyl(pt3(ex.an, z * 1.6), pt3(grip, z), 3.6, TW), sph(pt3(ex.an, z * 1.6), 6.5, '#8d99b3')); });
