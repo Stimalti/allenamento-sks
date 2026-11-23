@@ -455,6 +455,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1JcraBPAM4/",
 "n": "Fitness Point Shymkent · reverse curl al cavo basso con barra corta, circa 0:00-0:05",
 "v": "129"
+},
+{
+"u": "https://www.facebook.com/share/r/1N8cBTXB78/",
+"n": "Tyler Path · le 3 parti dell’avambraccio: cable reverse curl (brachioradiale), circa 0:02-0:04",
+"v": "135"
 }
 ],
 "t-push-corda": [
@@ -1400,6 +1405,20 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1JcraBPAM4/",
 "n": "Fitness Point Shymkent · wrist curl dietro la schiena al cavo basso, circa 0:14-0:18",
 "v": "129"
+}
+],
+"w-wrist-flex-alto": [
+{
+"u": "https://www.facebook.com/share/r/1N8cBTXB78/",
+"n": "Tyler Path · le 3 parti dell’avambraccio: unilateral pronated grip wrist flexor (flessori), circa 0:05-0:07",
+"v": "135"
+}
+],
+"w-wrist-ext-spalle": [
+{
+"u": "https://www.facebook.com/share/r/1N8cBTXB78/",
+"n": "Tyler Path · le 3 parti dell’avambraccio: face-away cable wrist extension (estensori), circa 0:09-0:12",
+"v": "135"
 }
 ],
 "b-row-db-seduto-alt": [

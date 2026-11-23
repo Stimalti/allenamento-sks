@@ -1351,7 +1351,8 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue: 'Peso leggero e movimenti lenti: gli estensori sono piccoli e si stancano subito. Gomiti fermi ai fianchi.',
     why: 'Come le estensioni da seduto ma in piedi e senza appoggio: equilibra i flessori e protegge i gomiti (epicondilite) quando i carichi salgono.',
     err: ['Piegare i gomiti per sollevare la barra', 'Peso troppo alto', 'Corsa limitata']});
-  mk('w-wrist-curl', {id: 'w-wrist-dietro', n: 'Wrist curl dietro la schiena al cavo basso (presa supina)', st: 'stand', an: [55, 212], fr: [[-9, -7, {hd: -30}], [-9, -7, {hd: 42}]], presa: 'sup',
+  mk('w-wrist-curl', {id: 'w-wrist-dietro', n: 'Wrist curl dietro la schiena al cavo basso (presa supina)', st: 'stand', tzf: 0,   /* un solo cavo, dalla torre alle spalle al centro della barra (v135) */
+    an: [55, 212], fr: [[-9, -7, {hd: -30}], [-9, -7, {hd: 42}]], presa: 'sup',
     cap: ['Braccia distese lungo i fianchi, barra dietro di te, dita aperte', 'Polsi flessi, pugno chiuso verso i glutei'],
     trj: 'La barra resta dietro le cosce e sale di pochi centimetri: si muovono solo polsi e dita, le braccia restano distese.',
     set: 'Cavo BASSO con barra corta o dritta. Dai le spalle alla torre e afferra la barra dietro di te, con i palmi rivolti verso i glutei (presa supina). Braccia distese lungo i fianchi, barra all’altezza dei glutei, cavo in tensione.',
@@ -1360,6 +1361,33 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     cue: 'Le braccia non si muovono: lavorano solo polsi e dita. Corsa completa, partendo dalle dita aperte.',
     why: 'Con le braccia dietro il corpo i flessori dell’avambraccio lavorano in una posizione diversa da quella seduta davanti alla torre: allena la presa e la forza di polsi e dita per stacchi, rematori e trazioni.',
     err: ['Muovere le braccia o dondolare il busto', 'Peso troppo alto', 'Corsa corta (dita che non si aprono in basso)']});
+})();
+
+/* ===== avambracci, le tre parti: dal reel di Tyler Path "How to Train All 3 Parts of Your Forearms" (il reverse curl al cavo c'era già: w-reverse-curl) ===== */
+(() => {
+  const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; EX.push(e); };
+  mk('w-wrist-curl', {id: 'w-wrist-flex-alto', n: 'Wrist curl a un braccio al cavo alto, di spalle alla torre (presa prona)', varName: 'Curl a un braccio al cavo alto', st: 'stand', one: true, hand: true, presa: 'pro',
+    an: [88, 6], rl: [104, 220], fr: [[52, 170, {t: 152, h: [150, 124], th: 24, sh: -8, hd: 40}], [52, 170, {t: 152, h: [150, 124], th: 24, sh: -8, hd: -32}]],
+    m: 'Flessori dell’avambraccio', mm: 'flessori del polso e delle dita (flessore radiale e ulnare del carpo, palmare lungo, flessori delle dita)',
+    cap: ['Gomito piegato davanti al petto, mano accanto alla testa, polso tirato indietro dal cavo', 'Polso flesso in avanti, palmo verso l’avambraccio'],
+    trj: 'La maniglia descrive un arco corto accanto alla testa: dal polso piegato indietro, tirato dal cavo, al polso flesso in avanti. Gomito e braccio restano fermi.',
+    set: 'Cavo ALTO con maniglia singola. Dai le spalle alla torre con un piede avanti e uno indietro e il busto un po’ inclinato in avanti. Afferra la maniglia con una mano in presa prona (dorso della mano verso la torre): gomito piegato e puntato in avanti all’altezza del petto, mano accanto alla testa. Con l’altra mano tieni fermo il braccio che lavora, sotto il gomito.',
+    pos: 'Busto fermo e inclinato in avanti, braccio immobile: il cavo deve tirare la mano indietro, verso la torre.',
+    ese: ['Lascia che il cavo pieghi il polso indietro, senza muovere il gomito.', 'Fletti il polso in avanti portando il palmo verso l’avambraccio.', 'Contrai 1 secondo.', 'Torna indietro lentamente; finite le ripetizioni cambia braccio.'],
+    cue: 'Si muove solo il polso: gomito e spalla restano fermi, tenuti dall’altra mano. Peso leggero e corsa completa.',
+    why: 'Il cavo alto alle spalle tiene sotto tensione i flessori dell’avambraccio (la parte interna) anche con il polso piegato indietro, cioè in allungamento. Con il reverse curl (brachioradiale) e le estensioni del polso (estensori) completa il lavoro sulle tre parti dell’avambraccio; un braccio alla volta aiuta a sentire solo il polso.',
+    err: ['Muovere il gomito o la spalla invece del polso', 'Peso troppo alto: il polso non si piega fino in fondo', 'Busto che dondola']});
+  mk('w-wrist-ext', {id: 'w-wrist-ext-spalle', n: 'Estensioni polso di spalle al cavo basso, braccia distese (presa prona)', varName: 'Polso di spalle al cavo basso', st: 'stand', hand: true, presa: 'pro',
+    an: [112, 160], tzf: 0, fr: [[16, 16, {hd: -34}], [16, 16, {hd: 38}]],   /* un solo cavo, al centro: passa tra le gambe */
+    m: 'Estensori dell’avambraccio', mm: 'estensori del polso e delle dita (estensore radiale lungo e breve del carpo, estensore ulnare del carpo, estensore delle dita)',
+    cap: ['Braccia distese davanti alle cosce, polsi piegati indietro dal cavo', 'Polsi estesi: nocche in avanti e verso l’alto'],
+    trj: 'La barra resta davanti alle cosce e si sposta di pochi centimetri in avanti e in su: si muovono solo i polsi, le braccia restano distese.',
+    set: 'Cavo BASSO, all’altezza delle ginocchia, con barra corta. Dai le spalle alla torre, a un passo da essa, con il cavo che passa tra le gambe. Afferra la barra davanti alle cosce in presa prona (palmi verso le cosce, dorso delle mani in avanti), mani alla larghezza dei fianchi, e fai un passo avanti per mettere il cavo in tensione.',
+    pos: 'In piedi, petto alto e spalle indietro, braccia distese e ferme davanti alle cosce.',
+    ese: ['Lascia che il cavo pieghi i polsi verso il basso e indietro.', 'Estendi i polsi portando le nocche in avanti e verso l’alto.', 'Contrai 1 secondo.', 'Torna lentamente alla partenza.'],
+    cue: 'Braccia ferme e distese: lavorano solo i polsi. Peso leggero e movimento lento, gli estensori si stancano presto.',
+    why: 'Di spalle alla torre, con le braccia distese, il cavo tira i polsi in flessione e gli estensori (la parte esterna dell’avambraccio) lavorano per tutta la corsa. Completa reverse curl e wrist curl e protegge i gomiti (epicondilite) quando i carichi salgono.',
+    err: ['Piegare i gomiti o sollevare le braccia', 'Peso troppo alto', 'Corsa corta']});
 })();
 
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
