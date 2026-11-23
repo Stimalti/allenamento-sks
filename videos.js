@@ -147,6 +147,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1ByAoD4y79/",
 "n": "tecnica e errori",
 "v": "08"
+},
+{
+"u": "https://www.facebook.com/share/v/1FCLQwcuyg/",
+"n": "Physique · le 3 croci ai cavi: dall’alto verso il basso per il petto basso, in piedi e in ginocchio (più stabile), circa 0:48-1:06",
+"v": "137"
 }
 ],
 "p-croci-basse": [
@@ -164,6 +169,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/19f4bZB6x5/",
 "n": "croci ai cavi",
 "v": "16"
+},
+{
+"u": "https://www.facebook.com/share/v/1FCLQwcuyg/",
+"n": "Physique · le 3 croci ai cavi: dal basso verso l’alto per il petto alto, palmi non rivolti in su per non sentirle nei bicipiti, circa 1:07-1:31",
+"v": "137"
 }
 ],
 "p-croci-petto": [
@@ -176,6 +186,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1ByAoD4y79/",
 "n": "tecnica e errori",
 "v": "08"
+},
+{
+"u": "https://www.facebook.com/share/v/1FCLQwcuyg/",
+"n": "Physique · le 3 croci ai cavi: petto medio, prima in piedi poi la versione consigliata con il busto inclinato a 90° e un piede avanti, circa 0:20-0:47",
+"v": "137"
 }
 ],
 "s-laterali": [
