@@ -132,6 +132,13 @@ const VIDEOS = {
 "v": "32"
 }
 ],
+"p-croci-chinato": [
+{
+"u": "https://www.facebook.com/share/r/19s44UH3bE/",
+"n": "Robert Andrei Lapusneanu · croci ai cavi alti a busto inclinato in avanti, circa 0:08-0:35 (prima mostra le croci dal basso verso l’alto che sconsiglia)",
+"v": "138"
+}
+],
 "p-croci-alte": [
 {
 "u": "https://www.facebook.com/share/r/19f4bZB6x5/",

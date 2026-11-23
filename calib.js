@@ -1410,6 +1410,28 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.push(e);
 })();
 
+/* ===== petto: croci ai cavi alti a busto inclinato in avanti, dal reel di Robert Andrei Lapusneanu ("A better way to hit the upper chest when doing flies") ===== */
+(() => {
+  const b = EX.find(e => e.id === 'p-croci-alte'); if (!b || EX.some(e => e.id === 'p-croci-chinato')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'p-croci-chinato', n: 'Croci ai cavi alti a busto inclinato in avanti', varName: 'Busto inclinato in avanti',
+    m: 'Pettorali (soprattutto la parte media), deltoidi anteriori poco coinvolti',
+    mm: 'grande pettorale (fasci sternali, poi clavicolari), dentato anteriore; deltoide anteriore meno attivo che nelle croci in piedi',
+    /* disegno di lato (busto inclinato e passo avanti): due torri ai lati, mani che si chiudono da larghe (gz) a unite (gz2) */
+    an: [70, 8], tzs: 88, due: true, rl: [98, 220], gz: 64, gz2: 9,
+    fr: [[-75, 100, {t: 135, h: [150, 128], th: 26, sh: -12}], [10, 40, {t: 135, h: [150, 128], th: 26, sh: -12}]],
+    cap: ['Busto inclinato, braccia aperte all’indietro verso i cavi alti, petto alto', 'Mani unite in basso davanti alle ginocchia, gomiti appena piegati'],
+    trj: 'Le mani disegnano un arco ampio dalle torri, ai lati e un po’ dietro il busto, fino a unirsi in basso davanti alle ginocchia. Il busto resta fermo e inclinato in avanti.',
+    set: 'Due cavi ALTI (puleggia in cima), maniglie singole. Prendi i due cavi, fai un grande passo avanti rispetto alle torri e inclina il busto in avanti di circa 45°, con il petto alto.',
+    pos: 'Piede avanti con il ginocchio piegato, busto fermo a circa 45°, schiena dritta, spalle basse. Gomiti leggermente piegati e fissi.',
+    ese: ['Parti con le braccia aperte, un po’ dietro il busto, e senti il petto allungarsi.', 'Porta le mani in basso e al centro con un arco ampio, fino a unirle davanti alle ginocchia.', 'Tieni 1 secondo stringendo il petto.', 'Torna lentamente all’apertura senza cambiare l’angolo dei gomiti.'],
+    cue: 'Il busto non si muove e il petto resta alto: le spalle non salgono verso le orecchie. L’angolo dei gomiti è sempre lo stesso.',
+    why: 'Con il busto inclinato le braccia si chiudono quasi orizzontali rispetto al petto: il carico resta sul pettorale e le spalle lavorano meno che nelle croci dal basso verso l’alto in piedi, che è il vantaggio mostrato nel video. Lavora soprattutto la parte media del petto; per la parte alta resta più adatto un percorso dal basso verso l’alto.',
+    err: ['Busto che si raddrizza o dondola durante il movimento', 'Gomiti che si piegano e si distendono (diventa una spinta)', 'Spalle in avanti e petto che si incurva'],
+    tipo: 'iso', fin: ['massa', 'tonificare'], presa: 'neu'});
+  delete e.v; delete e.hs; delete e.hz; delete e.alt; delete e.vars; delete e.varsLabel;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };
