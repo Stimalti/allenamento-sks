@@ -130,6 +130,11 @@ const VIDEOS = {
 "u": "https://www.facebook.com/share/r/1JLMQ9Hkgq/",
 "n": "circa 0:03-0:10",
 "v": "32"
+},
+{
+"u": "https://www.facebook.com/share/r/1E8zMuhwNq/",
+"n": "Harsh Sabharwal · panca inclinata con manubri, con i consigli di Charles Glass (gomiti a circa 45° dal busto, manubri giù fino alla parte alta del petto), tutto il video circa 0:00-0:34",
+"v": "141"
 }
 ],
 "p-incl-squeeze": [
