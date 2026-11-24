@@ -270,7 +270,10 @@ const FIG3 = (() => {
       }
     } else if (ex.eq === 'db') {
       const zs = ex.one ? [ZN] : [ZN, ZF];
-      zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
+      if (ex.dbn) {   // ex.dbn: manubri paralleli al busto e affiancati (presa neutra, squeeze press): l'asse e' perpendicolare all'avambraccio, nel piano laterale
+        const u = [Math.sin((p.fa + 90) * R), Math.cos((p.fa + 90) * R)], at = k => [grip[0] + u[0] * k, grip[1] + u[1] * k];
+        zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(at(-9), z), pt3(at(9), z), 2.2, STEEL), cyl(pt3(at(-11), z), pt3(at(-5), z), 7.4, BLK), cyl(pt3(at(5), z), pt3(at(11), z), 7.4, BLK)); });
+      } else zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
     } else if (ex.eq === 'hb') {
       P.push(cyl(pt3([150, 20], -62), pt3([150, 20], 62), 3, STEEL), cyl(pt3([150, 20], -62), pt3([150, FLOOR], -62), 4, TW), cyl(pt3([150, 20], 62), pt3([150, FLOOR], 62), 4, TW));
     } else if (ex.eq === 'dip') {   // parallele per i dip: due barre all'altezza delle mani, ai lati del corpo

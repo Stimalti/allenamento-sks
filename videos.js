@@ -132,6 +132,13 @@ const VIDEOS = {
 "v": "32"
 }
 ],
+"p-incl-squeeze": [
+{
+"u": "https://www.facebook.com/share/r/14ynoJ9ZDBP/",
+"n": "Harsh Sabharwal · squeeze press (hex press) con manubri su panca inclinata, con la dimostrazione di Charles Glass (tutto il video, circa 0:00-0:25)",
+"v": "140"
+}
+],
 "c-curl-alti-fronte": [
 {
 "u": "https://www.facebook.com/share/r/18odC7S6KX/",

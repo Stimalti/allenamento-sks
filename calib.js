@@ -1452,6 +1452,26 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.push(e);
 })();
 
+/* ===== petto alto: squeeze press (hex press) con manubri su panca inclinata, dal reel di Harsh Sabharwal con Charles Glass ===== */
+(() => {
+  const b = EX.find(e => e.id === 'p-incl-db'); if (!b || EX.some(e => e.id === 'p-incl-squeeze')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'p-incl-squeeze', n: 'Squeeze press (hex press) con manubri su panca inclinata', varName: 'Manubri uniti (squeeze press)',
+    m: 'Petto alto e parte interna, tricipiti, deltoidi anteriori',
+    mm: 'grande pettorale (fasci clavicolari e parte interna, per la spinta dei manubri uno contro l’altro), tricipite brachiale, deltoide anteriore',
+    presa: 'neu', gz: 9, dbn: true, lin: true,   /* manubri affiancati e paralleli al busto, mani vicine */
+    cap: ['Braccia distese, manubri uniti sopra il petto, palmi che si guardano', 'Manubri uniti sulla parte alta del petto, gomiti vicini al busto'],
+    trj: 'I manubri, sempre uniti, scendono in linea retta fino alla parte alta del petto e risalgono sulla stessa linea.',
+    set: 'Panca inclinata a circa 30°. Due manubri in presa neutra (palmi uno verso l’altro), affiancati e uniti sopra il petto.',
+    pos: 'Schiena e glutei appoggiati, piedi a terra, scapole indietro e in basso. Premi i manubri uno contro l’altro per tutta la serie.',
+    ese: ['Parti con le braccia distese e i manubri uniti, premendoli uno contro l’altro.', 'Scendi lentamente fino alla parte alta del petto, sempre con i manubri uniti e i gomiti vicini al busto.', 'Spingi su in linea retta senza staccarli.', 'In alto stringi il petto 1 secondo continuando a premere i manubri tra loro.'],
+    cue: 'I manubri non si staccano mai: premili uno contro l’altro come se volessi schiacciarli, è questo che fa lavorare il petto.',
+    why: 'Premere i manubri uno contro l’altro aggiunge alla spinta una contrazione del petto verso il centro, attiva per tutta la ripetizione; con la panca inclinata il lavoro va soprattutto sul petto alto. Si usano carichi più leggeri della panca inclinata con manubri e le spalle lavorano meno, perché i gomiti restano vicini al busto.',
+    err: ['Manubri che si staccano durante la spinta', 'Gomiti che si aprono in fuori', 'Panca troppo inclinata (oltre 45° lavora di più la spalla)'],
+    tipo: 'comp', fin: ['massa', 'tonificare']});
+  delete e.alt; delete e.vars; delete e.varsLabel;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };
