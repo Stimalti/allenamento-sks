@@ -132,6 +132,13 @@ const VIDEOS = {
 "v": "32"
 }
 ],
+"c-curl-alti-fronte": [
+{
+"u": "https://www.facebook.com/share/r/18odC7S6KX/",
+"n": "Evgeny Voronko · curl al cavo alto di fronte alla torre con due maniglie, ruotando i palmi in su, con la dimostrazione di Charles Glass (tutto il video, circa 0:00-0:32)",
+"v": "139"
+}
+],
 "p-croci-chinato": [
 {
 "u": "https://www.facebook.com/share/r/19s44UH3bE/",

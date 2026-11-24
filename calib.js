@@ -1432,6 +1432,26 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.push(e);
 })();
 
+/* ===== bicipiti: curl al cavo alto di fronte alla torre, braccia in avanti, dal reel di Evgeny Voronko con Charles Glass ===== */
+(() => {
+  const b = EX.find(e => e.id === 'c-curl-alti'); if (!b || EX.some(e => e.id === 'c-curl-alti-fronte')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'c-curl-alti-fronte', n: 'Curl al cavo alto di fronte alla torre, braccia in avanti', varName: 'Cavo alto di fronte, braccia avanti',
+    m: 'Bicipiti (soprattutto il capo corto), brachiale', mm: 'bicipite brachiale (capo corto in particolare, con le braccia in avanti), brachiale, brachioradiale',
+    /* disegno di lato: un solo cavo alto davanti (tzf 0), le due mani sullo stesso attacco */
+    an: [262, 20], tzf: 0, gz: 16, fr: [[105, 115, {t: 180}], [105, 245, {t: 180}]],
+    cap: ['Braccia tese in avanti e un po’ in su, verso il cavo alto', 'Mani alla fronte, palmi verso di te, gomiti fermi all’altezza delle spalle'],
+    trj: 'Le mani disegnano un arco dalla puleggia alla fronte: i gomiti restano fermi, alti e in avanti, e si muovono solo gli avambracci.',
+    set: 'Un cavo ALTO davanti a te, poco sopra la testa, con due maniglie singole (attacco a Y) o una barra EZ. In piedi di fronte alla torre, a un passo, con le braccia tese in avanti e un po’ in su verso il cavo.',
+    pos: 'Busto dritto e fermo, gomiti all’altezza delle spalle, scapole basse.',
+    ese: ['Parti con le braccia quasi tese in avanti, palmi rivolti in basso o uno verso l’altro.', 'Piega i gomiti e porta le mani verso la fronte, ruotando i palmi verso l’alto mentre sali.', 'Stringi il bicipite 1 secondo.', 'Torna lentamente alle braccia tese, senza abbassare i gomiti.'],
+    cue: 'I gomiti non scendono e non si spostano: restano fermi all’altezza delle spalle, si muovono solo gli avambracci.',
+    why: 'Con le braccia in avanti il bicipite lavora soprattutto accorciato, come nel curl alla panca Scott, e il cavo tiene la tensione fino in cima. Ruotare i palmi verso l’alto mentre sali (supinazione) aggiunge l’altra funzione del bicipite: è la variante mostrata da Charles Glass. Con due maniglie singole i polsi sono liberi di ruotare, con la barra EZ si carica di più.',
+    err: ['Gomiti che si abbassano o si spostano durante il curl', 'Busto che si inclina indietro per aiutarsi', 'Peso troppo alto: le mani non arrivano alla fronte'],
+    tipo: 'iso', fin: ['massa', 'tonificare'], presa: 'sup'});
+  delete e.v; delete e.hs; delete e.hz; delete e.alt; delete e.due; delete e.vars; delete e.varsLabel;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };
