@@ -1565,9 +1565,19 @@ function tmTick() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && TM.run) { tmTick(); wlOn(); } else if (document.hidden && TM.run && !RP.id && TM.end > Date.now() && pushOk()) pushSchedule(0); });
 if (TM.run) { setTimeout(() => { tmShow(); wlOn(); }, 50); document.addEventListener('pointerdown', () => tmAudio(), {once: true}); }   /* timer ripreso all'avvio: l'audio si sblocca al primo tocco */
 const attlHtml = () => `<div class="attl">${ATT_ALL().map(a => `<button class="${DB.noatt[a] ? '' : 'on'}" data-act="atttog" data-a="${esc(a)}">${DB.noatt[a] ? '✕' : '✓'} ${esc(a)} <small>(${attCount(a)}${a === 'Panca' ? ' esercizi la usano' : ''})</small></button>`).join('')}</div>`;
+const APP_URL = 'https://stimalti.github.io/allenamento-sks/';   /* indirizzo pubblico dell'app (GitHub Pages) */
+async function appShare() {   /* menu di condivisione del telefono; se non c'e', copia il link */
+  const data = {title: 'Allenamento SKS', text: 'L’app che uso per allenarmi: schede, pesi, timer di recupero e animazioni degli esercizi.', url: APP_URL};
+  if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(APP_URL); flash('🔗 Link copiato: incollalo dove vuoi'); } catch (e) { flash('Indirizzo dell’app: ' + APP_URL); }
+}
 function settings() {
   setTimeout(applyLogo, 0);
-  modal(`<h2 style="padding-right:44px">Dati e backup</h2>
+  modal(`<h2 style="padding-right:44px">Condividi l’app</h2>
+   <div class="card"><p>Manda l’app a un amico: si apre dal browser del telefono e si può aggiungere alla schermata Home. I tuoi dati non vengono condivisi.</p>
+   <p><button class="primary" style="width:auto;padding:10px 18px" data-act="share">📤 Condividi</button></p>
+   <p class="vnote" style="word-break:break-all">Indirizzo: <b>${APP_URL}</b></p></div>
+   <h2>Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="exportfull">⬇ Backup completo con video</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
    <p class="vnote">Il backup normale contiene pesi, storico, schede, foto profilo e link ai video. Quello completo include anche i video caricati dal telefono (file grande: va bene fino a circa 250 MB di video). L’importazione riconosce entrambi.</p>
@@ -1668,6 +1678,7 @@ document.addEventListener('click', e => {
   else if (a === 'finish') finish(b.dataset.p, b.dataset.prof);
   else if (a === 'findate') { $('#findate').value = b.dataset.d; b.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); }
   else if (a === 'finsave') finishDo(b.dataset.p, b.dataset.prof, $('#findate').value, !!($('#finold') || {}).checked);
+  else if (a === 'share') appShare();
   else if (a === 'export') exportData(false);
   else if (a === 'exportfull') exportData(true);
   else if (a === 'vwipe') { const mine = l => (Array.isArray(l) ? l : []).filter(x => !/^drv:/.test(x.k)), n = Object.values(DB.myv).reduce((t, l) => t + mine(l).length, 0);   /* i video 3D della libreria (drv:) non sono "tuoi" e restano */
