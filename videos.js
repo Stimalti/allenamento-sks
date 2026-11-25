@@ -137,6 +137,13 @@ const VIDEOS = {
 "v": "141"
 }
 ],
+"w-curl-rematore-45": [
+{
+"u": "https://www.facebook.com/share/r/1FQNJGGMYu/",
+"n": "Michael Eckert · curl-rematore con manubri a presa 45° per il brachioradiale (trazioni più forti): la presa a 0:36-0:46, l’esecuzione a 0:46-1:08",
+"v": "142"
+}
+],
 "p-incl-squeeze": [
 {
 "u": "https://www.facebook.com/share/r/14ynoJ9ZDBP/",

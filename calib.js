@@ -1472,6 +1472,27 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.push(e);
 })();
 
+/* ===== brachioradiale per le trazioni: curl-rematore con manubri a presa 45°, dal reel di Michael Eckert ("Increase Pull Up Power | Brachioradialis") ===== */
+(() => {
+  const b = EX.find(e => e.id === 'c-hammer-db'); if (!b || EX.some(e => e.id === 'w-curl-rematore-45')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'w-curl-rematore-45', n: 'Curl-rematore con manubri, presa a 45° e busto inclinato (brachioradiale per le trazioni)', varName: 'Curl-rematore a 45°',
+    g: 'avambracci', g2: ['bicipiti'], m: 'Brachioradiale, brachiale, bicipiti',
+    mm: 'brachioradiale, brachiale, bicipite brachiale; con i gomiti che vanno indietro anche gran dorsale e deltoide posteriore',
+    presa: 'neu', dbn: true,   /* nel disegno presa a martello: e' la piu' vicina ai 45° */
+    fr: [[3, 3, {t: 162}], [-25, 125, {t: 162}]],
+    cap: ['Busto un po’ in avanti, braccia distese, manubri inclinati a 45°', 'Gomiti indietro e mani verso il petto basso, presa sempre a 45°'],
+    trj: 'Le mani salgono verso il petto basso mentre i gomiti vanno un po’ indietro, come nella seconda metà di una trazione: è un curl con un po’ di rematore.',
+    set: 'Due manubri, in piedi. Parti dalla presa a martello (manubri perpendicolari al pavimento) e ruota un po’ i polsi verso l’interno, fino a tenere i manubri inclinati di circa 45°. Busto leggermente inclinato in avanti, ginocchia morbide.',
+    pos: 'Busto fermo e un po’ in avanti, schiena dritta, braccia distese lungo il corpo con la presa a 45°.',
+    ese: ['Parti con le braccia distese e i manubri inclinati a 45°.', 'Piega i gomiti e portali un po’ indietro, come in un rematore: le mani salgono verso il petto basso con la presa sempre a 45°.', 'Stringi l’avambraccio 1 secondo in alto.', 'Scendi lentamente e ripeti.'],
+    cue: 'La presa resta a 45° per tutta la ripetizione; i gomiti vanno indietro mentre le mani salgono, come quando porti il petto alla sbarra.',
+    why: 'La presa a metà tra martello e prona mette il brachioradiale nella posizione in cui lavora di più, e i gomiti che vanno indietro con il busto inclinato ricordano la seconda metà di una trazione. Rinforza il muscolo dell’avambraccio che aiuta a tirare: trazioni più forti, come spiega il video.',
+    err: ['Ruotare i polsi durante la salita: la presa deve restare a 45°', 'Dondolare con il busto per far salire i manubri', 'Gomiti fermi: senza la tirata indietro diventa un curl normale'],
+    tipo: 'iso', fin: ['forza', 'massa', 'tonificare']});
+  delete e.alt; delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };
