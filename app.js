@@ -110,7 +110,10 @@ const sbChoiceHtml = r => `<h2 style="padding-right:44px">☁️ Quali dati vuoi
      <div class="sbar" style="flex-direction:column;align-items:stretch;gap:8px"><button class="primary" data-act="sbkeep" data-w="remote">Quelli online (${pl((r.sess || []).length, 'seduta', 'sedute')}, ${pl(Object.keys(r.hist || {}).length, 'esercizio', 'esercizi')})</button><button class="ghost" data-act="sbkeep" data-w="local">Quelli di questo telefono (${pl((DB.sess || []).length, 'seduta', 'sedute')}, ${pl(Object.keys(DB.hist || {}).length, 'esercizio', 'esercizi')})</button></div>`;
 async function sbFresh() { const u = SB.user, was = SB.choice; try { const r = await sbFetch(); if (r && SB.user === u && SB.choice === was) SB.choice = r; } catch (e) {} }   /* se intanto la scelta e' stata fatta o la persona e' uscita, non la si riapre */   /* la copia online puo' essere cambiata da un altro telefono mentre la scelta era rimandata */
 async function sbAttach(user, quiet) {
-  SB.user = user; SB.choice = null; const r = await sbFetch();
+  SB.user = user; SB.choice = null;
+  const hp = sbHello(user).catch(() => null), fp = sbFetch(); fp.catch(() => {});   /* le due richieste partono insieme */
+  await hp; if (accBlocked()) { remote = null; gateUpdate(); return; }   /* account bloccato: niente dati online (li blocca anche il server), solo la schermata di blocco */
+  gateUpdate(); const r = await fp;
   if (DB.owner && DB.owner !== user.id) { sbSet(r ? fixDB(r) : freshDB()); sbPend(0); sbBase(r ? r.ts : 0); }   /* dati di un'altra persona rimasti sul telefono: non si mescolano */
   else if (!DB.owner && r && hasData(DB) && JSON.stringify(r.hist) !== JSON.stringify(DB.hist)) {   /* primo accesso con dati sia sul telefono sia online: decide la persona */
     modal(sbChoiceHtml(r)); SB.choice = r; return;   /* finche' la persona non sceglie, niente push ne' pull automatici */
@@ -123,32 +126,34 @@ async function sbAttach(user, quiet) {
 }
 async function sbPull() { if (!SB.user || SB.choice) return; try { const r = await sbFetch(); if (r && (r.ts || 0) > (DB.ts || 0)) { sbSet(fixDB(r)); sbBase(r.ts); DB.owner = SB.user.id; applyLogo(); if ($('#modal').hidden) render(true); } SB.last = Date.now(); } catch (e) {} }
 async function sbInit() {
-  if (!sbOn()) return;
+  if (!sbOn() || SB.client || SB.initing) return; SB.initing = true;
   try {
+    GATE.net = 'wait'; gateUpdate();
     await sbLoad();
     SB.client = supabase.createClient(SB.cfg.url, SB.cfg.key, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'sks_sb_auth'}});
-    SB.client.auth.onAuthStateChange((ev, session) => { if (ev === 'PASSWORD_RECOVERY') setTimeout(() => modal(sbNewPassHtml()), 200); if (ev === 'SIGNED_OUT') { SB.user = null; remote = null; } });
+    SB.client.auth.onAuthStateChange((ev, session) => { if (ev === 'PASSWORD_RECOVERY') setTimeout(() => modal(sbNewPassHtml()), 200); if (ev === 'SIGNED_OUT') { SB.user = null; remote = null; setTimeout(gateUpdate, 0); } });
     const {data} = await SB.client.auth.getSession();
-    const sbRetry = async () => { if (!SB.client || SB.choice || SB.busy) return; SB.busy = true; try { let u = SB.user; if (!u) { const {data} = await SB.client.auth.getSession(); u = data && data.session && data.session.user; } if (u && !SB.choice && (!remote || SB.pending || sbPend())) await sbAttach(u, !($('#modal').hidden === false && $('#sbemail'))); else if (u && document.visibilityState === 'visible') await sbPull(); } catch (e) {} SB.busy = false; };
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sbRetry(); });
+    const sbRetry = async () => { if (!SB.client || SB.choice || SB.busy) return; SB.busy = true; try { let u = SB.user; if (!u) { const {data} = await SB.client.auth.getSession(); u = data && data.session && data.session.user; } if (u && !SB.choice && (!remote || SB.pending || sbPend())) await sbAttach(u, !($('#modal').hidden === false && $('#sbemail'))); else if (u && document.visibilityState === 'visible') { if (Date.now() - (SB.hello || 0) > 6e5) { try { await sbHello(u); } catch (e) {} if (accBlocked()) remote = null; gateUpdate(); } if (!accBlocked()) await sbPull(); } } catch (e) {} SB.busy = false; };   /* tornando nell'app (al massimo ogni 10 minuti) si ricontrolla se l'account e' stato bloccato */
+    SB.retry = sbRetry;
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { gateUpdate(); sbRetry(); } });
     window.addEventListener('online', sbRetry);
-    SB.ready = true; if (!(data && data.session)) render(true);
+    SB.ready = true; SB.initing = false; GATE.net = ''; if (!(data && data.session)) render(true);
     if (data && data.session) await sbAttach(data.session.user);
-    else if (!DB.sbSkip && !TR.on) modal(sbHtml(true));
-    else if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true));
-  } catch (e) { SB.msg = 'Servizio online non raggiungibile: per ora i dati restano su questo telefono.'; if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true)); }
+    else if (gateMode()) gateUpdate();   /* nessun account su questo telefono: si entra solo accedendo */
+    else if (!profOk() && !DB.prof.later && !TR.on) modal(profHtml(true));   /* account salvato ma senza rete: l'app si usa e si collega appena torna internet */
+  } catch (e) { SB.initing = false; if (!SB.client) { GATE.net = 'fail'; SB.msg = 'Servizio online non raggiungibile: riprova quando sei online.'; } else GATE.net = ''; gateUpdate(); if (!gateMode() && !profOk() && !DB.prof.later && !TR.on && $('#modal').hidden) modal(profHtml(true)); }
 }
 function sbHtml(first) {
   const u = SB.user;
   if (u) return `<h2 style="padding-right:44px">☁️ Account online</h2>${SB.choice ? '<p class="warn">⚠ Devi ancora scegliere quali dati tenere (telefono o online): finché non scegli, niente viene salvato online. <button class="tlink" data-act="sbchoice">Scegli ora</button></p>' : ''}<p class="vnote">Accesso fatto come <b>${esc(u.email)}</b>. I tuoi dati si salvano online a ogni modifica: li ritrovi su qualsiasi telefono o computer accedendo con la stessa email e password.${SB.last ? ' Ultimo salvataggio online alle ' + new Date(SB.last).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}) + '.' : ''}</p>
    <div class="sbar" style="padding:8px 0 0"><button class="ghost" data-act="sbsync">🔄 Sincronizza ora</button><button class="ghost danger" data-act="sblogout">Esci (cambia persona)</button></div>
    <p class="vnote">Uscendo, i tuoi dati restano salvati online e vengono tolti da questo telefono, così può accedere un’altra persona.</p>`;
-  return `<h2 style="padding-right:44px">☁️ ${first ? 'Benvenuto! Accedi per salvare i tuoi dati' : 'Account online'}</h2>
-   <p class="vnote">Ogni persona ha il suo account: schede, pesi e storico vengono salvati online e li ritrovi su qualsiasi telefono o computer. Se più persone usano lo stesso telefono, una esce e l’altra accede.</p>
+  return `<h2 style="padding-right:44px">${first ? '🔐 Accedi per usare l’app' : '☁️ Account online'}</h2>
+   <p class="vnote">${first ? 'Per usare Allenamento SKS serve un account personale (è gratis): crealo con la tua email e una password. ' : ''}Ogni persona ha il suo account: schede, pesi e storico vengono salvati online e li ritrovi su qualsiasi telefono o computer. Se più persone usano lo stesso telefono, una esce e l’altra accede.</p>${first && hasData(DB) ? '<p class="vnote">Gli allenamenti già salvati su questo telefono non si perdono: dopo l’accesso finiscono nel tuo account.</p>' : ''}
    <div class="sbf"><input id="sbemail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Email"><input id="sbpass" type="password" autocomplete="current-password" placeholder="Password (almeno 6 caratteri)"></div>
    <p class="vnote sbmsg" id="sbmsg">${esc(SB.msg || '')}</p>
    <div class="sbar" style="padding:4px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="sblogin">Accedi</button><button class="ghost" data-act="sbsignup">Crea account</button></div>
-   <p style="margin:12px 0 0"><button class="tlink" data-act="sbreset">Password dimenticata?</button>${first ? `<br><button class="tlink" data-act="sbskip" style="margin-top:8px">Continua senza account (i dati restano solo su questo telefono)</button>` : ''}</p>`;
+   <p style="margin:12px 0 0"><button class="tlink" data-act="sbreset">Password dimenticata?</button></p>`;
 }
 const sbNewPassHtml = () => `<h2 style="padding-right:44px">🔑 Nuova password</h2><p class="vnote">Scegli la nuova password per il tuo account.</p><div class="sbf"><input id="sbnewpass" type="password" autocomplete="new-password" placeholder="Nuova password (almeno 6 caratteri)"></div><p class="vnote sbmsg" id="sbmsg"></p><div class="sbar"><button class="primary" style="width:auto;padding:11px 20px" data-act="sbnewpass">Salva password</button></div>`;
 const sbMsg = t => { SB.msg = t; const m = $('#sbmsg'); if (m) m.textContent = t; };
@@ -157,15 +162,105 @@ async function sbAct(a, b) {
   if (!SB.client) { sbMsg('Servizio online non raggiungibile: riprova quando sei online.'); return; }
   if (SB.choice && a === 'sbsync') { await sbFresh(); if (SB.choice) modal(sbChoiceHtml(SB.choice)); return; }   /* prima si sceglie quali dati tenere */
   try {
-    if (a === 'sblogin') { const c = sbCred(); if (!c.email || !c.password) return sbMsg('Scrivi email e password.'); sbMsg('Accesso in corso…'); const {data, error} = await SB.client.auth.signInWithPassword(c); if (error) throw error; SB.msg = ''; await sbAttach(data.user); flash('✓ Accesso fatto: i dati si salvano online'); }
-    else if (a === 'sbsignup') { const c = sbCred(); if (!c.email || c.password.length < 6) return sbMsg('Scrivi la tua email e una password di almeno 6 caratteri.'); sbMsg('Creo l’account…'); const {data, error} = await SB.client.auth.signUp({...c, options: {emailRedirectTo: location.origin + location.pathname}}); if (error) throw error; if (data.session) { SB.msg = ''; await sbAttach(data.user); flash('✓ Account creato'); } else sbMsg('Account creato. Ti ho mandato una email: apri il link di conferma, poi torna qui e tocca “Accedi”.'); }
+    if (a === 'sblogin') { const c = sbCred(); if (!c.email || !c.password) return sbMsg('Scrivi email e password.'); sbMsg('Accesso in corso…'); const {data, error} = await SB.client.auth.signInWithPassword(c); if (error) throw error; SB.msg = ''; await sbAttach(data.user); if (!accBlocked()) flash('✓ Accesso fatto: i dati si salvano online'); }
+    else if (a === 'sbsignup') { const c = sbCred(); if (!c.email || c.password.length < 6) return sbMsg('Scrivi la tua email e una password di almeno 6 caratteri.'); sbMsg('Creo l’account…'); const {data, error} = await SB.client.auth.signUp({...c, options: {emailRedirectTo: location.origin + location.pathname}}); if (error) throw error; if (data.session) { SB.msg = ''; await sbAttach(data.user); if (!accBlocked()) flash('✓ Account creato'); } else sbMsg('Account creato. Ti ho mandato una email: apri il link di conferma, poi torna qui e tocca “Accedi”.'); }
     else if (a === 'sbreset') { const c = sbCred(); if (!c.email) return sbMsg('Scrivi prima la tua email, poi tocca di nuovo “Password dimenticata?”.'); const {error} = await SB.client.auth.resetPasswordForEmail(c.email, {redirectTo: location.origin + location.pathname}); if (error) throw error; sbMsg('Ti ho mandato una email con il link per scegliere una nuova password.'); }
     else if (a === 'sbnewpass') { const p = ($('#sbnewpass') || {}).value || ''; if (p.length < 6) return sbMsg('Almeno 6 caratteri.'); const {data, error} = await SB.client.auth.updateUser({password: p}); if (error) throw error; closeModal(); flash('✓ Password cambiata'); if (data && data.user && !SB.user) await sbAttach(data.user); }
     else if (a === 'sbkeep') { if (!SB.choice) { closeModal(); return; } if (b.dataset.w === 'remote') { const u = SB.user; await sbFresh(); if (!SB.choice || SB.user !== u) return; }   /* intanto e' entrata un'altra persona: non si sceglie al suo posto */ const r = SB.choice; SB.choice = null; if (b.dataset.w === 'remote' && r) sbSet(fixDB(r)); else DB.ts = Date.now(); DB.owner = SB.user.id; sbSet(DB); let ok = true; try { await sbPush(); SB.pending = false; } catch (e) { ok = false; SB.pending = true; sbPend(1); } sbAfter(); flash(ok ? '✓ Dati sincronizzati' : '📴 Scelta salvata sul telefono: la invio online appena torna la rete'); }   /* se la rete cade, la scelta vale lo stesso e il salvataggio online riprova da solo */
     else if (a === 'sbsync') { await sbPush(); await sbPull(); $('#mbody').innerHTML = sbHtml(false); flash('✓ Sincronizzato'); }
-    else if (a === 'sblogout' && SB.choice) ask('Uscire senza scegliere? I dati di questo telefono restano qui e quelli dell’account restano online: non si mescolano.', 'Esci', async () => { try { await SB.client.auth.signOut(); } catch (e) {} SB.choice = null; SB.user = null; remote = null; render(true); setTimeout(() => modal(sbHtml(true)), 200); flash('Sei uscito: i dati di questo telefono sono rimasti qui'); });   /* i dati del telefono non sono dell'account: niente push e niente cancellazione */
-    else if (a === 'sblogout') ask('Uscire dall’account? I tuoi dati restano salvati online e vengono tolti da questo telefono.', 'Esci', async () => { try { await sbPush(); } catch (e) { flash('⚠ Non riesco a salvare online: resta collegato e riprova'); return; } await SB.client.auth.signOut(); SB.user = null; remote = null; sbSet(freshDB()); DB.sbSkip = 0; try { localStorage.removeItem('sks_train'); localStorage.removeItem(LOGO_KEY); } catch (e) {} TR.on = false; applyLogo(); go('home'); setTimeout(() => modal(sbHtml(true)), 200); });
+    else if (a === 'sblogout' && SB.choice) ask('Uscire senza scegliere? I dati di questo telefono restano qui e quelli dell’account restano online: non si mescolano.', 'Esci', async () => { try { await SB.client.auth.signOut(); } catch (e) {} SB.choice = null; SB.user = null; remote = null; sbForget(); render(true); gateUpdate(true); flash('Sei uscito: i dati di questo telefono sono rimasti qui'); });   /* i dati del telefono non sono dell'account: niente push e niente cancellazione */
+    else if (a === 'sblogout') ask('Uscire dall’account? I tuoi dati restano salvati online e vengono tolti da questo telefono.', 'Esci', async () => { try { await sbPush(); } catch (e) { flash('⚠ Non riesco a salvare online: resta collegato e riprova'); return; } await SB.client.auth.signOut(); SB.user = null; remote = null; sbForget(); sbSet(freshDB()); try { localStorage.removeItem('sks_train'); localStorage.removeItem(LOGO_KEY); } catch (e) {} TR.on = false; applyLogo(); go('home'); gateUpdate(true); });
   } catch (e) { sbMsg(sbErr(e)); }
+}
+/* ---------- chi puo' usare l'app (v144): serve un account; chi entra puo' usarla subito, l'amministratore puo' bloccarlo e sbloccarlo ---------- */
+const ACC_KEY = 'sks_acc', ACC_DAYS = 7;   /* ultimo controllo dal server, per telefono; senza rete per piu' di ACC_DAYS giorni l'app chiede di collegarsi */
+let ACC = (() => { try { return JSON.parse(localStorage.getItem(ACC_KEY)) || {}; } catch (e) { return {}; } })();
+const accSave = () => { try { localStorage.setItem(ACC_KEY, JSON.stringify(ACC)); } catch (e) {} };
+const sbStoredUser = () => { try { const s = JSON.parse(localStorage.getItem('sks_sb_auth')); return (s && s.user && s.user.id) ? s.user : null; } catch (e) { return null; } };   /* la sessione salvata dalla libreria resta anche senza rete (il token si rinnova quando torna) */
+const sbForget = () => { try { localStorage.removeItem('sks_sb_auth'); } catch (e) {} ACC = {}; accSave(); };
+const accUser = () => SB.user || sbStoredUser();
+const accBlocked = () => { const u = accUser(); return !!(u && ACC.uid === u.id && ACC.b); };
+const isAdmin = () => !!(SB.user && ACC.uid === SB.user.id && ACC.a && !ACC.b);
+async function sbHello(user) {   /* il server segna l'ultimo uso e dice se l'account e' bloccato o e' l'amministratore */
+  const {data, error} = await SB.client.rpc('sks_hello');
+  if (error) { if (!/fetch|network|failed to|load failed/i.test(String(error.message || error)) && ACC.uid === user.id) { ACC.t = Date.now(); accSave(); } throw error; }   /* il server ha risposto (anche con un errore suo): la rete c'e', quindi niente “Collegati a internet” */
+  if (!data || data.anon || !SB.user || SB.user.id !== user.id) return null;   /* intanto e' uscito o e' entrato un altro: la risposta non vale */
+  ACC = {uid: user.id, b: !!data.blocked, a: !!data.admin, t: Date.now()}; accSave(); SB.hello = Date.now(); return ACC;
+}
+const GATE = {key: '', net: ''};   /* net: 'wait' libreria online in caricamento, 'fail' non raggiungibile */
+function gateMode() {
+  if (!sbOn()) return '';
+  const u = accUser(); if (!u) return 'login';
+  if (ACC.uid === u.id && ACC.b) return 'blocked';
+  if (ACC.uid === u.id && !ACC.a && ACC.t && Date.now() - ACC.t > ACC_DAYS * 864e5) return 'stale';
+  return '';
+}
+function gateHtml(m) {
+  const u = accUser() || {};
+  if (m === 'blocked') return `<h2>⛔ Accesso non disponibile</h2><p>L’account <b>${esc(u.email || '')}</b> è stato disattivato da chi gestisce l’app: da qui non puoi più usarla né vedere i dati salvati online.</p><p class="vnote">Se pensi che sia un errore, chiedi a chi ti ha mandato l’app. Se viene riattivato ritrovi tutto com’era: tocca “Riprova”.</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="gretry">🔄 Riprova</button><button class="ghost" data-act="gout">Esci (usa un altro account)</button></div><p class="vnote sbmsg" id="gmsg"></p>`;
+  if (m === 'stale') return `<h2>📶 Collegati a internet</h2><p>Da più di ${ACC_DAYS} giorni l’app non riesce a controllare il tuo account <b>${esc(u.email || '')}</b>. Accendi i dati o il Wi-Fi e tocca “Riprova”: i tuoi allenamenti sono al sicuro su questo telefono.</p>
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="gretry">🔄 Riprova</button></div><p class="vnote sbmsg" id="gmsg"></p>`;
+  if (GATE.net === 'fail') return `<h2>🔐 Accedi per usare l’app</h2><p>Per usare Allenamento SKS serve un account personale (è gratis). Per accedere la prima volta serve internet: accendi i dati o il Wi-Fi e tocca “Riprova”.</p>${hasData(DB) ? '<p class="vnote">Gli allenamenti già salvati su questo telefono non si perdono: dopo l’accesso finiscono nel tuo account.</p>' : ''}
+   <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:11px 20px" data-act="gretry">🔄 Riprova</button></div><p class="vnote sbmsg" id="gmsg"></p>`;
+  return sbHtml(true);
+}
+const GLOGO = '<div class="glogo"><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6.5 12h11M4 8v8M20 8v8M1.8 10v4M22.2 10v4"/></svg></span><b>Allenamento SKS</b></div>';
+function gateUpdate(force) {
+  const g = $('#gate'); if (!g) return; const m = gateMode();
+  if (!m) { if (!g.hidden) { g.hidden = true; $('#gbody').innerHTML = ''; document.body.classList.remove('gated'); } GATE.key = ''; return; }
+  const key = m + '|' + (m === 'login' ? GATE.net + (SB.client ? 1 : 0) : (accUser() || {}).id);
+  if (!force && !g.hidden && GATE.key === key) return;   /* stessa schermata: non si cancella quello che la persona sta scrivendo */
+  const keep = ['sbemail', 'sbpass'].map(id => ($('#gbody #' + id) || {}).value);
+  GATE.key = key; $('#gbody').innerHTML = GLOGO + gateHtml(m);
+  ['sbemail', 'sbpass'].forEach((id, i) => { const x = $('#gbody #' + id); if (x && keep[i]) x.value = keep[i]; });
+  if (m === 'login' && !SB.client && GATE.net !== 'fail') { const x = $('#gbody #sbmsg'); if (x && !x.textContent) x.textContent = 'Collegamento al servizio online…'; }
+  if (g.hidden) { MSTACK.length = 0; if (!$('#modal').hidden) closeModal(); g.hidden = false; document.body.classList.add('gated'); g.scrollTop = 0; }
+}
+async function gateRetry() {
+  const msg = t => { const x = $('#gmsg') || $('#gbody #sbmsg'); if (x) x.textContent = t; };
+  msg('Controllo…');
+  if (!SB.client) { SB.msg = ''; await sbInit(); gateUpdate(true); if (!SB.client) msg('Ancora nessuna connessione: riprova tra poco.'); return; }
+  try { let u = SB.user; if (!u) { const {data, error} = await SB.client.auth.getSession(); if (error) throw error; u = data && data.session && data.session.user; }
+    if (!u) { gateUpdate(true); return; }
+    SB.busy = true; try { await sbAttach(u, true); } finally { SB.busy = false; }
+  } catch (e) { gateUpdate(); msg(sbErr(e)); return; }
+  const m = gateMode(); gateUpdate(true);
+  if (m === 'blocked') msg('L’account è ancora disattivato.'); else if (m === 'stale') msg('Ancora nessuna connessione: riprova tra poco.'); else if (!m) flash('✓ Bentornato');
+}
+function gateOut() {
+  ask('Uscire da questo account? I suoi allenamenti vengono tolti da questo telefono; poi puoi accedere con un altro account.', 'Esci', async () => {
+    try { if (SB.client) await SB.client.auth.signOut({scope: 'local'}); } catch (e) {}
+    SB.user = null; SB.choice = null; remote = null; sbForget(); sbSet(freshDB()); try { localStorage.removeItem('sks_train'); localStorage.removeItem(LOGO_KEY); } catch (e) {} TR.on = false; applyLogo(); go('home'); gateUpdate(true);
+  });
+}
+/* pannello dell'amministratore (Impostazioni → Chi usa l'app) */
+const ADM = {list: null, err: ''};
+const admWhen = iso => { const d = new Date(iso); if (isNaN(d)) return ''; const t = d.toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), k = x => x.toDateString(), y = new Date(Date.now() - 864e5); return k(d) === k(new Date()) ? 'oggi alle ' + t : k(d) === k(y) ? 'ieri alle ' + t : d.toLocaleDateString('it-IT', {day: 'numeric', month: 'short', year: 'numeric'}); };
+const admDay = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('it-IT', {day: 'numeric', month: 'short', year: 'numeric'}); };
+function admHtml() {
+  const L = ADM.list;
+  const head = `<h2 class="admhead" style="padding-right:44px">👥 Chi usa l’app</h2><p class="vnote">Per usare l’app ognuno deve creare un account, e può usarla subito. Se blocchi un account, appena quella persona apre l’app (o ci torna) vede solo “Accesso non disponibile” e non può più leggere né salvare i suoi dati online. Puoi sbloccarlo quando vuoi: ritrova tutto com’era.</p>`;
+  if (!L) return head + (ADM.err ? `<p class="warn">⚠ ${esc(ADM.err)}</p><p><button class="ghost" data-act="admopen">🔄 Riprova</button></p>` : '<p class="vnote">Carico l’elenco…</p>');
+  const off = L.filter(x => x.blocked).length;
+  return head + (ADM.err ? `<p class="warn">⚠ ${esc(ADM.err)}</p>` : '') + `<p class="vnote"><b>${pl(L.length, 'account', 'account')}</b> · ${L.length - off} ${L.length - off === 1 ? 'attivo' : 'attivi'} · ${off} ${off === 1 ? 'bloccato' : 'bloccati'} <button class="tlink" data-act="admopen">🔄 Aggiorna</button></p>`
+    + L.map(x => `<div class="card admrow${x.blocked ? ' off' : ''}"><div class="admt"><b>${esc(x.email || '(senza email)')}</b>
+      <small>${x.admin ? '👑 Tu, amministratore · ' : ''}account creato il ${admDay(x.created_at)}${x.last_seen ? ' · ultimo uso ' + admWhen(x.last_seen) : ''}</small>
+      <small>${x.sess ? pl(x.sess, 'seduta salvata', 'sedute salvate') + (x.last_w ? ', l’ultima il ' + fmtD(x.last_w) : '') : 'Nessuna seduta salvata'}</small>
+      ${x.blocked ? '<small class="admoff">⛔ Bloccato: non può usare l’app</small>' : ''}</div>
+      ${x.admin ? '' : `<button class="${x.blocked ? 'primary' : 'ghost danger'}" data-act="admset" data-u="${esc(x.user_id)}" data-b="${x.blocked ? 0 : 1}" data-e="${esc(x.email || '')}">${x.blocked ? '✓ Sblocca' : '⛔ Blocca'}</button>`}</div>`).join('');
+}
+const admPaint = () => { if ($('#mbody .admhead')) { const y = $('.sheet').scrollTop; $('#mbody').innerHTML = admHtml(); $('.sheet').scrollTop = y; } };
+async function admOpen() {
+  if (!$('#mbody .admhead')) { ADM.err = ''; modal(admHtml(), !$('#modal').hidden); }
+  ADM.err = ''; admPaint();
+  try { if (!SB.client || !SB.user) throw new Error('Servizio online non raggiungibile: riprova quando sei online.'); const {data, error} = await SB.client.rpc('sks_admin_list'); if (error) throw error; ADM.list = data || []; } catch (e) { ADM.err = sbErr(e); }
+  admPaint();
+}
+async function admSet(uid, blk) {
+  try { const {error} = await SB.client.rpc('sks_admin_set', {uid, blk: !!blk}); if (error) throw error; flash(blk ? '⛔ Account bloccato' : '✓ Account sbloccato'); }
+  catch (e) { flash('⚠ ' + sbErr(e)); }
+  await admOpen();
 }
 function flash(t) { const s = $('#saved'); s.textContent = t; s.classList.add('on'); clearTimeout(saveTimer); saveTimer = setTimeout(() => { s.classList.remove('on'); saveTimer = setTimeout(() => { s.textContent = ''; }, 400); }, 2200); }
 
@@ -1092,7 +1187,6 @@ function homeView() {
    ${p.ex.length ? `<p><b>Oggi: ${esc(p.nome)}${p.sotto ? ' · ' + esc(p.sotto) : ''}</b> · ${pl(p.ex.length, 'esercizio', 'esercizi')} · ${tot} serie · ~${v ? v.mins : Math.round(mins / 60)} min${v ? ` · ${v.icon} ${v.score}/10` : ''}</p>
    <button class="primary trainbtn" data-act="train" data-pid="${pid}">▶ Allenati${dn && dn < tot ? ' · continua' : ''}</button><div class="progt" style="margin-top:8px"><button class="tlink" data-act="tab" data-id="${tid}">Vedi la scheda di oggi ›</button></div>`
    : `<p>Oggi non hai esercizi programmati${next ? `: il prossimo giorno è <b>${esc(planOf(dayPid(next)).nome)}</b> (${pl(rtList(dayPid(next)).length, 'esercizio', 'esercizi')}).` : '.'}</p><div class="sbar" style="padding:10px 0 0">${next ? `<button class="primary" style="width:auto;padding:11px 16px" data-act="train" data-pid="${dayPid(next)}">▶ Allenati lo stesso con ${esc(planOf(dayPid(next)).nome)}</button>` : ''}<button class="ghost" data-act="tab" data-id="${tid}">Prepara la scheda di oggi</button></div>`}</section>
-   ${sbOn() && SB.ready && !SB.user ? `<div class="card prof"><h2 class="ht">☁️ Salva i tuoi dati online</h2><p class="vnote" style="margin:0 0 8px">Accedi con email e password: i tuoi allenamenti restano salvati anche se cambi telefono, e ogni persona ha i suoi.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="sbopen">Accedi o crea un account</button></div></div>` : ''}
    ${profOk() ? `<div class="card prof"><h2 class="ht">👤 Il mio profilo</h2><p class="vnote" style="margin:0 0 8px">${esc(profTxt())}.</p>${DB.prof.h ? `<p class="vnote" style="margin:0 0 8px">⚖️ ${pfTxt()}</p>` : ''}<div class="sbar" style="padding:0"><button class="ghost" data-act="profopen">✏️ Modifica profilo</button></div></div>` : `<div class="card prof"><h2 class="ht">👤 Completa il profilo</h2><p class="vnote" style="margin:0 0 8px">Genere, peso, livello, obiettivo, attrezzi e muscoli preferiti: così proposte, programmi e consigli sono fatti per te e ogni esercizio ha un peso di partenza.</p><div class="sbar" style="padding:0"><button class="primary" style="width:auto;padding:10px 16px" data-act="profopen">Compila il profilo</button></div></div>`}
    <div class="card"><h2 class="ht">📈 Andamento</h2><p class="vnote" style="margin:0 0 10px">Sedute per settimana (ultime ${q.weeks.length} settimane)${q.planned ? ` · programmate: ${q.planned} a settimana` : ''}.</p>
     <div class="barsw"><div class="bars" style="width:${Math.max(100, q.weeks.length * 46)}px">${q.weeks.map((w, i) => `<button class="bar" data-act="wk" data-w="${w.key}" aria-label="Settimana del ${fmtD(w.key)}"><i style="height:${Math.round(w.n / max * 100)}%;${w.n >= q.planned && w.n ? 'background:var(--ok)' : ''}"></i><b>${w.n}</b><small>${i === q.weeks.length - 1 ? 'ora' : fmtD(w.key)}</small></button>`).join('')}</div></div>
@@ -1165,7 +1259,7 @@ function closeModal() {
   $('#modal').hidden = true; $('#mbody').innerHTML = ''; document.body.style.overflow = ''; $('#mx').textContent = '✕'; if (tab === 'lib') render(true); }
 $('#mx').onclick = closeModal;
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); if (e.key === 'Enter' && e.target && (e.target.id === 'sbpass' || e.target.id === 'sbemail')) { const w = e.target.closest('#gbody, #mbody'), x = w && w.querySelector('[data-act=sblogin]'); if (x) { e.preventDefault(); x.click(); } } });
 
 function openEx(id) {
   const ex = byId[id], k = pk('io', id);
@@ -1577,6 +1671,7 @@ function settings() {
    <div class="card"><p>Manda l’app a un amico: si apre dal browser del telefono e si può aggiungere alla schermata Home. I tuoi dati non vengono condivisi.</p>
    <p><button class="primary" style="width:auto;padding:10px 18px" data-act="share">📤 Condividi</button></p>
    <p class="vnote" style="word-break:break-all">Indirizzo: <b>${APP_URL}</b></p></div>
+   ${isAdmin() ? `<div class="card"><h2>👥 Chi usa l’app</h2><p>Sei l’amministratore: vedi gli account registrati, quando hanno usato l’app l’ultima volta, e puoi toglierla a chi non vuoi che la usi (e ridargliela).</p><p><button class="primary" style="width:auto;padding:10px 18px" data-act="admopen">👥 Gestisci gli accessi</button></p></div>` : ''}
    <h2>Dati e backup</h2>
    <div class="card"><p>I pesi si salvano a ogni modifica sul dispositivo e, se sei collegato, anche nel tuo spazio privato online. Esporta ogni tanto un backup.</p>
    <p><button class="ghost" data-act="export">⬇ Esporta backup</button> <button class="ghost" data-act="exportfull">⬇ Backup completo con video</button> <button class="ghost" data-act="import">⬆ Importa backup</button></p>
@@ -1592,7 +1687,7 @@ function settings() {
    <div class="card"><h2>Video</h2><p>Elimina i video che hai aggiunto tu (file sul telefono e link) oppure togli i link ai video di riferimento (anche uno alla volta dentro ogni esercizio). Non tocca pesi e storico.</p>
    <p><button class="ghost danger" data-act="vwipe">🗑 Cancella tutti i miei video</button> <button class="ghost" data-act="vref">${DB.hideRef ? '👁 Mostra i video di riferimento' : '🙈 Togli tutti i video di riferimento'}</button>${DB.hideRef || Object.keys(DB.hiddenRef).length ? ' <button class="ghost" data-act="vrefall">↺ Ripristina i video tolti</button>' : ''}</p></div>
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
-   ${sbOn() ? `<div class="card"><h2>☁️ Account online</h2><p class="vnote">${SB.user ? 'Collegato come <b>' + esc(SB.user.email) + '</b>' + (SB.choice ? ': <b>scelta dei dati in sospeso</b>, niente si salva online finché non scegli.' : ': i dati si salvano online.') : 'Non collegato: i dati restano solo su questo telefono.'}</p><p><button class="ghost" data-act="sbopen">${SB.user ? 'Gestisci account' : 'Accedi o crea un account'}</button></p></div>` : ''}
+   ${sbOn() ? `<div class="card"><h2>☁️ Account online</h2><p class="vnote">${SB.user ? 'Collegato come <b>' + esc(SB.user.email) + '</b>' + (SB.choice ? ': <b>scelta dei dati in sospeso</b>, niente si salva online finché non scegli.' : ': i dati si salvano online.') : (accUser() ? 'In attesa di internet: i dati si salvano su questo telefono e vanno online appena torna la rete.' : 'Non collegato: i dati restano solo su questo telefono.')}</p><p><button class="ghost" data-act="sbopen">${SB.user ? 'Gestisci account' : 'Accedi o crea un account'}</button></p></div>` : ''}
    <div class="card"><h2>Il mio profilo</h2><p class="vnote">${profOk() ? esc(profTxt()) + '.' : 'Non ancora compilato.'}</p><p><button class="ghost" data-act="profopen">👤 ${profOk() ? 'Modifica' : 'Compila'} il profilo</button></p></div>
    <div class="card"><h2>Attrezzi disponibili</h2><p>Spegni gli attrezzi che non hai: i loro esercizi spariscono dalla libreria, dalle proposte e dai programmi pronti (quelli già nelle schede restano, segnalati). Powerrack Atletica SKS: safety, manubri, panca regolabile, jammer arms, doppia puleggia con corda/barra/maniglie/cavigliera, sbarra, parallele, Smith machine.</p>${attlHtml()}</div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Le icone degli esercizi sono disegnate con lo stesso modello 3D.</p></div>
@@ -1694,7 +1789,10 @@ document.addEventListener('click', e => {
   else if (/^sb(login|signup|reset|newpass|keep|sync|logout)$/.test(a)) sbAct(a, b);
   else if (a === 'sbopen') modal(sbHtml(false), !$('#modal').hidden);
   else if (a === 'sbchoice') { if (SB.choice) sbFresh().then(() => { if (SB.choice) modal(sbChoiceHtml(SB.choice)); }); }
-  else if (a === 'sbskip') { DB.sbSkip = 1; save(); closeModal(); render(true); if (!profOk() && !DB.prof.later) setTimeout(() => modal(profHtml(true)), 200); }
+  else if (a === 'gretry') gateRetry();
+  else if (a === 'gout') gateOut();
+  else if (a === 'admopen') admOpen();
+  else if (a === 'admset') { const u = b.dataset.u, blk = b.dataset.b === '1'; if (blk) ask(`Bloccare ${b.dataset.e || 'questo account'}? Non potrà più usare l’app né vedere i suoi dati online finché non lo sblocchi.`, 'Blocca', () => admSet(u, true), true); else admSet(u, false); }
   else if (a === 'profopen') modal(profHtml(!profOk()), !$('#modal').hidden);
   else if (a === 'pfchip') { profRead(); const t = b.dataset.t, v = b.dataset.v; if (t === 'step') DB.prof.step = parseFloat(v) || 4.5; else if (t === 'sex' || t === 'lvl' || t === 'fin' || t === 'tipo' || t === 'abp') DB.prof[t] = v; else { const arr = DB.prof[t]; if (!v) arr.length = 0; else { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); } } $('#mbody').innerHTML = profHtml(!profOk()); }
   else if (a === 'pfsave') { const kgRaw = num(($('#pfkg') || {}).value), hRaw = (($('#pfh') || {}).value || '').trim(); if (!(kgRaw >= 30 && kgRaw <= 250)) { flash(kgRaw ? 'Scrivi un peso tra 30 e 250 kg' : 'Scrivi il tuo peso corporeo'); if ($('#pfkg')) $('#pfkg').focus(); return; } if (hRaw && !(num(hRaw) >= 120 && num(hRaw) <= 230)) { flash('Scrivi un’altezza tra 120 e 230 cm'); if ($('#pfh')) $('#pfh').focus(); return; } profRead(); if (!DB.prof.sex) { flash('Scegli il genere'); return; } DB.prof.done = true; DB.prof.later = 0; save(); closeModal(); render(); if (!$('#modal').hidden && $('#mbody [data-act=profopen]')) { const y = $('.sheet').scrollTop; settings(); $('.sheet').scrollTop = y; } flash('✓ Profilo salvato: proposte e pesi di partenza tengono conto di te'); }
@@ -1833,6 +1931,8 @@ window.addEventListener('hashchange', () => { const h = location.hash.slice(1); 
 if (TR.on && CUST.includes(TR.pid)) { tab = TR.pid === 'gA' ? 'giulia' : TR.pid; location.hash = tab; }
 try { render(); } catch (e) { window.dispatchEvent(new ErrorEvent('error', {message: 'Avvio: ' + (e && e.message)})); throw e; }
 if (!sbOn() && !profOk() && !DB.prof.later && !TR.on) setTimeout(() => { if ($('#modal').hidden) modal(profHtml(true)); }, 500);
+gateUpdate();   /* senza account si vede subito la schermata di accesso */
+window.addEventListener('online', () => { if (sbOn() && !SB.client) sbInit(); });   /* primo accesso fallito per mancanza di rete: riprova da solo quando torna */
 sbInit();   /* account online (se configurato), poi il profilo alla prima apertura */
 initCloud();
 if (!window.claude && 'serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
