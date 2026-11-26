@@ -1493,6 +1493,27 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   EX.push(e);
 })();
 
+/* ===== dorsali: pulldown alla corda seduto su una panca davanti al cavo alto, dal reel di Marco Antonio Rebucci Filho ("Variação top para dorsais") ===== */
+(() => {
+  const b = EX.find(e => e.id === 'b-rope-lat-terra'); if (!b || EX.some(e => e.id === 'b-rope-lat-panca')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'b-rope-lat-panca', n: 'Pulldown alla corda seduto su panca, davanti al cavo alto (dorsali)', varName: 'Seduto su panca',
+    m: 'Gran dorsale (parte bassa), grande rotondo, bicipiti',
+    st: 'seat', benchSt: 'edge', an: [180, 8], nb: true,   /* serve la panca: con “Panca” spenta negli attrezzi non viene proposto */
+      /* panca piana senza schienale, torre subito davanti: il cavo scende quasi sopra la testa */
+    fr: [[172, 176, {t: 184}], [8, 150, {t: 190}]],
+    cap: ['Seduto a cavalcioni sulla panca, braccia distese verso la corda sopra la testa', 'Corda al petto alto, gomiti in basso lungo i fianchi'],
+    trj: 'Le mani scendono quasi in verticale dalla puleggia al petto alto; i gomiti scendono vicini ai fianchi e le due estremità della corda si aprono ai lati del viso.',
+    set: 'Cavo ALTO con la corda. Metti una panca piana per lungo davanti alla torre, con un’estremità quasi sotto la puleggia. Afferra le due estremità della corda in piedi (presa neutra, palmi che si guardano), poi scavalca la panca e siediti a cavalcioni sull’estremità vicina alla torre, faccia verso la torre e piedi ben piantati a terra ai lati della panca.',
+    pos: 'Busto dritto, al massimo appena inclinato indietro, petto alto, scapole basse. Il cavo scende quasi in verticale sopra la testa: le braccia partono distese verso l’alto.',
+    ese: ['Parti con le braccia distese sopra la testa e i dorsali ben allungati.', 'Tira i gomiti in basso verso i fianchi: le mani scendono al petto alto e la corda si apre ai lati del viso.', 'Stringi i dorsali 1 secondo.', 'Risali lentamente fino a braccia distese, senza alzarti dalla panca.'],
+    cue: 'Gomiti verso le tasche: tira con i dorsali, le mani seguono.',
+    why: 'Dal reel di Marco Antonio Rebucci Filho («Variação top para dorsais»). Seduto sulla panca con il cavo quasi sopra la testa la tirata è verticale come alla lat machine, ma la corda lascia scendere le mani ai lati del viso e i gomiti più in basso lungo i fianchi: il gran dorsale si accorcia di più. Basta una torre con il cavo alto e una panca piana, quindi va bene anche quando la lat machine non c’è o è occupata.',
+    err: ['Inclinarsi molto indietro: diventa un rematore', 'Gomiti che si aprono di lato', 'Tirare con le braccia invece che con i gomiti', 'Non distendere del tutto in alto', 'Panca troppo lontana dalla torre: il cavo tira in avanti e ti sbilancia'],
+    tipo: 'semi', fin: ['massa', 'tonificare']});
+  delete e.alt; delete e.vars; delete e.varsLabel;
+  EX.push(e);
+})();
+
 /* ===== schiena: sei esercizi dal video "Back ... for a V-Taper" (Gym Habit, animazioni Workout Motivation): 5 nuovi (il rematore con due manubri c'era già: b-row-db2) ===== */
 (() => {
   const mk = (base, o) => { const b = EX.find(e => e.id === base); if (!b || EX.some(e => e.id === o.id)) return; const e = Object.assign(JSON.parse(JSON.stringify(b)), o); delete e.vars; delete e.varsLabel; delete e.fam; delete e.famRe; EX.push(e); };

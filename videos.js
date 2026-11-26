@@ -144,6 +144,13 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"b-rope-lat-panca": [
+{
+"u": "https://www.facebook.com/share/r/1KuzMm2r7k/",
+"n": "Marco Antonio Rebucci Filho · «Variação top para dorsais»: si siede a cavalcioni sulla panca a 0:02-0:04, le ripetizioni a 0:04-0:14",
+"v": "145"
+}
+],
 "p-incl-squeeze": [
 {
 "u": "https://www.facebook.com/share/r/14ynoJ9ZDBP/",
