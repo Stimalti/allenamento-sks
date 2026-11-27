@@ -15,7 +15,7 @@ const FIG3 = (() => {
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch','rlx','rly'];   // rlx/rly = caviglia della gamba lontana fotogramma per fotogramma (piede sul carrello che scorre)   // pitch = inclinazione di tutto il corpo (dopo il roll) attorno all'asse laterale: testa su/giù; roll = rotazione di tutto il corpo sull'asse lungo (gradi: 90 = sdraiato su un fianco), lz = spostamento laterale delle gambe   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch','rlx','rly','th2','sh2','ft2'];   // rlx/rly = caviglia della gamba lontana fotogramma per fotogramma (piede sul carrello che scorre); th2/sh2/ft2 = angoli della gamba lontana quando si muove da sola (ex.leg2: footwork e ponte su una gamba)   // pitch = inclinazione di tutto il corpo (dopo il roll) attorno all'asse laterale: testa su/giù; roll = rotazione di tutto il corpo sull'asse lungo (gradi: 90 = sdraiato su un fianco), lz = spostamento laterale delle gambe   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
   const resolve = (ex, fr) => { const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && !(fr[2] && fr[2].t !== undefined)) r.t = 270 - ex.inc; return r; };   // ex.inc = inclinazione della panca in gradi dall'orizzontale: il busto la segue
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
@@ -182,7 +182,8 @@ const FIG3 = (() => {
     P.push(box(pt3([X(uc), 195], 0), pt3([X(u1), 195], 0), 6, 2 * Z - 6, CAR), box(pt3([X(uc + 1), 190], 0), pt3([X(u1 - 1), 190], 0), 5, 2 * Z - 10, PAD));
     P.push(box(pt3([X(uc + 1), 187], 0), pt3([X(uc + 15), 185], 0), 5, 26, PAD));   // poggiatesta
     [-1, 1].forEach(sg => P.push(box(pt3([X(uc + 20), 187.5], 15 * sg), pt3([X(uc + 20), 171], 15 * sg), 8, 9, PAD)));   // poggiaspalle
-    if (R.box) P.push(box(pt3([X(uc + 10), 179], 0), pt3([X(u1 - 4), 179], 0), 17, 46, '#8a6a4f'), box(pt3([X(uc + 11), 170.5], 0), pt3([X(u1 - 5), 170.5], 0), 2, 44, PAD));   // box lungo
+    if (R.box === 'short') P.push(box(pt3([X(uc + 36), 176], 0), pt3([X(uc + 76), 176], 0), 23, 2 * Z - 2, '#8a6a4f'), box(pt3([X(uc + 37), 163.5], 0), pt3([X(uc + 75), 163.5], 0), 2, 2 * Z - 4, PAD));   // box corto messo di traverso
+    else if (R.box) P.push(box(pt3([X(uc + 10), 179], 0), pt3([X(u1 - 4), 179], 0), 17, 46, '#8a6a4f'), box(pt3([X(uc + 11), 170.5], 0), pt3([X(u1 - 5), 170.5], 0), 2, 44, PAD));   // box lungo
     // molle: dal carrello alla barra delle molle, si allungano quando il carrello si allontana
     ['#f2c230', '#e4473b', '#3b82f6', '#22a35a'].forEach((c, i) => P.push(cyl(pt3([X(u1 - 4), 198], -15 + i * 10), pt3([X(RF.fb - 4), 198], -15 + i * 10), 1.7, c)));
     // barra dei piedi e pedana
@@ -190,6 +191,7 @@ const FIG3 = (() => {
     [-Z, Z].forEach(z => P.push(cyl(pt3([X(RF.fb - 6), 200], z), pt3([X(RF.fb), fy], z), 2.6, STEEL)));
     P.push(cyl(pt3([X(RF.fb), fy], -Z - 2), pt3([X(RF.fb), fy], Z + 2), 3.6, '#2a3146'));
     P.push(box(pt3([X(212), 191], 0), pt3([X(246), 191], 0), 8, 2 * Z + 2, PAD));
+    if (R.strap) { const s0 = [B.A[0] + d * 7, B.A[1] - 8]; P.push(cyl(pt3(s0, -24), pt3(s0, 24), 2.6, BLK)); [-1, 1].forEach(sg => P.push(cyl(pt3(s0, 24 * sg), pt3([X(RF.fb - 2), fy + 6], Z * sg), 1.6, BLK))); }   // cinghia sopra i piedi, agganciata alla barra (short box)
     // montanti con le pulegge e cinghie (alle mani o ai piedi)
     const top = R.py || 150;
     [-Z, Z].forEach(z => P.push(cyl(pt3([X(-4), 200], z), pt3([X(-4), top], z), 2.6, STEEL), sph(pt3([X(-4), top], z), 4.6, '#b5bfd2')));
@@ -266,11 +268,12 @@ const FIG3 = (() => {
     let K2, A2, f2;
     const fl = rig ? (a => add(a, 25, 74)) : (a => add(a, 17, 90));
     const rl = p.rlx ? [p.rlx, p.rly] : ex.rl;
-    if (rl) { K2 = ik(H, rl, TH, SH); A2 = rl; f2 = fl(A2); }
+    if (ex.leg2) { K2 = add(H, TH, p.th2); A2 = add(K2, SH, p.sh2); f2 = rig ? add(A2, 25, p.sh2 + 74 + (p.ft2 || 0)) : add(A2, 17, p.sh2 + 90); }
+    else if (rl) { K2 = ik(H, rl, TH, SH); A2 = rl; f2 = fl(A2); }
     else if (ex.sup) { K2 = add(H, TH, 0); A2 = add(K2, SH, 0); f2 = fl(A2); }
     else { K2 = K; A2 = A; f2 = foot; }
     const amt0 = Math.min(1, Math.abs(p.th) / 80), kz0 = (ex.ko || 0) * amt0, lz = p.lz || 0;
-    leg(B, H, K2, A2, f2, SKF, '#1f2742', (ex.rl || ex.sup) ? LF : [LF, LF - kz0, LF - kz0 * .6, LF - kz0 * 1.25]);
+    leg(B, H, K2, A2, f2, SKF, '#1f2742', (ex.rl || ex.sup || ex.leg2) ? LF : [LF, LF - kz0, LF - kz0 * .6, LF - kz0 * 1.25]);
     if (ex.ref) refPrims(P, ex, {H, S, K, A, K2, A2, straps: ex.cp === 'ankle' ? [pt3(A, LN), pt3(A2, LF)] : ex.eq === 'cable' ? [g3n].concat(ex.one ? [] : [g3f]) : []});
     // braccio lontano
     arm(B, pt3(S, ZF), E3f, W3f, SKF);
@@ -342,8 +345,8 @@ const FIG3 = (() => {
         sh: {R: W3(SN), L: W3(SF)}, el: {R: W3(E3n), L: W3(E3f)}, wr: {R: W3(W3n), L: W3(W3f)},
         armF: {R: fS(SN, E3n, W3n, fwd(p.ua)), L: fS(SF, E3f, W3f, fwd(sFar))},
         presa: ex.presa,
-        hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz + lz)), L: W3(pt3(K2, ((ex.rl || ex.sup) ? LF : LF - kz0) + lz))}, an: {R: W3(pt3(A, LN + kz * .6 + lz * 1.3)), L: W3(pt3(A2, ((ex.rl || ex.sup) ? LF : LF - kz0 * .6) + lz * 1.3))},
-        toe: {R: W3(pt3(foot, LN + kz * 1.25 + lz * 1.3)), L: W3(pt3(f2, ((ex.rl || ex.sup) ? LF : LF - kz0 * 1.25) + lz * 1.3))}, legF: {R: thF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
+        hip: {R: W3(pt3(H, LN)), L: W3(pt3(H, LF))}, kn: {R: W3(pt3(K, LN + kz + lz)), L: W3(pt3(K2, ((ex.rl || ex.sup || ex.leg2) ? LF : LF - kz0) + lz))}, an: {R: W3(pt3(A, LN + kz * .6 + lz * 1.3)), L: W3(pt3(A2, ((ex.rl || ex.sup || ex.leg2) ? LF : LF - kz0 * .6) + lz * 1.3))},
+        toe: {R: W3(pt3(foot, LN + kz * 1.25 + lz * 1.3)), L: W3(pt3(f2, ((ex.rl || ex.sup || ex.leg2) ? LF : LF - kz0 * 1.25) + lz * 1.3))}, legF: {R: thF, L: ex.leg2 ? Wv(...fw2(p.th2 + 90)) : (ex.rl || ex.sup) ? Wv(1, 0, 0) : thF}, legFL: {R: shF, L: ex.leg2 ? Wv(...fw2(p.sh2 + 90)) : (ex.rl || ex.sup) ? Wv(1, 0, 0) : shF},
         footUp: {R: aimF(A, foot), L: aimF(A2, f2)}};
       const holds = ['bar', 'db', 'jam', 'hb', 'dip'].includes(ex.eq) || (ex.eq === 'cable' && ex.cp !== 'ankle');
       if (holds) { J.obj = {R: W3(g3n)}; if (!ex.one) J.obj.L = W3(g3f); }
