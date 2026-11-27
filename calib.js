@@ -2896,3 +2896,46 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     why: REEL + ' È il terzo dei tre movimenti. Portare le braccia oltre il busto accorcia al massimo gran dorsale e grande rotondo, come un pulldown a braccia tese ma con il cavo che arriva dal basso davanti.',
     err: ['Piegare i gomiti (diventa un esercizio per i tricipiti)', 'Dondolare con il busto', 'Spalle che vanno in avanti alla fine']});
 })();
+
+/* ===== schiena: dal reel di Amit Negi «Build a stronger, wider back!» (5 esercizi ai cavi): 4 nuovi (le scrollate ai cavi c'erano gia': b-shrug-cavo) ===== */
+(() => {
+  if (EX.some(e => e.id === 'b-due-cavi-alti-braccia-tese')) return;
+  const REEL = 'Dal reel di Amit Negi «Build a stronger, wider back!».';
+  const FAM = 'Lat machine / pulldown', fr0 = (EX.find(e => e.fam === FAM && e.famRe) || {}).famRe;
+  const add = o => EX.push(Object.assign({a: 'Cavi', eq: 'cable', g: 'schiena', fin: ['massa', 'tonificare'], fam: FAM, famRe: fr0}, o));
+  const SET2 = 'Due cavi ALTI (crossover) con maniglie singole. Metti una panca o uno step al centro tra le due torri e siediti con il petto verso le macchine; afferra la maniglia sinistra con la mano sinistra e la destra con la destra.';
+  add({id: 'b-due-cavi-alti-braccia-tese', n: 'Pulldown a braccia quasi tese ai due cavi alti, seduto (dorsali)', varName: 'Due cavi alti, braccia tese', tipo: 'iso', presa: 'neu', st: 'seat', v: 'f', seatF: true, nb: true, an: [[25, 10], [275, 10]], az: 2.75,
+    m: 'Gran dorsale, grande rotondo', mm: 'gran dorsale, grande rotondo, trapezio basso, deltoide posteriore; capo lungo del tricipite in tenuta',
+    fr: [[165, 170, {t: 182}], [80, 92, {t: 182}]], cap: ['Seduto tra le due torri, braccia in alto a «V»', 'Braccia aperte di lato all’altezza delle spalle, gomiti appena piegati'],
+    trj: 'Le mani scendono su un arco ampio ai lati del corpo, dalla «V» sopra la testa fino all’altezza delle spalle; i gomiti restano appena piegati.',
+    set: SET2, pos: 'Busto dritto, petto alto, addome contratto. Braccia in alto a «V», gomiti appena piegati e bloccati.',
+    ese: ['Porta le braccia giù e in fuori con un arco ampio, senza piegare i gomiti.', 'Fermati con le mani all’altezza delle spalle e stringi i dorsali 1 secondo.', 'Risali lentamente fino alla «V».'],
+    cue: 'Spingi i gomiti verso i fianchi come per chiudere le ali: le mani restano lontane dal corpo.',
+    why: REEL + ' Con le braccia quasi tese l’unico movimento è il braccio che si avvicina al corpo: lavora il gran dorsale senza l’aiuto dei bicipiti, con i cavi che tirano fino in fondo. È il primo dei suoi esercizi per la schiena a «V».',
+    err: ['Piegare i gomiti: diventa un pulldown normale', 'Inclinarsi indietro', 'Spalle che salgono verso le orecchie', 'Carico troppo alto: si perde l’arco ampio']});
+  add({id: 'b-due-cavi-alti-w', n: 'Pulldown ai due cavi alti da seduto, gomiti a «W» (dorsali e trapezio basso)', varName: 'Due cavi alti, gomiti a «W»', tipo: 'semi', presa: 'neu', st: 'seat', v: 'f', seatF: true, nb: true, an: [[25, 10], [275, 10]], az: 2.75,
+    m: 'Gran dorsale, trapezio basso, romboidi', mm: 'gran dorsale, trapezio medio e basso, romboidi, grande rotondo; bicipiti in appoggio',
+    fr: [[160, 172, {t: 182}], [78, 170, {t: 182}]], cap: ['Seduto tra le due torri, braccia in alto a «V»', 'Gomiti giù all’altezza delle spalle, mani in alto: «W»'],
+    trj: 'I gomiti scendono di lato fino all’altezza delle spalle, le mani restano sopra i gomiti: le braccia passano dalla «V» alla «W».',
+    set: SET2, pos: 'Busto dritto, petto alto, addome contratto. Braccia distese in alto a «V».',
+    ese: ['Abbassa prima le scapole, poi tira i gomiti giù e un po’ indietro fino all’altezza delle spalle: le braccia formano una «W».', 'Stringi le scapole 1 secondo.', 'Risali lentamente fino a braccia distese.'],
+    cue: 'Petto alto verso le mani: le scapole scendono nelle tasche posteriori.',
+    why: REEL + ' Fermarsi alla «W» con le scapole basse e strette porta parte del lavoro sul trapezio basso e sui romboidi, oltre al gran dorsale. Con due maniglie indipendenti ogni lato tira da solo, quindi il lato più debole non si nasconde.',
+    err: ['Tirare solo con le braccia senza abbassare le scapole', 'Inclinarsi indietro', 'Mani che scendono sotto il mento: diventa un pulldown completo']});
+  add({id: 'b-braccio-teso-inclinato', n: 'Pulldown a braccio teso a un braccio, busto inclinato (dorsali bassi)', varName: 'Un braccio teso, busto inclinato', tipo: 'iso', presa: 'neu', st: 'hinge', one: true, fhip: true, unCavo: true, an: [250, 40],
+    m: 'Gran dorsale (parte bassa), grande rotondo', mm: 'gran dorsale (fibre basse ed esterne), grande rotondo, deltoide posteriore, capo lungo del tricipite',
+    fr: [[118, 122, {t: 135}], [-38, -30, {t: 135}]], cap: ['Busto inclinato, braccio disteso verso la puleggia', 'Braccio teso portato giù fino al fianco'],
+    trj: 'La mano scende su un arco ampio dall’avanti in alto fino accanto alla coscia; il gomito resta appena piegato.',
+    set: 'Cavo all’altezza della testa (o poco sopra) con una maniglia singola. Di fronte alla torre, un passo indietro: inclina il busto in avanti di circa 45° con la schiena dritta e le ginocchia morbide, l’altra mano sulla coscia.',
+    pos: 'Braccio disteso verso la puleggia, gomito appena piegato e bloccato, spalla lontana dall’orecchio.',
+    ese: ['Porta il braccio teso giù e indietro fino al fianco con un arco ampio.', 'Stringi il dorsale 1 secondo con la mano accanto alla coscia.', 'Torna lentamente in avanti lasciando allungare il dorsale.'],
+    cue: 'Il braccio è solo una leva: è il dorsale che lo porta giù.',
+    why: REEL + ' Con il busto inclinato la linea del cavo segue le fibre basse del gran dorsale e il braccio teso esclude i bicipiti: lavoro mirato sulla parte bassa ed esterna della schiena, quella che disegna la «V».',
+    err: ['Piegare il gomito durante la tirata', 'Ruotare il busto per aiutarsi', 'Schiena tonda', 'Spalla che sale verso l’orecchio']});
+  const b = EX.find(e => e.id === 'b-rope-facepull-terra');
+  if (b) { const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'b-rope-facepull-panca', n: 'Pulldown alla corda a gomiti larghi seduto su panca (deltoidi posteriori)', varName: 'Corda a gomiti larghi su panca', fam: FAM, famRe: fr0,
+      st: 'seat', benchSt: 'edge', an: [180, 8], nb: true,
+      set: 'Cavo ALTO con la corda. Metti una panca piana (o uno step) davanti alla torre, quasi sotto la puleggia, e siediti con il petto verso il cavo e i piedi ben piantati. Presa neutra sulla corda, pollici verso l’alto.',
+      why: REEL + ' È il suo ultimo esercizio, seduto su una panca invece che a terra. Con i gomiti aperti e la rotazione esterna finale il carico va ai deltoidi posteriori e al grande rotondo, la parte alta ed esterna della schiena.'});
+    delete e.alt; delete e.vars; delete e.varsLabel; EX.push(e); }
+})();

@@ -144,6 +144,34 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"b-due-cavi-alti-braccia-tese": [
+{
+"u": "https://www.facebook.com/share/r/19trRbF7Q5/",
+"n": "Amit Negi · «Build a stronger, wider back!»: pulldown a braccia quasi tese ai due cavi alti, seduto, a 0:00-0:04",
+"v": "153"
+}
+],
+"b-due-cavi-alti-w": [
+{
+"u": "https://www.facebook.com/share/r/19trRbF7Q5/",
+"n": "Amit Negi · «Build a stronger, wider back!»: pulldown ai due cavi alti fino alla «W», seduto, a 0:04-0:07",
+"v": "153"
+}
+],
+"b-braccio-teso-inclinato": [
+{
+"u": "https://www.facebook.com/share/r/19trRbF7Q5/",
+"n": "Amit Negi · «Build a stronger, wider back!»: pulldown a braccio teso a un braccio con il busto inclinato a 0:10-0:13",
+"v": "153"
+}
+],
+"b-rope-facepull-panca": [
+{
+"u": "https://www.facebook.com/share/r/19trRbF7Q5/",
+"n": "Amit Negi · «Build a stronger, wider back!»: corda al cavo alto a gomiti larghi, seduto, a 0:13-0:19",
+"v": "153"
+}
+],
 "st-bambino-ginocchia-incrociate": [
 {
 "u": "https://www.facebook.com/share/r/1MXkhS3cpX/",
@@ -1379,6 +1407,11 @@ const VIDEOS = {
 }
 ],
 "b-shrug-cavo": [
+{
+"u": "https://www.facebook.com/share/r/19trRbF7Q5/",
+"n": "Amit Negi · «Build a stronger, wider back!»: scrollate ai due cavi bassi, maniglie ai fianchi, a 0:07-0:10",
+"v": "153"
+},
 {
 "u": "https://www.facebook.com/share/r/19UYZBU21G/",
 "n": "scrollate al cavo basso in piedi, contrazione in alto (trapezio), circa 0:21-0:28",
