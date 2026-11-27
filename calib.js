@@ -1741,3 +1741,244 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
 /* ===== MIDS: fotogramma intermedio e ritmo reale ricavati dai video (MediaPipe) - generato da mids.js, non modificare a mano ===== */
 (() => { const M = {"sm-squat":{"tempo":[1,0.4,1],"mid":[-70,118,{"t":165.4,"th":52.7,"sh":-28.9,"h":[132,145]}]},"c-curl-singolo":{"tempo":[1.1,0.4,1.1],"mid":[8,78.7,{}]},"c-curl-bar":{"tempo":[1.3,0.4,1.1],"mid":[11.7,102.2,{}]},"g-leg-ext":{"tempo":[1.1,0.4,1.1],"mid":[30,10,{"t":185,"sh":45.9,"th":90}]},"t-dip-panca":{"tempo":[1.1,0.4,0.9],"mid":[-45.7,-9.3,{"h":[150,167],"t":185.2,"th":95,"sh":0}]},"p-croci-db":{"tempo":[1.5,0.4,1.4],"mid":[146.9,152.6,{}]},"b-row-db2":{"tempo":[0.6,0.4,0.6],"mid":[-51.3,-22.3,{"t":115,"th":14,"sh":-6}]},"cl-pushup":{"tempo":[1.6,0.4,3],"mid":[-31.9,24.4,{"h":[150,183],"t":92,"th":-58,"sh":-58}]},"c-incl":{"tempo":[1,0.4,1.2],"mid":[-5,56.4,{}]},"sm-hip-thrust":{"tempo":[1.9,0.4,1.2],"mid":[68,68,{"h":[180,175],"t":265.8,"th":102.1,"sh":-0.3}]},"b-row-db":{"tempo":[1.2,0.4,0.9],"mid":[-32.7,21.4,{"t":112}]},"b-trazioni-larga":{"tempo":[3,0.4,0.8],"mid":[110,117.6,{"t":180,"th":22,"sh":-88,"h":[156,106]}]},"t-dip":{"tempo":[1.2,0.4,0.9],"mid":[-22.6,33.2,{"h":[150,115],"t":174.4,"th":25,"sh":-70}]},"t-kickback-db":{"tempo":[2.4,0.4,1],"mid":[-88,-81.4,{"t":100}]},"g-stacco-db":{"tempo":[1.8,0.4,1.6],"mid":[0,0,{"t":161.7,"h":[136,132],"th":30,"sh":-7}]},"c-hammer-db":{"tempo":[1.3,0.4,1]},"t-skull-db":{"tempo":[1.6,0.4,1],"mid":[172.7,255.7,{}]},"c-concentrato":{"tempo":[1.4,0.4,0.9],"mid":[10,86.9,{"t":140}]},"g-sumo":{"tempo":[1,0.4,1]},"b-trazioni":{"tempo":[0.9,0.4,1.1],"mid":[103.6,212.8,{"t":180,"th":22,"sh":-88,"h":[153,128]}]},"c-curl-cavo":{"tempo":[1,0.4,1.1],"mid":[8.1,76,{}]},"t-push-corda":{"tempo":[1.1,0.4,1],"mid":[-4,56,{"t":168}]},"g-affondi-db":{"tempo":[0.9,0.4,1]},"c-curl-db":{"tempo":[1.3,0.4,1]},"g-stepup-db":{"tempo":[1,0.4,1]},"g-hipthrust-db":{"tempo":[2,0.4,1],"mid":[88.7,88.7,{"h":[183,175],"t":266.1,"th":102,"sh":7}]},"g-rdl-db":{"tempo":[1,0.4,1],"mid":[0,0,{"t":152,"h":[133,122],"th":15.2,"sh":-5.8}]},"sm-rdl":{"tempo":[1.3,0.4,1.4],"mid":[0,0,{"t":148.9,"h":[129,122],"th":17.1,"sh":-6.3}]},"g-split":{"tempo":[3,0.4,1],"mid":[0,0,{"t":177.3,"h":[135,127],"th":18.4,"sh":-49.6}]},"cl-pushup-ginocchia":{"tempo":[3,0.4,0.8],"mid":[-7.2,-2.7,{"h":[150,182],"t":92,"th":-66,"sh":30}]},"g-bulgaro":{"tempo":[0.8,0.4,3],"mid":[0,0,{"t":176.5,"h":[140,128],"th":27.3,"sh":-54.1}]},"b-row-db-panca":{"tempo":[1.3,0.4,1],"mid":[-68.6,-34.4,{"t":115,"th":14,"sh":-6}]},"t-over-db":{"tempo":[1.6,0.4,0.9],"mid":[175,-159.9,{}]},"sm-row-inverso":{"tempo":[1.7,0.4,1.6],"mid":[135.4,187.6,{"h":[150,173],"t":241,"th":71,"sh":71}]},"t-push-barra":{"tempo":[1.1,0.4,1.2],"mid":[-4,20.7,{"t":168}]},"g-leg-curl":{"tempo":[1.1,0.4,1.1],"mid":[48,112,{"t":170,"sh":-25,"th":0}]},"g-hip-thrust":{"tempo":[3,0.4,1],"mid":[0,0,{"h":[183,171],"t":270.5,"th":99,"sh":2.5}]},"p-floor-press-db":{"tempo":[0.6,0.4,1.1],"mid":[123.5,162.8,{"h":[150,197],"t":270,"th":125,"sh":40}]},"cl-bulgaro":{"tempo":[1.2,0.4,0.9],"mid":[0,0,{"t":177.5,"h":[140,122],"th":18.9,"sh":-15.5}]},"cl-affondo":{"tempo":[2,0.4,1.2],"mid":[0,0,{"t":175.2,"h":[135,142],"th":43.1,"sh":-13.3}]},"cl-jump-squat":{"tempo":[1,0.4,1.2],"mid":[20,20,{"t":155.1,"h":[118,156],"th":67.5,"sh":-27.5,"lift":13}]},"cl-squat":{"tempo":[1.5,0.4,1.8],"mid":[88,90,{"t":173,"h":[143,126],"th":14.3,"sh":-0.8}]},"cl-pistol":{"tempo":[1.5,0.4,1.4],"mid":[88,90,{"t":153.1,"h":[116,170],"th":89.8,"sh":40.3}]},"b-trazioni-elastico":{"tempo":[1.6,0.4,1.8],"mid":[111.6,194.1,{"t":180,"th":22,"sh":-88,"h":[154,125]}]},"b-trazioni-stretta":{"tempo":[0.6,0.4,1.3],"mid":[111.5,111.5,{"t":180,"th":22,"sh":-88,"h":[154,125]}]},"b-trazioni-neutra":{"tempo":[0.9,0.4,1],"mid":[99.4,201.4,{"t":180,"th":22,"sh":-88,"h":[154,125]}]},"c-chinup":{"tempo":[1.9,0.4,0.9],"mid":[66.9,211.9,{"t":180,"th":22,"sh":-88,"h":[152,139]}]},"cl-ponte":{"tempo":[1.4,0.4,0.9],"mid":[0,0,{"h":[150,194],"t":267.8,"th":121.9,"sh":41.8}]},"cl-pushup-diamante":{"tempo":[1.8,0.4,1.3],"mid":[-38.4,-7,{"h":[150,168],"t":92,"th":-58,"sh":-58}]},"cl-pushup-incl":{"tempo":[1.4,0.4,2.1],"mid":[-15.3,17.1,{"h":[150,155],"t":112,"th":-40,"sh":-40}]},"cl-pike":{"tempo":[1.3,0.4,1.5],"mid":[-23.6,25.4,{"h":[150,124],"t":50,"th":-100,"sh":-100}]},"cl-box-jump":{"tempo":[1.8,0.4,1.2],"mid":[12.9,12.9,{"t":150,"h":[112,163],"th":80,"sh":-15,"lift":13}]}};
   Object.entries(M).forEach(([id, m]) => { const e = EX.find(x => x.id === id); if (!e) return; if (!e.tempo) e.tempo = m.tempo; if (m.mid && e.fr.length === 2) e.fr = [e.fr[0], m.mid, e.fr[1]]; }); })();
+
+/* ===== Reformer (lettino Pilates): attrezzo nuovo, 19 esercizi classici. Il carrello scorre con il corpo, le molle fanno da carico.
+   Le pose si calcolano qui con la stessa geometria del motore 3D (coscia 46, tibia 48, braccio 35, avambraccio 34, busto 58):
+   piedi o mani sulla barra, ginocchia e bacino sul carrello. ex.ref descrive il lettino (vedi figure3d.js, refPrims). ===== */
+(() => {
+  if (EX.some(e => e.id === 'rf-footwork')) return;
+  const U = {TH: 46, SH: 48, UA: 35, FA: 34, TL: 58}, D = Math.PI / 180;
+  const dir = a => [Math.sin(a * D), Math.cos(a * D)], add = (p, l, a) => { const d = dir(a); return [p[0] + l * d[0], p[1] + l * d[1]]; };
+  const ang = (p, q) => Math.atan2(q[0] - p[0], q[1] - p[1]) / D;   // q = p + L*dir(ang)
+  const ik2 = (a, b, l1, l2, pick) => { const dx = b[0] - a[0], dy = b[1] - a[1], d0 = Math.hypot(dx, dy), d = Math.min(d0, l1 + l2 - .01), x = (l1 * l1 - l2 * l2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - x * x)), ux = dx / d0, uy = dy / d0;
+    const c1 = [a[0] + x * ux - h * uy, a[1] + x * uy + h * ux], c2 = [a[0] + x * ux + h * uy, a[1] + x * uy - h * ux]; return pick(c1, c2); };
+  const up = (c1, c2) => c1[1] < c2[1] ? c1 : c2, back = (c1, c2) => c1[0] < c2[0] ? c1 : c2;
+  const legTo = (H, A) => { const K = ik2(H, A, U.TH, U.SH, up); return [ang(H, K), ang(K, A)]; };
+  const pts = f => { const q = Object.assign({ft: 0, cu: 0}, f[2]), H = q.h, S = q.cu ? add(add(H, U.TL / 2, q.t + q.cu), U.TL / 2, q.t) : add(H, U.TL, q.t), K = add(H, U.TH, q.th), A = add(K, U.SH, q.sh), E = add(S, U.UA, f[0]), W = add(E, U.FA, f[1]);
+    const fd = q.sh + 74 + q.ft; return {H, S, K, A, W, toe: add(add(A, 15, fd), 8, q.sh), heel: add(add(A, 2, fd), 9, q.sh)}; };
+  const RX = d => d > 0 ? 32 : 268;   // lettino centrato sulla pedana: montanti a x=32 (barra a destra) o a x=268 (barra a sinistra)
+  const r1 = v => Math.round(v * 10) / 10;
+  const shift = (fr, dx) => fr.map(f => [r1(f[0]), r1(f[1]), Object.fromEntries(Object.entries(Object.assign({}, f[2], {h: [f[2].h[0] + dx, f[2].h[1]]}, f[2].rlx !== undefined ? {rlx: f[2].rlx + dx} : {})).map(([k, v]) => [k, Array.isArray(v) ? v.map(r1) : typeof v === 'number' ? r1(v) : v]))]);
+  const onBar = (fr, d, part) => { const c = pts(fr[0])[part]; return {fr: shift(fr, RX(d) + 207 * d - c[0]), bar: r1(c[1])}; };   // la barra va dove il primo fotogramma la tocca (avampiede, tallone)
+  const atU = (fr, d, part, u) => shift(fr, RX(d) + u * d - pts(fr[0])[part][0]);   // la parte del corpo del primo fotogramma al punto u del lettino (montanti = 0, barra = 207)
+  const HOME = 70;   // bordo del carrello verso i montanti quando l'esercizio parte
+  const CT = {kneel: [0, .85, 5.0], stand: [0, .85, 5.0], seat: [0, .62, 4.7]};
+  const MOLLE = 'Le molle sono il carico: per le spinte con le gambe e le tirate con le braccia più molle = più fatica; negli esercizi in appoggio sulla barra (plank, ginocchia, elephant) meno molle = carrello più instabile, quindi più lavoro per l’addome.';
+  const R = o => { EX.push(Object.assign({a: 'Reformer', tipo: 'core', fin: ['tonificare', 'massa'], benchSt: 'none', prio: false, tempo: [1.8, .4, 2.2], ct: CT[o.st] || [0, .5, 4.6]}, o)); };
+  const LIE = {t: 270}, Y = {lie: 175, knee: 180, ank: 178, seat: 177};
+  const SUP = 'Sdraiati supino sul carrello, testa sul poggiatesta e spalle contro i poggiaspalle.';
+
+  // ---- supino, piedi sulla barra ----
+  [['rf-footwork', 'toe', 8, 'Footwork sulle punte (leg press al reformer)', 'reformer footwork toes', 'l’avampiede (la parte sotto le dita) sulla barra, talloni sollevati e fermi', 'Quadricipiti, glutei, polpacci', 'quadricipite femorale, grande gluteo, ischiocrurali, tricipite della sura (polpacci) che tiene i talloni alti'],
+   ['rf-footwork-talloni', 'heel', -12, 'Footwork sui talloni (leg press al reformer)', 'reformer footwork heels', 'i talloni sulla barra, dita dei piedi rivolte in alto', 'Glutei, femorali, quadricipiti', 'grande gluteo, ischiocrurali, quadricipite femorale']].forEach(([id, c, ft, n, yq, piedi, m, mm]) => {
+    const B = onBar([[92, 92, {...LIE, h: [0, Y.lie], th: 160, sh: 62, ft}], [92, 92, {...LIE, h: [0, Y.lie], th: 103, sh: 103, ft}]], 1, c);
+    R({id, n, yq, g: 'gambe', m, mm, st: 'lie', fr: B.fr, tempo: [1.4, .3, 1.8], molle: 'pesanti (es. 3 rosse o 3 rosse + 1 blu)',
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, fix: 'A', bar: B.bar, cap: 'Sdraiato sul carrello, piedi fermi sulla barra: si muove il carrello'},
+      cap: ['Ginocchia piegate, carrello vicino alla barra', 'Gambe distese: il carrello si è allontanato, le molle sono in tensione'],
+      trj: 'I piedi restano fermi sulla barra: sono il bacino e il carrello a scorrere indietro, in linea retta, mentre le gambe si distendono.',
+      set: 'Barra dei piedi in posizione alta. ' + SUP + ' Appoggia ' + piedi + ', piedi alla larghezza del bacino (o talloni uniti e punte aperte, in “V”).',
+      pos: 'Bacino neutro (né schiacciato né inarcato), braccia lungo i fianchi con i palmi sul carrello, ginocchia in linea con le punte.',
+      ese: ['Espira e spingi la barra: distendi le gambe fino in fondo senza bloccare le ginocchia.', 'Inspira e torna piano, controllando il carrello fino quasi a fermarlo.', 'Il bacino resta fermo: lavorano solo le gambe.'],
+      cue: 'Allontana il carrello con il respiro e “accompagnalo” al ritorno: non farlo sbattere.',
+      why: 'È il riscaldamento classico del reformer e una leg press sdraiata senza carico sulla schiena: allinea anche, ginocchia e piedi e scalda tutta la gamba. ' + MOLLE,
+      err: ['Lasciar sbattere il carrello al ritorno', 'Iperestendere le ginocchia in fondo', 'Bacino che si inarca o si solleva', 'Ginocchia che cadono verso l’interno']});
+  });
+  { const B = onBar([[92, 92, {...LIE, h: [0, Y.lie], th: 103, sh: 103, ft: -22}], [92, 92, {...LIE, h: [0, Y.lie], th: 103, sh: 103, ft: 24}]], 1, 'toe');
+    R({id: 'rf-polpacci', n: 'Polpacci al reformer (alzate dei talloni)', yq: 'reformer heel raises calves', g: 'gambe', m: 'Polpacci', mm: 'gastrocnemio, soleo; quadricipite fermo in tenuta', st: 'lie', fr: B.fr, tempo: [1.1, .5, 1.6], molle: 'pesanti (es. 3 rosse)',
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, fix: 'F', bar: B.bar, cap: 'Gambe distese, avampiede sulla barra: si muove solo la caviglia'},
+      cap: ['Gambe distese, talloni scesi sotto la barra', 'Talloni spinti in alto: il carrello si allontana di qualche centimetro'],
+      set: 'Barra alta. ' + SUP + ' Piedi sulla barra con l’avampiede, poi spingi il carrello fino a gambe distese.',
+      pos: 'Gambe distese ma non bloccate, bacino fermo, caviglie allineate (non cadono verso l’esterno).',
+      ese: ['Lascia scendere i talloni sotto la barra: il polpaccio si allunga.', 'Spingi sull’avampiede e alza i talloni il più possibile.', 'Fermati 1 secondo in alto e scendi lento.'],
+      cue: 'Solo le caviglie si muovono: ginocchia e bacino restano immobili.',
+      why: 'Il polpaccio lavora in tutta l’escursione, dall’allungamento sotto la barra alla spinta in alto, con un carico che si regola con le molle e senza peso sulla colonna. ' + MOLLE,
+      err: ['Piegare le ginocchia per far muovere il carrello', 'Movimento corto: talloni che non scendono', 'Caviglie che si girano in fuori']}); }
+  { const f0 = [92, 92, {...LIE, h: [0, Y.lie], th: 152, sh: 58, ft: 6}], P0 = pts(f0), H1 = add(P0.S, -U.TL, 300), [th1, sh1] = legTo(H1, P0.A);
+    const B = onBar([f0, [84, 84, {t: 300, h: H1, th: th1, sh: sh1, ft: 6 + 58 - sh1}]], 1, 'toe');
+    R({id: 'rf-ponte', n: 'Ponte sul reformer (bridging)', yq: 'reformer bridge pilates', g: 'gambe', g2: ['addome'], m: 'Glutei, femorali', mm: 'grande gluteo, ischiocrurali, erettori spinali; addome che tiene il bacino', st: 'lie', fr: B.fr, molle: 'medie o pesanti (es. 2 rosse)',
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, bar: B.bar, cap: 'Spalle sul carrello, piedi sulla barra: sale il bacino'},
+      cap: ['Sdraiato, ginocchia piegate, piedi sulla barra', 'Bacino alto: spalle, anche e ginocchia in linea'],
+      trj: 'Il bacino sale arrotolando la colonna una vertebra alla volta e scende allo stesso modo; il carrello resta quasi fermo.',
+      set: 'Barra alta. ' + SUP + ' Piedi sulla barra (avampiede o talloni), alla larghezza del bacino.',
+      pos: 'Braccia lungo i fianchi, collo lungo, peso sulle spalle e non sul collo.',
+      ese: ['Espira e solleva il bacino arrotolando la colonna, fino ad avere spalle, anche e ginocchia in linea.', 'Tieni 1-2 secondi stringendo i glutei.', 'Inspira e scendi lento, appoggiando una vertebra alla volta.', 'Variante più dura: in alto spingi e richiama il carrello di pochi centimetri.'],
+      cue: 'Spingi i talloni verso la barra come per allontanarla: lavorano glutei e femorali, non la schiena.',
+      why: 'Rinforza glutei e femorali e insegna a muovere la colonna in modo controllato; con le molle il carrello tende a scappare e i femorali devono tenerlo. ' + MOLLE,
+      err: ['Salire troppo inarcando la zona lombare', 'Peso sul collo', 'Carrello che scappa indietro', 'Ginocchia che si aprono']}); }
+
+  // ---- supino con le cinghie alle mani ----
+  { const fr = atU([[180, 180, {...LIE, h: [0, Y.lie], th: 180, sh: 90}], [100, 100, {t: 250, cu: 20, h: [0, Y.lie], th: 132, sh: 132}]], 1, 'S', HOME + 26);
+    R({id: 'rf-hundred', n: 'Hundred al reformer', yq: 'reformer hundred pilates', g: 'addome', m: 'Addominali', mm: 'retto addominale, trasverso, obliqui; flessori dell’anca in tenuta', st: 'lie', eq: 'cable', presa: 'neu', isom: true, hold: '100 battiti (10 respiri)', fin: ['tonificare'], molle: 'medie (es. 1 rossa + 1 blu)', fr,
+      ref: {x: RX(1), d: 1, on: 'H', off: 84, bar: 160, cap: 'Sdraiato, cinghie alle mani: testa e spalle sollevate'},
+      cap: ['Sdraiato, gambe a tavolino, braccia verso il soffitto con le cinghie', 'Testa e spalle staccate, gambe tese a 45°, braccia basse che “battono”'],
+      set: SUP + ' Prendi le due cinghie, braccia distese verso il soffitto, gambe a tavolino (ginocchia sopra le anche, tibie orizzontali).',
+      pos: 'Zona lombare appoggiata, mento leggermente verso il petto, sguardo verso le ginocchia.',
+      ese: ['Espira: porta le braccia lungo i fianchi, stacca testa e spalle e distendi le gambe a circa 45°.', 'Batti le braccia su e giù di pochi centimetri: inspira per 5 battiti, espira per 5.', 'Continua per 10 respiri (100 battiti), poi piega le gambe e appoggia la testa.'],
+      cue: 'Le braccia battono veloci ma il busto resta immobile: l’addome tiene, il collo è rilassato.',
+      why: 'L’esercizio simbolo del Pilates: resistenza degli addominali in tenuta, con le cinghie che fanno lavorare anche le braccia. Se la schiena si stacca, tieni le gambe a tavolino.',
+      err: ['Zona lombare che si stacca dal carrello', 'Tirare il collo con la testa', 'Gambe troppo basse per la tua forza', 'Trattenere il respiro']}); }
+  { const fr = atU([[180, 180, {...LIE, h: [0, Y.lie], th: 180, sh: 90}], [95, 95, {...LIE, h: [-14, Y.lie], th: 180, sh: 90}]], 1, 'S', HOME + 26);
+    R({id: 'rf-braccia-giu', n: 'Braccia in giù con le cinghie, supino (dorsali)', yq: 'reformer supine arms pull down straps', g: 'schiena', g2: ['tricipiti'], m: 'Gran dorsale, tricipiti', mm: 'gran dorsale, grande rotondo, capo lungo del tricipite, deltoide posteriore', st: 'lie', eq: 'cable', presa: 'neu', molle: 'leggere (es. 1 rossa o 1 blu)', fr,
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, bar: 160, cap: 'Sdraiato, cinghie alle mani: le braccia scendono ai fianchi'},
+      cap: ['Braccia verso il soffitto, cinghie in tensione', 'Braccia lungo i fianchi: il carrello è scivolato verso i montanti'],
+      trj: 'Le mani disegnano un arco dal soffitto ai fianchi con le braccia tese; il carrello scivola un po’ verso i montanti.',
+      set: SUP + ' Una cinghia per mano, braccia distese verso il soffitto, gambe a tavolino o piedi appoggiati sulla barra.',
+      pos: 'Spalle lontane dalle orecchie, gomiti morbidi ma fermi, bacino neutro.',
+      ese: ['Espira e porta le braccia tese fino ai fianchi, premendo le cinghie verso il carrello.', 'Fermati un attimo con le scapole basse.', 'Inspira e risali lento fino a braccia verticali.'],
+      cue: 'Spingi con le ascelle, non con le mani: le scapole scendono verso il bacino.',
+      why: 'Il gran dorsale lavora come in un pullover, sdraiato e senza peso sulla schiena; il tricipite tiene il gomito disteso.',
+      err: ['Piegare i gomiti', 'Inarcare la schiena quando le braccia salgono', 'Spalle che salgono verso le orecchie']}); }
+
+  // ---- supino con i piedi nelle cinghie ----
+  { const fr = atU([[92, 92, {...LIE, h: [0, Y.lie], th: 155, sh: 100}], [92, 92, {...LIE, h: [-24, Y.lie], th: 128, sh: 128}]], 1, 'S', HOME + 26);
+    R({id: 'rf-rana', n: 'Rana con i piedi nelle cinghie (frog)', yq: 'reformer frog feet in straps', g: 'gambe', g2: ['addome'], m: 'Adduttori, glutei, femorali', mm: 'adduttori, grande gluteo, ischiocrurali; addome che tiene il bacino', st: 'lie', eq: 'cable', cp: 'ankle', ko: 16, molle: 'medie (es. 1 rossa + 1 blu)', fr,
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, bar: 160, cap: 'Sdraiato, cinghie ai piedi'},
+      cap: ['Talloni uniti, ginocchia aperte (rana)', 'Gambe distese a 45°, unite: il carrello si è avvicinato ai montanti'],
+      trj: 'I piedi partono vicini al bacino e si allontanano in diagonale fino a gambe tese e unite; le ginocchia si chiudono durante la spinta.',
+      set: SUP + ' Infila i piedi nelle cinghie (sotto l’arco), talloni uniti, ginocchia aperte all’altezza delle spalle.',
+      pos: 'Zona lombare appoggiata, bacino fermo, braccia lungo i fianchi.',
+      ese: ['Espira e distendi le gambe in diagonale stringendo l’interno coscia, fino a gambe unite.', 'Inspira e torna in rana senza far salire le ginocchia oltre le anche.', 'Tieni il bacino immobile per tutto il movimento.'],
+      cue: 'Spremi i talloni l’uno contro l’altro mentre spingi: si accendono adduttori e glutei.',
+      why: 'Lavora l’interno coscia e i glutei con le gambe sospese: il bacino deve restare fermo, quindi lavora anche l’addome profondo.',
+      err: ['Gambe troppo basse che staccano la schiena', 'Bacino che dondola', 'Ginocchia che tornano troppo verso il petto']}); }
+  { const fr = atU([[92, 92, {...LIE, h: [0, Y.lie], th: 178, sh: 178}], [92, 92, {...LIE, h: [-16, Y.lie], th: 128, sh: 128}]], 1, 'S', HOME + 26);
+    R({id: 'rf-gambe-giu', n: 'Gambe in giù con i piedi nelle cinghie', yq: 'reformer leg lowers feet in straps', g: 'addome', g2: ['gambe'], m: 'Addominali, femorali, adduttori', mm: 'retto addominale e trasverso (tengono il bacino), ischiocrurali, adduttori, grande gluteo', st: 'lie', eq: 'cable', cp: 'ankle', fin: ['tonificare'], molle: 'medie (es. 1 rossa + 1 blu)', fr,
+      ref: {x: RX(1), d: 1, on: 'S', off: 26, bar: 160, cap: 'Sdraiato, cinghie ai piedi, gambe tese'},
+      cap: ['Gambe tese verso il soffitto, unite', 'Gambe abbassate a 45°: schiena ancora appoggiata'],
+      trj: 'Le gambe tese scendono ad arco dalla verticale fino a circa 45° e risalgono; il carrello si sposta poco.',
+      set: SUP + ' Piedi nelle cinghie, gambe tese verso il soffitto, unite e leggermente ruotate in fuori.',
+      pos: 'Zona lombare appoggiata per tutto il movimento, braccia lungo i fianchi.',
+      ese: ['Inspira e abbassa le gambe tese fin dove la schiena resta appoggiata.', 'Espira e riporta le gambe in verticale tirando le cinghie con i femorali.', 'Varianti: cerchi con le gambe, aperture e chiusure.'],
+      cue: 'Scendi solo fin dove riesci a tenere la schiena incollata al carrello.',
+      why: 'Allena l’addome a tenere fermo il bacino mentre le gambe pesano, e i femorali a tirare le cinghie verso il basso.',
+      err: ['Scendere troppo inarcando la schiena', 'Ginocchia piegate', 'Bacino che si muove']}); }
+
+  // ---- seduto ----
+  { const H = [0, Y.seat], q = {t: 180, cu: 25, h: H}, S = pts([0, 0, q]).S, hand = [H[0] - 6, H[1] + 7], E = ik2(S, hand, U.UA, U.FA, back), ua = ang(S, E), fa = ang(E, hand);
+    const B = onBar([[ua, fa, {...q, th: 140, sh: 45, ft: 4}], [ua, fa, {...q, th: 91, sh: 91, ft: 4}]], 1, 'toe');
+    R({id: 'rf-stomach', n: 'Stomach massage (seduto, piedi sulla barra)', yq: 'reformer stomach massage', g: 'gambe', g2: ['addome'], m: 'Quadricipiti, addominali', mm: 'quadricipite, glutei, polpacci; retto addominale e trasverso che tengono la schiena arrotondata', st: 'seat', fr: B.fr, molle: 'medie o pesanti (es. 2-3 rosse)',
+      ref: {x: RX(1), d: 1, on: 'H', off: 70, fix: 'A', bar: B.bar, cap: 'Seduto sul carrello, schiena arrotondata, piedi sulla barra'},
+      cap: ['Seduto in fondo al carrello, ginocchia piegate, avampiedi sulla barra', 'Gambe distese: la schiena resta arrotondata e ferma'],
+      set: 'Barra alta. Siediti sul carrello verso la barra, avampiedi sulla barra con i talloni uniti, mani sul bordo del carrello accanto al bacino.',
+      pos: 'Schiena arrotondata a “C”, addome in dentro, spalle basse.',
+      ese: ['Espira e spingi la barra distendendo le gambe, senza muovere il busto.', 'In fondo alza i talloni e poi lasciali scendere sotto la barra (facoltativo).', 'Inspira e torna piegando le gambe, il busto sempre fermo.'],
+      cue: 'Le gambe spingono, l’addome resta “scavato”: il busto non si sposta avanti e indietro.',
+      why: 'Unisce una spinta con le gambe al controllo dell’addome, che deve tenere la colonna arrotondata e immobile.',
+      err: ['Dondolare con il busto', 'Spalle alte e tese', 'Schiena che si raddrizza o crolla all’indietro']}); }
+  { const fr = atU([[82, 82, {t: 180, h: [0, Y.seat], th: 145, sh: 25, ft: 10}], [-35, 75, {t: 180, h: [12, Y.seat], th: 145, sh: 25, ft: 10}]], -1, 'A', HOME + 30);
+    R({id: 'rf-rematore', n: 'Rematore seduto con le cinghie', yq: 'reformer seated row straps', g: 'schiena', g2: ['bicipiti'], m: 'Dorsali, romboidi, bicipiti', mm: 'gran dorsale, romboidi, trapezio medio, deltoide posteriore, bicipiti', st: 'seat', eq: 'cable', presa: 'neu', lin: true, molle: 'leggere (es. 1 rossa o 1 blu)', fr,
+      ref: {x: RX(-1), d: -1, on: 'A', off: 30, py: 140, cap: 'Seduto verso i montanti, piedi contro i poggiaspalle'},
+      cap: ['Seduto, braccia avanti con le cinghie in tensione', 'Gomiti dietro, mani ai fianchi: il carrello è scivolato verso i montanti'],
+      set: 'Siediti sul carrello con la faccia verso i montanti, ginocchia piegate e piedi appoggiati contro i poggiaspalle. Una cinghia per mano, braccia avanti.',
+      pos: 'Busto dritto, seduto sulle ossa del bacino, petto aperto, spalle basse.',
+      ese: ['Espira e porta i gomiti indietro vicino ai fianchi, avvicinando le scapole.', 'Fermati 1 secondo.', 'Inspira e distendi le braccia lentamente, senza far tornare il carrello di colpo.'],
+      cue: 'Tira con i gomiti e “apri” il petto: il busto non va indietro.',
+      why: 'Un rematore con un carico leggero e progressivo che insegna a usare le scapole; il busto deve stare dritto da solo, senza schienale.',
+      err: ['Inclinarsi indietro per tirare', 'Spalle che salgono', 'Polsi piegati']}); }
+
+  // ---- in ginocchio sul carrello, faccia verso i montanti ----
+  const KN = {t: 180, th: 0, sh: -90, ft: 20};
+  const kneel = (a0, a1) => atU([[a0[0], a0[1], {...KN, h: [0, Y.knee - U.TH]}], [a1[0], a1[1], {...KN, h: [9, Y.knee - U.TH]}]], -1, 'K', HOME + 30);
+  const KSET = 'In ginocchio sul carrello con la faccia verso i montanti, ginocchia dietro ai poggiaspalle alla larghezza del bacino. Una cinghia per mano.';
+  R({id: 'rf-chest-exp', n: 'Chest expansion in ginocchio', yq: 'reformer chest expansion kneeling', g: 'schiena', g2: ['spalle', 'tricipiti'], m: 'Dorsali, deltoidi posteriori, tricipiti', mm: 'gran dorsale, deltoide posteriore, capo lungo del tricipite, romboidi; addome e glutei tengono il busto', st: 'kneel', eq: 'cable', presa: 'neu', molle: 'leggere (es. 1 rossa o 1 blu)', fr: kneel([30, 30], [-35, -35]),
+    ref: {x: RX(-1), d: -1, on: 'K', off: 30, py: 140, cap: 'In ginocchio sul carrello, busto dritto'},
+    cap: ['Braccia avanti e in basso, cinghie in tensione', 'Braccia tese dietro i fianchi, petto aperto'],
+    trj: 'Le mani passano ad arco dal davanti al dietro dei fianchi, braccia sempre tese.',
+    set: KSET + ' Braccia tese davanti alle cosce.', pos: 'Busto dritto, glutei stretti, bacino sopra le ginocchia, addome attivo.',
+    ese: ['Espira e porta le braccia tese dietro i fianchi aprendo il petto.', 'Tieni e gira la testa a destra e a sinistra (facoltativo).', 'Inspira e torna lentamente con le braccia avanti.'],
+    cue: 'Il busto resta una colonna: si muovono solo le braccia, il carrello non deve tirarti in avanti.',
+    why: 'Lavora la parte posteriore delle spalle e i dorsali e corregge la postura “chiusa”; in ginocchio sul carrello che scorre, tutto il tronco lavora per stare fermo.',
+    err: ['Inarcare la schiena', 'Piegare i gomiti', 'Sedersi sui talloni', 'Spalle in avanti']});
+  R({id: 'rf-curl', n: 'Curl dei bicipiti in ginocchio con le cinghie', yq: 'reformer biceps curl kneeling', g: 'bicipiti', m: 'Bicipiti', mm: 'bicipite brachiale, brachiale; deltoide anteriore tiene le braccia alte', st: 'kneel', eq: 'cable', presa: 'sup', molle: 'leggere (es. 1 blu o 1 gialla)', fr: kneel([86, 86], [86, 168]),
+    ref: {x: RX(-1), d: -1, on: 'K', off: 30, py: 140, cap: 'In ginocchio sul carrello, braccia avanti all’altezza delle spalle'},
+    cap: ['Braccia tese avanti all’altezza delle spalle', 'Gomiti fermi, mani verso la fronte'],
+    set: KSET + ' Palmi verso l’alto, braccia tese avanti all’altezza delle spalle.', pos: 'Busto dritto, gomiti fermi alla stessa altezza per tutto l’esercizio.',
+    ese: ['Espira e piega i gomiti portando le mani verso la fronte.', 'Stringi i bicipiti 1 secondo.', 'Inspira e distendi lentamente le braccia senza abbassare i gomiti.'],
+    cue: 'I gomiti sono fermi in aria: si muovono solo gli avambracci.',
+    why: 'Curl con un carico che cresce verso la fine, mentre tutto il tronco lavora per stare in equilibrio sul carrello.',
+    err: ['Abbassare i gomiti', 'Inclinarsi indietro', 'Polsi piegati']});
+  R({id: 'rf-tricipiti', n: 'Tricipiti in ginocchio con le cinghie (kickback)', yq: 'reformer triceps kneeling straps', g: 'tricipiti', m: 'Tricipiti', mm: 'tricipite brachiale (tutti e tre i capi), deltoide posteriore in tenuta', st: 'kneel', eq: 'cable', presa: 'neu', molle: 'leggere (es. 1 blu o 1 gialla)', fr: kneel([-25, 70], [-25, -25]),
+    ref: {x: RX(-1), d: -1, on: 'K', off: 30, py: 140, cap: 'In ginocchio sul carrello, gomiti indietro e fermi'},
+    cap: ['Gomiti piegati e indietro, mani ai fianchi', 'Braccia distese dietro'],
+    set: KSET + ' Gomiti piegati e portati indietro, vicino ai fianchi.', pos: 'Busto dritto o appena inclinato in avanti, gomiti fermi.',
+    ese: ['Espira e distendi i gomiti portando le mani indietro.', 'Stringi i tricipiti 1 secondo.', 'Inspira e torna lentamente, i gomiti restano dove sono.'],
+    cue: 'Gomiti incollati in alto dietro di te: lavora solo l’avambraccio.',
+    why: 'Isola il tricipite con un carico leggero e continuo; stare in ginocchio sul carrello che scorre accende anche addome e glutei.',
+    err: ['Gomiti che scendono e salgono', 'Busto che oscilla', 'Spalle in avanti']});
+  // in ginocchio, schiena ai montanti
+  { const fr = atU([[-60, 80, {...KN, h: [0, Y.knee - U.TH]}], [88, 88, {...KN, h: [-10, Y.knee - U.TH]}]], 1, 'K', HOME + 74);
+    R({id: 'rf-press', n: 'Chest press in ginocchio con le cinghie', yq: 'reformer chest press kneeling', g: 'petto', g2: ['tricipiti', 'spalle'], m: 'Pettorali, tricipiti, deltoidi anteriori', mm: 'gran pettorale, tricipite, deltoide anteriore, dentato anteriore; addome che tiene il busto', st: 'kneel', eq: 'cable', presa: 'pro', lin: true, molle: 'leggere o medie (es. 1 rossa)', fr,
+      ref: {x: RX(1), d: 1, on: 'K', off: 74, py: 140, cap: 'In ginocchio sul carrello, schiena verso i montanti'},
+      cap: ['Mani al petto, gomiti indietro', 'Braccia distese avanti all’altezza del petto'],
+      set: 'In ginocchio sul carrello con la schiena verso i montanti (faccia verso la barra), piedi verso i poggiaspalle. Una cinghia per mano, mani all’altezza del petto.',
+      pos: 'Busto dritto, glutei stretti, gomiti all’altezza del petto o poco sotto.',
+      ese: ['Espira e spingi le mani avanti fino a braccia tese.', 'Avvicina un po’ le mani alla fine (come un abbraccio).', 'Inspira e torna lentamente con le mani al petto.'],
+      cue: 'Spingi lontano senza farti tirare indietro dal carrello: il busto è una colonna.',
+      why: 'Una spinta di petto fatta in ginocchio sul carrello che scorre: oltre a pettorali e tricipiti lavora tutto il tronco per restare in equilibrio.',
+      err: ['Inarcare la schiena', 'Spalle che salgono', 'Mani troppo alte']}); }
+
+  // ---- in appoggio sulla barra ----
+  { const K0 = [0, Y.knee], H0 = add(K0, -U.TH, 15), t0 = 122, S0 = add(H0, U.TL, t0), ua = 32, W = add(S0, U.UA + U.FA, ua), K1 = [K0[0] - 26, Y.knee], H1 = ik2(K1, S0, U.TH, U.TL, up);
+    const fr = shift([[ua, ua, {t: t0, h: H0, th: 15, sh: -90, ft: 20}], [ua, ua, {t: ang(H1, S0), h: H1, th: ang(H1, K1), sh: -90, ft: 20}]], RX(1) + 207 - W[0]);
+    R({id: 'rf-knee-stretch', n: 'Knee stretch (ginocchia sul carrello, mani sulla barra)', yq: 'reformer knee stretch round back', g: 'addome', g2: ['gambe'], m: 'Core, glutei, quadricipiti', mm: 'trasverso e retto dell’addome (tengono la schiena), grande gluteo, quadricipite, flessori dell’anca; spalle in tenuta', st: 'kneel', fr, tempo: [1.0, .2, 1.2], molle: 'medie (es. 2 rosse); meno molle = più difficile', fin: ['tonificare'],
+      ref: {x: RX(1), d: 1, on: 'K', off: 74, bar: r1(W[1] + 6), cap: 'In ginocchio sul carrello, mani sulla barra, schiena arrotondata'},
+      cap: ['Ginocchia sotto il bacino, piedi contro i poggiaspalle', 'Ginocchia spinte indietro: il busto resta fermo sopra la barra'],
+      trj: 'Le ginocchia spingono il carrello indietro e lo richiamano con un ritmo vivace; spalle e testa restano ferme sopra la barra.',
+      set: 'Barra alta. In ginocchio sul carrello verso la barra, piedi contro i poggiaspalle, mani sulla barra alla larghezza delle spalle.',
+      pos: 'Schiena arrotondata a “C”, testa in linea, addome in dentro, braccia distese.',
+      ese: ['Spingi il carrello indietro con le ginocchia, usando le anche.', 'Richiamalo subito con l’addome, senza farlo sbattere.', 'Ripeti con ritmo (10 volte), poi prova con la schiena piatta.'],
+      cue: 'Il busto è una statua: si muovono solo le cosce.',
+      why: 'Allena l’addome a tenere ferma la colonna mentre le gambe si muovono veloci: ottimo per il controllo del tronco e per glutei e quadricipiti.',
+      err: ['Dondolare con le spalle', 'Schiena che crolla', 'Far sbattere il carrello']}); }
+  { const W = [0, 152], pose = ua => { const S = add(W, -(U.UA + U.FA), ua), t = Math.acos((S[1] - (Y.ank - 3)) / 152) / D, H = add(S, -U.TL, t); return [ua, ua, {t, h: H, th: t - 180, sh: t - 180, ft: 30}]; };
+    const fr = shift([pose(4), pose(34)], RX(1) + 207 - W[0]);
+    R({id: 'rf-long-stretch', n: 'Long stretch (plank sul reformer)', yq: 'reformer long stretch plank', g: 'addome', g2: ['spalle', 'petto'], m: 'Core, deltoidi anteriori, pettorali', mm: 'trasverso, retto e obliqui dell’addome, deltoide anteriore, gran pettorale, dentato anteriore, glutei', st: 'stand', fr, tempo: [1.6, .4, 1.8], molle: 'leggere (es. 1 rossa + 1 blu); meno molle = più difficile', fin: ['tonificare'],
+      ref: {x: RX(1), d: 1, on: 'A', off: 28, bar: r1(W[1] + 6), cap: 'Plank: mani sulla barra, piedi contro i poggiaspalle'},
+      cap: ['Plank con le spalle sopra le mani', 'Carrello spinto indietro: il corpo resta una linea dritta'],
+      trj: 'Il corpo intero si sposta indietro come una tavola e torna avanti; le mani restano ferme sulla barra.',
+      set: 'Barra alta. Mani sulla barra alla larghezza delle spalle, piedi sul carrello con i talloni contro i poggiaspalle, corpo in plank.',
+      pos: 'Testa, spalle, bacino e talloni in linea; glutei stretti; spalle lontane dalle orecchie.',
+      ese: ['Inspira e spingi il carrello indietro portando le spalle oltre le mani, il corpo sempre dritto.', 'Espira e riporta il carrello avanti fino ad avere le spalle sopra le mani.', 'Fai 4-6 ripetizioni lente.'],
+      cue: 'Muovi il corpo come una tavola: il bacino non sale e non scende.',
+      why: 'Un plank in movimento: addome e spalle lavorano molto più che nel plank fermo, perché il carrello scivola e va controllato.',
+      err: ['Bacino che cade', 'Spalle che salgono', 'Andare troppo indietro perdendo la linea']}); }
+  { const W = [0, 152], pose = (th, dxA) => { const A = [dxA, Y.ank], H = add(A, -(U.TH + U.SH), th), t = Math.acos((W[1] - H[1]) / 127) / D, Wx = H[0] + 127 * Math.sin(t * D); return {f: [t, t, {t, h: H, th, sh: th, ft: 16 - th}], Wx}; };
+    const p0 = pose(-12, 0), p1 = pose(-30, p0.Wx - pose(-30, 0).Wx), fr = shift([p0.f, p1.f], RX(1) + 207 - p0.Wx);
+    R({id: 'rf-elephant', n: 'Elephant (in piedi sul carrello, mani sulla barra)', yq: 'reformer elephant pilates', g: 'addome', g2: ['gambe'], m: 'Addominali, femorali, polpacci', mm: 'trasverso e retto dell’addome, ischiocrurali e polpacci in allungamento attivo, gran dorsale e spalle in tenuta', st: 'stand', fr, molle: 'medie (es. 1-2 rosse)', fin: ['tonificare'], ct: [0, .95, 5.4],
+      ref: {x: RX(1), d: 1, on: 'A', off: 30, bar: r1(W[1] + 6), cap: 'In piedi sul carrello, mani sulla barra, bacino alto'},
+      cap: ['Bacino alto, gambe tese, talloni contro i poggiaspalle', 'Gambe spinte indietro: il bacino resta alto e la schiena arrotondata'],
+      set: 'Barra alta. In piedi sul carrello, talloni contro i poggiaspalle, mani sulla barra: il corpo forma una “V” rovesciata con il bacino in alto.',
+      pos: 'Schiena arrotondata, testa tra le braccia, gambe tese, talloni giù.',
+      ese: ['Espira e spingi il carrello indietro con le gambe tese, usando l’addome.', 'Inspira e riportalo avanti senza muovere il busto.', 'Movimento piccolo e controllato (circa 30 cm).'],
+      cue: 'Il bacino resta sempre sopra i talloni: si muovono le gambe, non la schiena.',
+      why: 'Allunga in modo attivo femorali e polpacci mentre l’addome muove il carrello: unisce forza del tronco e mobilità della parte posteriore delle gambe.',
+      err: ['Piegare le ginocchia', 'Spingere con le braccia', 'Talloni che si sollevano', 'Schiena che si inarca']}); }
+
+  // ---- prono sul box lungo ----
+  { const fr = atU([[22, 22, {t: 90, h: [0, 157], th: -90, sh: -90, ft: 60}], [-84, -84, {t: 100, h: [12, 157], th: -90, sh: -90, ft: 60}]], -1, 'S', HOME + 14);
+    R({id: 'rf-pulling-straps', n: 'Pulling straps (prono sul box lungo)', yq: 'reformer pulling straps long box', g: 'schiena', g2: ['spalle'], m: 'Dorsali, deltoidi posteriori, erettori spinali', mm: 'gran dorsale, deltoide posteriore, romboidi, tricipite, erettori spinali (estensione della schiena)', st: 'lie', eq: 'cable', presa: 'neu', molle: 'leggere (es. 1 rossa o 1 blu)', fr,
+      ref: {x: RX(-1), d: -1, on: 'S', off: 14, box: true, py: 150, cap: 'Prono sul box lungo, testa verso i montanti'},
+      cap: ['Prono sul box, braccia giù verso le cinghie', 'Braccia tese lungo i fianchi, petto un po’ sollevato'],
+      trj: 'Le braccia tese passano dal basso davanti al box fino ai fianchi; alla fine il petto si stacca leggermente dal box.',
+      set: 'Box lungo sul carrello, appoggiato contro i poggiaspalle. Sdraiati a pancia in giù con il petto sul bordo del box verso i montanti, gambe distese e unite. Afferra le corde delle cinghie con le braccia tese verso il basso.',
+      pos: 'Gambe attive e unite, collo lungo, sguardo verso il basso.',
+      ese: ['Espira e porta le braccia tese verso i fianchi, sollevando un po’ il petto.', 'Tieni 1 secondo con le scapole basse.', 'Inspira e torna lentamente con le braccia avanti, appoggiando il petto.'],
+      cue: 'Le braccia tirano, la schiena si allunga: solleva lo sterno, non la testa.',
+      why: 'Rinforza la parte posteriore del corpo (dorsali, spalle posteriori ed erettori) in un’estensione controllata, utile contro la postura curva.',
+      err: ['Sollevare troppo il petto inarcando la zona lombare', 'Piegare i gomiti', 'Collo all’indietro']}); }
+
+  // ---- in piedi: affondo ----
+  { const A = [0, Y.ank - 1], Ab0 = [A[0] - 96, Y.ank], Ab1 = [A[0] - 136, Y.ank], H0 = [A[0] - 46, Y.ank - Math.sqrt(94 * 94 - 50 * 50) + 2], H1 = [A[0] - 62, 0]; H1[1] = H0[1] + 30;
+    const [th0, sh0] = legTo(H0, A), [th1, sh1] = legTo(H1, A);
+    const fr = atU([[88, 88, {t: 180, h: H0, th: th0, sh: sh0, rlx: Ab0[0], rly: Ab0[1]}], [88, 88, {t: 180, h: H1, th: th1, sh: sh1, rlx: Ab1[0], rly: Ab1[1]}]], 1, 'A', 226);
+    R({id: 'rf-affondo', n: 'Affondo sul reformer (piede avanti sulla pedana)', yq: 'reformer lunge front splits', g: 'gambe', m: 'Quadricipiti, glutei', mm: 'quadricipite e grande gluteo della gamba davanti, flessori dell’anca e quadricipite della gamba dietro in allungamento, medio gluteo per l’equilibrio', st: 'stand', fr, rl: [fr[0][2].rlx, fr[0][2].rly], one: false, molle: 'leggere (es. 1 rossa); meno molle = più instabile', fin: ['tonificare', 'massa'],
+      ref: {x: RX(1), d: 1, on: 'A2', off: 28, fix: 'A', bar: 194, cap: 'Piede avanti sulla pedana, piede dietro sul carrello (barra abbassata)'},
+      cap: ['Gambe divaricate, piede dietro contro i poggiaspalle', 'Carrello indietro: affondo, ginocchio davanti sopra la caviglia'],
+      trj: 'Il bacino scende in verticale mentre il piede dietro, sul carrello, scivola indietro.',
+      set: 'Barra dei piedi abbassata. Piede davanti piatto sulla pedana, piede dietro sul carrello con il tallone contro i poggiaspalle. Mani sui fianchi o braccia avanti.',
+      pos: 'Busto dritto, bacino in avanti, peso sul tallone del piede davanti.',
+      ese: ['Inspira e lascia scivolare il carrello indietro scendendo in affondo.', 'Espira e richiama il carrello spingendo con il tallone davanti e stringendo il gluteo.', 'Fai tutte le ripetizioni e cambia gamba.'],
+      cue: 'Scendi giù, non indietro: il ginocchio davanti resta sopra la caviglia.',
+      why: 'Un affondo in cui il carrello che scorre rende instabile la gamba dietro: quadricipite e gluteo davanti lavorano molto, e l’anca dietro si allunga.',
+      err: ['Ginocchio davanti che va oltre la punta o verso l’interno', 'Busto che si piega in avanti', 'Carrello che scappa: usa una molla in più']}); }
+})();

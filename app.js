@@ -285,6 +285,7 @@ function pesoTxt(ex, f) {
   const p = presOf(ex, f); if (!p) return '';
   const rir = ex.isom ? `${p.rir} secondi di margine` : `${p.rir} ripetizioni in riserva`;
   const car = (/^carico/i.test(p.pct) ? p.pct : 'carico: ' + p.pct) + '; ' + rir;
+  if (ex.a === 'Reformer') return `molle ${ex.molle || 'medie'}; ${rir}`;   /* al reformer il carico sono le molle, non i chili */
   if (ex.a === 'Corpo libero') return p.p ? `corpo libero: scegli la variante (assistita, con zavorra o inclinazione) che ti lascia ${rir}` : car;
   const e = est1RM(ex.id);
   if (e && p.p) { const raw = e * p.p, st = ex.a === 'Manubri' ? (raw <= 10 ? 1 : 2) : kgStep(), kg = Math.max(st, Math.round(raw / st) * st); return `peso indicativo ≈ ${fmtKg(kg)} kg (${p.pct} del tuo massimale stimato)`; }
@@ -360,7 +361,7 @@ function profHtml(first) {
    <p class="vnote">${P.fin === 'forza' ? 'Forza: poche ripetizioni (3-5) pesanti, recuperi lunghi.' : P.fin === 'tonificare' ? 'Tonificare: 12-20 ripetizioni, recuperi brevi, tanti cavi.' : 'Massa: 6-12 ripetizioni, recuperi medi, carichi progressivi.'}</p>
    <h3>Addome: come preferisci allenarlo</h3><div class="chips wrap">${Object.entries(ABP).map(([k, v]) => chip2('abp', k, abPref() === k, v)).join('')}</div>
    <p class="vnote">${abPref() === 'iso' ? 'Tenute: plank e varianti, hollow, Pallof hold, L-sit… vengono proposte per prime; gli esercizi in movimento restano disponibili.' : abPref() === 'dyn' ? 'In movimento: crunch, sollevamenti gambe, rotazioni ai cavi vengono proposti per primi.' : 'Nessuna preferenza: tenute ed esercizi in movimento alla pari.'}</p>
-   <h3>Attrezzi che preferisci</h3><div class="chips wrap">${chip2('att', '', !profAtt().length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, profAtt().includes(a), a === 'Panca' ? attLabel(a) : a)).join('')}</div>
+   <h3>Attrezzi che preferisci</h3><div class="chips wrap">${chip2('att', '', !profAtt().length, attAllLbl())}${ATT_AV().map(a => chip2('att', a, profAtt().includes(a), a === 'Panca' ? attLabel(a) : a)).join('')}</div>
    <p class="vnote">Gli esercizi con questi attrezzi vengono proposti per primi; gli altri restano disponibili. Quelli che non hai proprio li spegni in ⚙ Impostazioni → Attrezzi disponibili.</p>
    <h3>Muscoli su cui vuoi concentrarti</h3><div class="chips wrap">${chip2('mus', '', !profMus().length, 'Tutto il corpo')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, profMus().includes(k), v)).join('')}</div>
    <p class="vnote">Proposte e programmi pronti partono da questi gruppi (puoi sempre cambiarli al momento); in Home ti avviso se nella settimana non li alleni.</p>
@@ -411,7 +412,11 @@ const latoOf = e => e.one ? 'uno' : 'due';
 const avail = e => !DB.noatt[e.a] && !(e.nb && DB.noatt.Panca);   // attrezzo disponibile (impostazioni → Attrezzi disponibili); la panca serve anche a esercizi con altri attrezzi
 const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
 const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.nb) : e.a === a).length;
-const attOk = (e, atts) => !atts.length || (atts.includes(e.a) && (!e.nb || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
+const OPTA = ['Reformer'];   // attrezzi a parte (Pilates): in libreria sempre, nelle proposte e nei programmi pronti solo se li scegli
+const ATT_STD = () => ATT_AV().filter(a => !OPTA.includes(a));
+const attAllLbl = () => OPTA.some(a => ATT_AV().includes(a)) ? 'Tutti quelli da palestra (senza Reformer)' : 'Tutti quelli disponibili';
+const autoOk = e => !OPTA.includes(e.a) || profAtt().includes(e.a);   // sostituzioni automatiche: il Reformer solo se e' tra i tuoi attrezzi preferiti
+const attOk = (e, atts) => !atts.length ? !OPTA.includes(e.a) : (atts.includes(e.a) && (!e.nb || atts.includes('Panca')));   // compatibile con gli attrezzi scelti (la panca va scelta se l'esercizio la richiede)
 const attLabel = a => a === 'Panca' ? 'Panca (serve in ' + pl(attCount(a), 'esercizio', 'esercizi') + ')' : a;
 const AB_N = {alta: 'addome alto', bassa: 'addome basso', obliqui: 'obliqui (fianchi)', profonda: 'addome profondo / stabilità'};
 const abTxt = e => (e.ab ? e.ab.map(z => AB_N[z] || z).join(' + ') : '') + (e.isom ? (e.ab ? ' · ' : '') + 'in tenuta (isometria)' : '');
@@ -448,7 +453,7 @@ const GLU = new Set('g-hip-thrust sm-hip-thrust g-kickback g-kickback-flesso g-k
 const ytSearch = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
 function creatorLinks(ex) {   /* ricerche YouTube solo per tipo di esercizio (niente canali) */
   const a = (l, q) => `<a class="vlink2" href="${ytSearch(q)}" target="_blank" rel="noopener noreferrer">🔎 ${esc(l)}</a>`;
-  const nm = ex.n.split(' (')[0];
+  const nm = ex.yq || ex.n.split(' (')[0];   /* ex.yq: parole di ricerca su misura (es. esercizi al reformer, si trovano in inglese) */
   return `<div class="vcr"><h4>Cerca su YouTube</h4><div class="vcrl">${a('Come si fa', nm + ' come si fa')}${a('Shorts', nm + ' shorts')}${a('Errori comuni', nm + ' errori comuni tecnica')}${GLU.has(ex.id) ? a('Shorts glutei di donne', nm + ' glutei shorts donna') : ''}</div><p class="vnote">Si apre la ricerca su YouTube per questo esercizio: scegli tu il video.</p></div>`;
 }
 function videoBlock(ex) {
@@ -751,7 +756,7 @@ const PROP = {pid: null, list: []};
 function proposeDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return [];
   const out = [], ids = () => L.map(x => x.e), keys = () => new Set(L.map(x => mkey(byId[x.e])));
-  const best = (g, test, keepKey) => EX.filter(e => avail(e) && e.g === g && !ids().includes(e.id) && (mkey(e) === keepKey || !keys().has(mkey(e))) && (!test || test(e))).sort((a, b) => exScore(b) - exScore(a))[0];
+  const best = (g, test, keepKey) => EX.filter(e => avail(e) && autoOk(e) && e.g === g && !ids().includes(e.id) && (mkey(e) === keepKey || !keys().has(mkey(e))) && (!test || test(e))).sort((a, b) => exScore(b) - exScore(a))[0];
   const item = e => { const pr = presOf(e, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: e.id, s: pr.s, r: pr.r, rec: pr.rec, obj: (e.fin || []).includes('massa') ? 'massa' : undefined}; };
   // 1. doppioni → togli il secondo (non preferito)
   const seen = {}; L.forEach(x => { const e = byId[x.e], k = mkey(e) + '|' + e.tipo; if (seen[k]) { const keep = (!avail(seen[k]) && avail(e)) || (DB.fav[e.id] && !DB.fav[seen[k].id]) ? seen[k] : e; out.push({t: 'remove', id: keep.id, title: `Togli “${keep.n}”`, why: `Lavora esattamente gli stessi muscoli di “${(keep === e ? seen[k] : e).n}”: basta uno dei due.`}); } else seen[k] = e; });
@@ -1438,11 +1443,11 @@ function wizHtml() {
   const chip2 = (t, v, on, l) => `<button class="chip ${on ? 'on' : ''}" data-act="wzchip" data-t="${t}" data-v="${esc(v)}">${esc(l)}</button>`;
   if (WZ.step === 1) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
     <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi allenarti oggi? Puoi sceglierne più di uno.${profOk() && profAtt().length ? ' Preimpostati i tuoi preferiti.' : ''}</p>
-    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, 'Tutti quelli disponibili')}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a === 'Panca' ? attLabel(a) : a + ' (' + attCount(a) + ')')).join('')}</div>
+    <h3>Attrezzi</h3><div class="chips wrap">${chip2('att', '', !WZ.att.length, attAllLbl())}${ATT_AV().map(a => chip2('att', a, WZ.att.includes(a), a === 'Panca' ? attLabel(a) : a + ' (' + attCount(a) + ')')).join('')}</div>
     <p class="vnote">${EX.filter(e => avail(e) && attOk(e, WZ.att)).length} esercizi con questi attrezzi.${WZ.att.length && !WZ.att.includes('Panca') ? ' Senza la panca restano esclusi gli esercizi che la richiedono (panca piana/inclinata, press seduti…).' : ''} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
     <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="wznext">Avanti: muscoli e obiettivo →</button></div>`;
   if (WZ.step === 2) return `<h2 style="padding-right:44px">✨ Proponimi esercizi</h2>
-    <p class="vnote">Attrezzi: <b>${esc(WZ.att.length ? WZ.att.join(', ') : 'tutti')}</b> · <button class="tlink" data-act="wzback1">cambia</button>. Ora muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito.${profOk() ? ' Preimpostati dal tuo profilo.' : ''}</p>
+    <p class="vnote">Attrezzi: <b>${esc(WZ.att.length ? WZ.att.join(', ') : attAllLbl().toLowerCase())}</b> · <button class="tlink" data-act="wzback1">cambia</button>. Ora muscoli e obiettivo: ti propongo 3-4 esercizi che si fanno bene di seguito.${profOk() ? ' Preimpostati dal tuo profilo.' : ''}</p>
     <h3>Muscoli</h3><div class="chips wrap">${chip2('mus', '', !WZ.mus.length, 'Tutti')}${Object.entries(GRUPPI).map(([k, v]) => chip2('mus', k, WZ.mus.includes(k), v)).join('')}</div>
     <h3>Obiettivo</h3><div class="chips wrap">${Object.entries(FIN).map(([k, v]) => chip2('fin', k, WZ.fin === k, v)).join('')}</div>
     <h3>Un braccio o due</h3><div class="chips wrap">${chip2('lato', '', !WZ.lato, 'Indifferente')}${Object.entries(LATO).map(([k, v]) => chip2('lato', k, WZ.lato === k, v)).join('')}</div>
@@ -1469,7 +1474,9 @@ const PRESETS = [
    seed: ['p-press-cavo-singolo', 'b-row-corda', 's-facepull', 'b-pulldown-braccia-tese', 's-laterali', 't-overhead-corda', 'c-hammer-singolo', 'a-pallof']}];
 const PS = {step: 1, att: null, mus: [], pid: null, abp: 'iso'};   // step 1 attrezzi, 2 muscoli, 3 programmi; att null = non ancora chiesto; mus [] = corpo intero
 const PS_MAX = 8;   // esercizi per programma (9 con tante scelte)
-const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_AV();
+const psAtt = () => PS.att && PS.att.length ? PS.att : ATT_STD();
+const sameAtt = (a, b) => a.length === b.length && a.every(x => b.includes(x));
+const attAllTxt = L => sameAtt(L, ATT_AV()) ? 'tutti' : OPTA.some(a => ATT_AV().includes(a)) && sameAtt(L, ATT_STD()) ? 'tutti quelli da palestra' : L.join(', ');
 const PS_ALL = ['gambe', 'petto', 'schiena', 'spalle', 'bicipiti', 'tricipiti', 'addome'];
 const psGroups = () => PS.mus.length ? PS_ALL.concat(['avambracci']).filter(g => PS.mus.includes(g)) : PS_ALL.slice();
 const psLabel = () => PS.mus.length ? psGroups().map(gName).join(' + ') : 'corpo intero';
@@ -1517,13 +1524,13 @@ function presetAttHtml(pid) {
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
    <p class="vnote">Prima domanda: <b>con quali attrezzi</b> vuoi fare il programma? Scegline uno o più: il programma viene costruito solo con questi.${profOk() && profAtt().length ? ' Preimpostati i tuoi preferiti.' : ''}</p>
    <div class="chips wrap">${all.map(a => `<button class="chip ${sel.includes(a) ? 'on' : ''}" data-act="psatt" data-a="${esc(a)}"${pid ? ` data-pid="${pid}"` : ''}>${a === 'Panca' ? esc(attLabel(a)) : esc(a) + ' (' + attCount(a) + ')'}</button>`).join('')}</div>
-   <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : pl(sel.length, 'attrezzo scelto', 'attrezzi scelti') + '.'}${sel.includes('Panca') ? '' : ' Senza la panca: niente panca piana/inclinata né press seduti, solo esercizi in piedi' + (sel.includes('Cavi') ? ' o ai cavi' : '') + '.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
+   <p class="vnote">${sel.length === all.length ? 'Tutti gli attrezzi disponibili.' : sameAtt(sel, ATT_STD()) ? 'Tutti gli attrezzi da palestra: il Reformer entra solo se lo tocchi.' : pl(sel.length, 'attrezzo scelto', 'attrezzi scelti') + '.'}${sel.includes('Panca') ? '' : ' Senza la panca: niente panca piana/inclinata né press seduti, solo esercizi in piedi' + (sel.includes('Cavi') ? ' o ai cavi' : '') + '.'} In ⚙ Impostazioni → Attrezzi disponibili scegli quali hai in palestra.</p>
    <div class="sbar" style="padding:8px 0 0"><button class="primary" style="width:auto;padding:10px 18px" data-act="psstep" data-s="2"${pid ? ` data-pid="${pid}"` : ''}>Avanti: quali muscoli →</button></div>`;
 }
 function presetMusHtml(pid) {
   const q = psBudget(psGroups()), n = Object.values(q).reduce((t, x) => t + x, 0);
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
-   <p class="vnote">Attrezzi: <b>${esc(psAtt().length === ATT_AV().length ? 'tutti' : psAtt().join(', '))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Seconda domanda: <b>quali muscoli</b> vuoi allenare in questo programma? Puoi sceglierne uno o più (es. gambe + spalle): ti preparo un programma completo con massimo ${PS_MAX}-9 esercizi, e un esercizio per il core c’è sempre.</p>
+   <p class="vnote">Attrezzi: <b>${esc(attAllTxt(psAtt()))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Seconda domanda: <b>quali muscoli</b> vuoi allenare in questo programma? Puoi sceglierne uno o più (es. gambe + spalle): ti preparo un programma completo con massimo ${PS_MAX}-9 esercizi, e un esercizio per il core c’è sempre.</p>
    <div class="chips wrap"><button class="chip ${PS.mus.length ? '' : 'on'}" data-act="psmus" data-g=""${pid ? ` data-pid="${pid}"` : ''}>Corpo intero</button>${Object.entries(GRUPPI).map(([k, v]) => `<button class="chip ${PS.mus.includes(k) ? 'on' : ''}" data-act="psmus" data-g="${k}"${pid ? ` data-pid="${pid}"` : ''}>${esc(v)}</button>`).join('')}</div>
    <h3>Addome</h3><div class="chips wrap">${Object.entries(ABP).map(([k, v]) => `<button class="chip ${PS.abp === k ? 'on' : ''}" data-act="psabp" data-v="${k}"${pid ? ` data-pid="${pid}"` : ''}>${esc(v)}</button>`).join('')}</div>
    <p class="vnote">${esc(psLabel().replace(/^./, c => c.toUpperCase()))}: ${n} esercizi → ${Object.entries(q).map(([g, k]) => k + ' ' + gName(g)).join(', ')}.${PS.mus.length && !PS.mus.includes('addome') ? ' L’addome è aggiunto come lavoro per il core.' : ''}</p>
@@ -1535,7 +1542,7 @@ function presetsHtml(pid) {
   if (PS.step === 2) return presetMusHtml(pid);
   const atts = psAtt();
   return `<h2 style="padding-right:44px">📋 Programmi pronti</h2>
-   <p class="vnote">Attrezzi: <b>${esc(atts.length === ATT_AV().length ? 'tutti' : atts.join(', '))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button> · Muscoli: <b>${esc(psLabel())}</b> · <button class="tlink" data-act="psstep" data-s="2"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Tre programmi completi per questi muscoli, ordinati dai più pesanti ai più leggeri, con il core alla fine. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
+   <p class="vnote">Attrezzi: <b>${esc(attAllTxt(atts))}</b> · <button class="tlink" data-act="psstep" data-s="1"${pid ? ` data-pid="${pid}"` : ''}>cambia</button> · Muscoli: <b>${esc(psLabel())}</b> · <button class="tlink" data-act="psstep" data-s="2"${pid ? ` data-pid="${pid}"` : ''}>cambia</button><br>Tre programmi completi per questi muscoli, ordinati dai più pesanti ai più leggeri, con il core alla fine. ${pid ? 'Scegli il programma: sostituisce gli esercizi di <b>' + esc(dayN(pid)) + '</b>.' : 'Scegli il programma, poi il giorno in cui inserirlo (sostituisce gli esercizi di quel giorno).'}</p>
    ${PRESETS.slice().sort((a, b) => (b.fin === profFin()) - (a.fin === profFin())).map(P => { const items = presetBuild(P, atts); const mins = Math.round(items.reduce((t, {ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, rec: '90 s'}; return t + psSets(ex, P.fin) * (40 + secs(pr.rec)); }, 0) / 60); return `<div class="card preset"><h3>${esc(psName(P))}${P.fin === profFin() && profOk() ? ' <small style="color:var(--ok);font-weight:600">· il tuo obiettivo</small>' : ''}</h3><p class="vnote">${esc(P.d)} ${(() => { const u = [...new Set(items.map(({ex}) => ex.a.toLowerCase()))]; return u.length ? 'Con ' + esc(u.join(', ')) + '. ' : ''; })()}${pl(items.length, 'esercizio', 'esercizi')}, circa ${Math.round(mins / 5) * 5} minuti.</p>${items.length ? `<ol>${items.map(({ex}) => { const pr = presOf(ex, P.fin) || presOf(ex, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return `<li>${DB.fav[ex.id] ? '⭐ ' : ''}${esc(ex.n)} <small>${esc(GRUPPI[ex.g])}${ex.ab ? ' · ' + esc(abTxt(ex)) : ''} · ${psSets(ex, P.fin)} × ${pr.r} · rec. ${pr.rec}${startTxt(ex, P.fin)}</small></li>`; }).join('')}</ol>` : '<p class="vnote">Nessun esercizio con questi attrezzi.</p>'}
      <div class="sbar" style="padding:6px 0 0"><button class="primary" style="width:auto;padding:9px 16px" data-act="preset" data-key="${P.key}"${pid ? ` data-pid="${pid}"` : ''}${items.length ? '' : ' disabled'}>${pid ? 'Usa questo programma' : 'Scegli il giorno…'}</button></div></div>`; }).join('')}`;
 }
@@ -1690,7 +1697,7 @@ function settings() {
    <div class="card"><h2>Storico in PDF</h2><p>Crea un foglio con tutti gli esercizi, i chili e le ripetizioni fatte, da stampare, salvare in PDF o condividere.</p><p><button class="ghost" data-act="report">📄 Apri storico</button></p></div>
    ${sbOn() ? `<div class="card"><h2>☁️ Account online</h2><p class="vnote">${SB.user ? 'Collegato come <b>' + esc(SB.user.email) + '</b>' + (SB.choice ? ': <b>scelta dei dati in sospeso</b>, niente si salva online finché non scegli.' : ': i dati si salvano online.') : (accUser() ? 'In attesa di internet: i dati si salvano su questo telefono e vanno online appena torna la rete.' : 'Non collegato: i dati restano solo su questo telefono.')}</p><p><button class="ghost" data-act="sbopen">${SB.user ? 'Gestisci account' : 'Accedi o crea un account'}</button></p></div>` : ''}
    <div class="card"><h2>Il mio profilo</h2><p class="vnote">${profOk() ? esc(profTxt()) + '.' : 'Non ancora compilato.'}</p><p><button class="ghost" data-act="profopen">👤 ${profOk() ? 'Modifica' : 'Compila'} il profilo</button></p></div>
-   <div class="card"><h2>Attrezzi disponibili</h2><p>Spegni gli attrezzi che non hai: i loro esercizi spariscono dalla libreria, dalle proposte e dai programmi pronti (quelli già nelle schede restano, segnalati). Powerrack Atletica SKS: safety, manubri, panca regolabile, jammer arms, doppia puleggia con corda/barra/maniglie/cavigliera, sbarra, parallele, Smith machine.</p>${attlHtml()}</div>
+   <div class="card"><h2>Attrezzi disponibili</h2><p>Spegni gli attrezzi che non hai: i loro esercizi spariscono dalla libreria, dalle proposte e dai programmi pronti (quelli già nelle schede restano, segnalati). Powerrack Atletica SKS: safety, manubri, panca regolabile, jammer arms, doppia puleggia con corda/barra/maniglie/cavigliera, sbarra, parallele, Smith machine. Reformer (lettino Pilates): i suoi esercizi sono sempre in libreria, ma nelle proposte e nei programmi pronti entrano solo se scegli “Reformer” tra gli attrezzi.</p>${attlHtml()}</div>
    <div class="card"><h2>Crediti</h2><p style="font-size:14px">Modello 3D “Male base muscular anatomy” di Harshit Prajapati, licenza CC BY 4.0 (<a href="https://sketchfab.com/3d-models/male-base-muscular-anatomy-0954aa04666d45aab9633009318f7b66" target="_blank" rel="noopener">Sketchfab</a>). Le icone degli esercizi sono disegnate con lo stesso modello 3D.</p></div>
    <div class="card"><button class="ghost danger" data-act="wipe">Cancella pesi e storico</button></div>`);
 }
@@ -1803,7 +1810,7 @@ document.addEventListener('click', e => {
   else if (a === 'psatt') { const all = ATT_AV(), cur = psAtt().slice(), t = b.dataset.a, i = cur.indexOf(t); if (i >= 0) { if (cur.length > 1) cur.splice(i, 1); } else cur.push(t); PS.att = cur.filter(x => all.includes(x)); $('#mbody').innerHTML = presetAttHtml(b.dataset.pid); }
   else if (a === 'psabp') { PS.abp = b.dataset.v; $('#mbody').innerHTML = presetMusHtml(b.dataset.pid); }
   else if (a === 'psmus') { const g = b.dataset.g; if (!g) PS.mus = []; else { const i = PS.mus.indexOf(g); if (i >= 0) PS.mus.splice(i, 1); else PS.mus.push(g); } $('#mbody').innerHTML = presetMusHtml(b.dataset.pid); }
-  else if (a === 'psstep') { if (PS.att === null) PS.att = ATT_AV(); PS.step = +b.dataset.s; $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
+  else if (a === 'psstep') { if (PS.att === null) PS.att = ATT_STD(); PS.step = +b.dataset.s; $('#mbody').innerHTML = presetsHtml(b.dataset.pid); $('.sheet').scrollTop = 0; }
   else if (a === 'preset') { if (b.dataset.pid) presetApply(b.dataset.key, b.dataset.pid); else modal(presetDayHtml(b.dataset.key)); }
   else if (a === 'sksreset') window.sksReset();
   else if (a === 'fav') { const id = b.dataset.id; if (DB.fav[id]) delete DB.fav[id]; else DB.fav[id] = 1; save(); render(true); document.querySelectorAll('#mbody .favb[data-id="' + id + '"]').forEach(x => { x.classList.toggle('on', !!DB.fav[id]); x.textContent = x.classList.contains('big') ? (DB.fav[id] ? '⭐ Preferito' : '☆ Metti tra i preferiti') : (DB.fav[id] ? '⭐' : '☆'); }); flash(DB.fav[id] ? '⭐ Aggiunto ai preferiti' : 'Tolto dai preferiti'); }
