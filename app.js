@@ -274,7 +274,8 @@ const PRESC = {
   pol: {massa: {s: 4, sr: '4', r: '10-15', rec: '60 s', pct: '60-70%', p: .65, rir: '0-2'}, tonificare: {s: 3, sr: '3', r: '15-20', rec: '30-45 s', pct: '40-55%', p: .48, rir: '2-3'}},
   core: {tonificare: {s: 3, sr: '3', r: '12-20', rec: '30-45 s', pct: 'solo corpo libero o carico leggero', p: 0, rir: '2-3'}, massa: {s: 3, sr: '3-4', r: '8-12', rec: '60-90 s', pct: 'carico medio', p: 0, rir: '1-2'}}
 };
-const presOf = (ex, f) => { const p = (PRESC[ex.tipo] || PRESC.iso)[f] || null; return p && ex.isom ? Object.assign({}, p, {r: ex.hold || '30-45 s'}) : p; };   /* isometria: le “ripetizioni” sono secondi di tenuta */
+const presOf = (ex, f) => { if (ex.tipo === 'str') return {s: ex.sets || 2, sr: String(ex.sets || 2), r: ex.dose, rec: ex.rec || '15 s', pct: '', p: 0, rir: ''};   /* stretching: sempre la sua dose, qualunque obiettivo */
+  const p = (PRESC[ex.tipo] || PRESC.iso)[f] || null; return p && ex.isom ? Object.assign({}, p, {r: ex.hold || '30-45 s'}) : p; };   /* isometria: le “ripetizioni” sono secondi di tenuta */
 // massimale stimato (formula di Epley) dalle serie che hai già registrato
 function est1RM(id) {
   let best = 0;
@@ -285,6 +286,7 @@ function pesoTxt(ex, f) {
   const p = presOf(ex, f); if (!p) return '';
   const rir = ex.isom ? `${p.rir} secondi di margine` : `${p.rir} ripetizioni in riserva`;
   const car = (/^carico/i.test(p.pct) ? p.pct : 'carico: ' + p.pct) + '; ' + rir;
+  if (ex.str) return ex.isom ? 'nessun peso: allunga fino a una tensione piacevole, mai fino al dolore; respira lento e non rimbalzare' : 'nessun peso: movimento lento e controllato, senza forzare';
   if (ex.a === 'Reformer') return `molle ${ex.molle || 'medie'}; ${rir}`;   /* al reformer il carico sono le molle, non i chili */
   if (ex.a === 'Corpo libero') return p.p ? `corpo libero: scegli la variante (assistita, con zavorra o inclinazione) che ti lascia ${rir}` : car;
   const e = est1RM(ex.id);
@@ -406,12 +408,15 @@ const todayTabId = () => DAYS[(new Date().getDay() + 6) % 7][0];
 let tab = (location.hash || '#home').slice(1); if (!TABS.some(t => t.id === tab)) tab = 'home';
 let prepEdit = false;   // scheda del giorno: vista semplice (false) o modifica (true)
 let giuliaSub = 'gA';
-const lib = {q: '', g: '', a: '', f: '', l: '', fav: ''};
+const lib = {q: '', g: '', a: '', f: '', l: '', fav: '', mode: '', sm: ''};   // mode 'str' = sezione stretching e postura, sm = muscolo da allungare
+const STRM = {collo: 'Collo', spalle: 'Spalle', petto: 'Petto', dorsali: 'Dorsali e schiena alta', lombare: 'Zona lombare', fianchi: 'Fianchi', glutei: 'Glutei', flessori: 'Flessori dell’anca', quadricipiti: 'Quadricipiti', femorali: 'Femorali', adduttori: 'Interno coscia', polpacci: 'Polpacci e caviglie', braccia: 'Braccia e polsi', postura: 'Postura'};
+const G2STR = {petto: ['petto', 'spalle'], spalle: ['spalle', 'collo'], schiena: ['dorsali', 'lombare'], bicipiti: ['braccia'], tricipiti: ['braccia'], avambracci: ['braccia'], gambe: ['quadricipiti', 'femorali', 'glutei', 'flessori', 'adduttori', 'polpacci'], addome: ['fianchi', 'lombare']};
+const strToday = () => { const L = CUST.includes(tab) ? rtList(tab) : [], s = new Set(); L.forEach(x => { const e = byId[x.e]; if (e && !e.str) [e.g].concat(e.g2 || []).forEach(g => (G2STR[g] || []).forEach(m => s.add(m))); }); return [...s]; };   /* muscoli da allungare dopo gli esercizi della scheda aperta */
 const LATO = {uno: 'A un braccio / una gamba', due: 'A due braccia / due gambe'};
 const latoOf = e => e.one ? 'uno' : 'due';
 const avail = e => !DB.noatt[e.a] && !(e.nb && DB.noatt.Panca);   // attrezzo disponibile (impostazioni → Attrezzi disponibili); la panca serve anche a esercizi con altri attrezzi
 const ATT_AV = () => [...new Set(EX.map(e => e.a))].filter(a => !DB.noatt[a]);
-const attCount = a => EX.filter(e => a === 'Panca' ? (e.a === 'Panca' || e.nb) : e.a === a).length;
+const attCount = a => EX.filter(e => !e.str && (a === 'Panca' ? (e.a === 'Panca' || e.nb) : e.a === a)).length;
 const OPTA = ['Reformer'];   // attrezzi a parte (Pilates): in libreria sempre, nelle proposte e nei programmi pronti solo se li scegli
 const ATT_STD = () => ATT_AV().filter(a => !OPTA.includes(a));
 const attAllLbl = () => OPTA.some(a => ATT_AV().includes(a)) ? 'Tutti quelli da palestra (senza Reformer)' : 'Tutti quelli disponibili';
@@ -502,7 +507,7 @@ function techHtml(ex, sr) {
   ${ex.trj ? `<h3>Traiettoria</h3><p>${esc(ex.trj)}</p>` : ''}
   ${videoBlock(ex)}
   <h3>Muscoli</h3><p>${esc(ex.m)}</p>${ex.ab ? `<p class="gn">Zona addominale: <b>${esc(abTxt(ex))}</b>. Per un addome completo abbina esercizi di zona alta, bassa e obliqui (più uno di stabilità).</p>` : ''}${ex.mm && ex.mm !== ex.m ? `<p class="vnote">Nel dettaglio: ${esc(ex.mm)}.</p>` : ''}
-  ${ex.fin ? `<h3>Finalità e carichi consigliati</h3><p>Adatto a: <b>${ex.fin.filter(f => presOf(ex, f)).map(f => FIN[f]).join(' · ')}</b></p><ul>${ex.fin.map(f => finLine(ex, f)).join('')}</ul><p class="vnote">Indicazioni generali, non personalizzate. “Ripetizioni in riserva” = quante ne potresti ancora fare a fine serie. Per <b>tonificare</b> (muscolo più definito) servono carichi moderati e ripetizioni alte, ma il risultato dipende anche da alimentazione e dal grasso corporeo.</p>` : ''}
+  ${ex.str ? `<h3>Quanto farlo</h3><p><b>${esc(ex.dose)}</b>, ${pl(ex.sets || 2, 'serie', 'serie')}, recupero ${esc(ex.rec || '15 s')}. ${ex.isom ? 'Tieni la posizione respirando lento: l’allungamento deve essere piacevole, mai doloroso. Meglio a fine allenamento, con i muscoli caldi.' : 'Movimento lento e controllato: va bene anche come riscaldamento.'}</p><p class="vnote">Muscoli: ${esc((ex.sm || []).map(m => STRM[m]).join(' · '))}</p>` : ''}${ex.fin && !ex.str ? `<h3>Finalità e carichi consigliati</h3><p>Adatto a: <b>${ex.fin.filter(f => presOf(ex, f)).map(f => FIN[f]).join(' · ')}</b></p><ul>${ex.fin.map(f => finLine(ex, f)).join('')}</ul><p class="vnote">Indicazioni generali, non personalizzate. “Ripetizioni in riserva” = quante ne potresti ancora fare a fine serie. Per <b>tonificare</b> (muscolo più definito) servono carichi moderati e ripetizioni alte, ma il risultato dipende anche da alimentazione e dal grasso corporeo.</p>` : ''}
   <h3>Impostazione (attrezzo, cavi, altezza)</h3><p>${esc(ex.set)}</p>
   <h3>Posizione del corpo</h3><p>${esc(ex.pos)}</p>
   <h3>Esecuzione</h3><ol>${li(ex.ese)}</ol>
@@ -513,10 +518,12 @@ function techHtml(ex, sr) {
 function lastLine(k) {
   const h = lastHist(k); if (!h) return '';
   const isom = !!(byId[k.split(':')[1]] || {}).isom;
-  return `<div class="last">Ultima volta (${fmtD(h.d)}): ${h.sets.map(s => `${s.kg ? fmtKg(num(s.kg)) : '–'} kg × ${s.reps ? num(s.reps) : '–'}${isom ? ' s' : ''}`).join(' · ')}</div>`;
+  const str = !!(byId[k.split(':')[1]] || {}).str;
+  return `<div class="last">Ultima volta (${fmtD(h.d)}): ${h.sets.map(s => str ? `${s.reps ? num(s.reps) : '–'}${isom ? ' s' : ' rip.'}` : `${s.kg ? fmtKg(num(s.kg)) : '–'} kg × ${s.reps ? num(s.reps) : '–'}${isom ? ' s' : ''}`).join(' · ')}</div>`;
 }
 function hintLine(k, target) {
   const h = lastHist(k), u = upper(target); if (!h || !u) return '';
+  if ((byId[k.split(':')[1]] || {}).str) return '';
   const ok = h.sets.length && h.sets.every(s => num(s.reps) >= u && num(s.kg) > 0);
   const isom = !!(byId[k.split(':')[1]] || {}).isom;
   return ok ? `<div class="hint">↑ Hai ${isom ? 'tenuto' : 'chiuso'} tutte le serie ${isom ? 'per ' + u + ' secondi' : 'a ' + u + ' ripetizioni'}: oggi prova +${fmtKg(kgStep())} kg.</div>` : '';
@@ -527,7 +534,7 @@ function setsHtml(k, n, target) {
   const ex0 = byId[k.split(':')[1]], isom = !!(ex0 && ex0.isom), c = curFor(k, n), h = lastHist(k), sk0 = !h && startKg(ex0, (planFind(k) || {}).obj);
   const rows = c.sets.map((s, i) => {
     const ph = h && h.sets[i] ? h.sets[i] : (h && h.sets.length ? h.sets[h.sets.length - 1] : (sk0 ? {kg: String(sk0.kg)} : {}));
-    return `<div class="set${s.old && !s.done ? ' old' : ''}"><span>${i + 1}</span>
+    return `<div class="set${s.old && !s.done ? ' old' : ''}${ex0 && ex0.str ? ' nokg' : ''}"><span>${i + 1}</span>
       <label class="f"><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="kg" data-d="-1" aria-label="meno un disco">−</button><input inputmode="decimal" data-k="${k}" data-i="${i}" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(ph.kg || '0')}" aria-label="Peso serie ${i + 1}"><u>kg</u><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="kg" data-d="1" aria-label="più un disco">+</button></label>
       <label class="f"><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="reps" data-d="-1" aria-label="meno uno">−</button><input inputmode="numeric" data-k="${k}" data-i="${i}" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(ph.reps || String(upper(target) || ''))}" aria-label="${isom ? 'Secondi di tenuta' : 'Ripetizioni'} serie ${i + 1}"><u>${isom ? 'sec' : 'rip'}</u><button type="button" class="stp" data-act="stp" data-k="${k}" data-i="${i}" data-f="reps" data-d="1" aria-label="più uno">+</button></label>
       <button class="chk ${s.done ? 'on' : ''}" data-k="${k}" data-i="${i}" data-act="done" aria-label="Serie completata">✓</button>
@@ -616,15 +623,25 @@ function trainView() {
    <div class="tbarnav"><button class="ghost" data-act="trprev"${TR.i === 0 ? ' disabled' : ''}>◀ Prec.</button>${TR.i < n - 1 ? `<button class="primary" data-act="trnext">Prossimo: ${esc(trunc(byId[p.ex[TR.i + 1].e].n.split(' (')[0], 26))} ▶</button>` : `<button class="primary" data-act="finish" data-p="${p.id}" data-prof="${prof}">🏁 Fine allenamento</button>`}</div>`;
 }
 
-const pick = {open: false, q: '', g: '', a: '', f: '', l: ''};
+const pick = {open: false, q: '', g: '', a: '', f: '', l: '', mode: '', sm: ''};
 const filt = st => { const q = norm(st.q).split(/\s+/).filter(Boolean), score = e => !q.length ? 0 : q.every(t => norm(e.n).includes(t)) ? 2 : q.some(t => norm(e.n).includes(t)) ? 1 : 0;
-  return EX.filter(e => { if (!avail(e)) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.nb))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
+  if (st.mode === 'str') { const today = st.sm === 'oggi' ? strToday() : null;
+    return EX.filter(e => e.str && avail(e) && (!st.fav || DB.fav[e.id]) && (!st.sm || (today ? (e.sm || []).some(m => today.includes(m)) : (e.sm || []).includes(st.sm))) && q.every(t => norm([e.n, e.m, e.mm || '', (e.sm || []).map(m => STRM[m]).join(' '), e.cue, e.why, e.set].join(' ')).includes(t)))
+      .sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0) || score(b) - score(a)); }
+  return EX.filter(e => { if (!avail(e) || e.str) return false; if (st.fav && !DB.fav[e.id]) return false; if (st.g && !inG(e, st.g)) return false; if (st.a && !(e.a === st.a || (st.a === 'Panca' && e.nb))) return false; if (st.f && !(e.fin || []).includes(st.f)) return false; if (st.l && latoOf(e) !== st.l) return false;
     const hay = norm([e.n, e.g, GRUPPI[e.g], e.a, e.m, e.mm || '', e.cue, e.why, e.set, e.fin ? e.fin.join(' ') : ''].join(' ')); return q.every(t => hay.includes(t)); }).sort((a, b) => (DB.fav[b.id] ? 1 : 0) - (DB.fav[a.id] ? 1 : 0) || score(b) - score(a)); };   /* preferiti, poi chi ha le parole cercate nel nome */
-const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id);
+const strRow = (e, act, rid, on) => `<div class="lw"><button class="li" style="--gc:#14b8a6" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || '<span class="dot">🧘</span>'}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>🧘 ${esc((e.sm || []).map(m => STRM[m]).join(' · '))} · ${esc(e.dose)}${e.isom ? '' : ' · in movimento'}</small><span class="tag" style="background:var(--in);color:var(--mut)">${e.isom ? 'Stretching' : 'Mobilità'}</span></span></button><button class="favb col ${DB.fav[e.id] ? 'on' : ''}" data-act="fav" data-id="${e.id}" aria-label="Preferito">${DB.fav[e.id] ? '⭐' : '☆'}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`;
+const exRow = (e, act, rid) => { const on = rid ? inRt(rid, e.id) : inAny(e.id); if (e.str) return strRow(e, act, rid, on);
   return `<div class="lw"><button class="li" style="--gc:${GCOL[e.g]}" data-act="open" data-id="${e.id}">${cov(e.id, 'thumb') || `<span class="dot">${esc(GRUPPI[e.g][0])}</span>`}<span class="t"><b>${DB.fav[e.id] ? '⭐ ' : ''}${esc(e.n)}</b><small>${esc(GRUPPI[e.g])}${(e.g2 || []).length ? '/' + e.g2.map(g => esc(GRUPPI[g])).join('/') : ''}${e.ab ? ' · <b>' + esc(abTxt(e)) + '</b>' : ''} · ${esc(e.m)}${e.fin ? ' · ' + e.fin.map(f => FIN[f]).join('/') : ''}${latoTxt(e) ? ' · ' + latoTxt(e) : ''}${e.due ? ' · 2 cavi' : e.unCavo ? ' · 1 cavo' : ''}</small>${e.a === 'Cavi' ? '<span class="tag cav">Cavi</span>' : `<span class="tag" style="background:var(--in);color:var(--mut)">${esc(e.a)}</span>`}</span></button><button class="favb col ${DB.fav[e.id] ? 'on' : ''}" data-act="fav" data-id="${e.id}" aria-label="Preferito">${DB.fav[e.id] ? '⭐' : '☆'}</button><button class="add ${on ? 'on' : ''}" data-act="${act}" data-id="${e.id}"${rid ? ` data-r="${rid}"` : ''} aria-label="${on ? 'Togli' : 'Aggiungi'}">${on ? '✓' : '+'}</button></div>`; };
 function filters(st, sid, qid) {
-  const atts = ATT_AV();
-  return `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  const atts = ATT_AV(), nStr = EX.filter(e => e.str && avail(e)).length;
+  const modes = `<div class="chips modes">${chip('mode', '', '🏋️ Esercizi', sid)}${chip('mode', 'str', '🧘 Stretching e postura (' + nStr + ')', sid)}</div>`;
+  if (st.mode === 'str') { const cnt = m => EX.filter(e => e.str && avail(e) && (e.sm || []).includes(m)).length;
+    return modes + `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. femorali, collo, schiena…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti', sid)}</div>
+  <p class="vnote" style="margin:6px 0 2px">Quale muscolo vuoi allungare?</p>
+  <div class="chips wrap">${chip('sm', '', 'Tutti i muscoli', sid)}${sid === 'pk' && strToday().length ? chip('sm', 'oggi', '🎯 I muscoli di questa scheda', sid) : ''}${Object.entries(STRM).map(([k, v]) => chip('sm', k, v + ' (' + cnt(k) + ')', sid)).join('')}</div>`; }
+  return modes + `<input class="search" id="${qid}" type="search" placeholder="Cerca: es. tricipiti, cavo alto, squat…" value="${esc(st.q)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
   <div class="chips">${chip('fav', '', 'Tutti', sid)}${chip('fav', '1', '⭐ Preferiti (' + Object.keys(DB.fav).length + ')', sid)}</div>
   <div class="chips">${chip('a', '', '🏋️ Ogni attrezzo', sid)}${atts.map(a => chip('a', a, a === 'Panca' ? 'Su panca' : a, sid)).join('')}</div>
   <div class="chips">${chip('g', '', 'Tutti i muscoli', sid)}${Object.entries(GRUPPI).map(([k, v]) => chip('g', k, v, sid)).join('')}</div>
@@ -632,14 +649,14 @@ function filters(st, sid, qid) {
   <div class="chips">${chip('l', '', 'Un braccio o due', sid)}${Object.entries(LATO).map(([k, v]) => chip('l', k, v, sid)).join('')}</div>
 `;
 }
-const libRes = () => { const list = filt(lib); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>
+const libRes = () => { const list = filt(lib), str = lib.mode === 'str'; return `<div class="count">${list.length} di ${EX.filter(e => avail(e) && !!e.str === str).length} ${str ? 'esercizi di stretching e postura · tocca + per aggiungerli a una scheda' : 'esercizi'}</div>
   <div id="list">${list.map(e => exRow(e, 'mtog')).join('') || '<p class="count">Nessun risultato.</p>'}</div>`; };
 function libView() { return `<div class="sbar" style="padding:0 0 8px"><button class="ghost" data-act="presets">📋 Programmi pronti (forza · massa · tonificare)</button></div>${filters(lib, 'lib', 'q')}<div id="libres">${libRes()}</div>`; }
-const pickRes = pid => { const list = filt(pick); return `<div class="count">${list.length} di ${EX.filter(avail).length} esercizi</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
+const pickRes = pid => { const list = filt(pick), str = pick.mode === 'str'; return `<div class="count">${list.length} di ${EX.filter(e => avail(e) && !!e.str === str).length} ${str ? 'stretching · tocca + per aggiungerli a fine seduta' : 'esercizi'}</div>${list.map(e => exRow(e, 'ptog', pid)).join('') || '<p class="count">Nessun risultato.</p>'}`; };
 const custView = cp => planView(cp, cp.profilo);
 function custTools(cp) {
   const open = pick.open || !cp.ex.length, list = open ? filt(pick) : [];
-  return `<div class="ctools"><button class="ghost" data-act="presets" data-pid="${cp.id}">📋 Programma pronto</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button>${cp.ex.length ? `<button class="ghost" data-act="ptoggle">${open ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button>` : ''}<button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina giorno</button><button class="ghost" data-act="week">📅 Piano della settimana</button></div>` +
+  return `<div class="ctools"><button class="ghost" data-act="presets" data-pid="${cp.id}">📋 Programma pronto</button><button class="ghost" data-act="wiz" data-pid="${cp.id}">✨ Proponimi esercizi</button><button class="ghost" data-act="pstr">🧘 Aggiungi stretching</button>${cp.ex.length ? `<button class="ghost" data-act="ptoggle">${open ? '▲ Chiudi elenco' : '＋ Aggiungi esercizi'}</button>` : ''}<button class="ghost" data-act="ren" data-id="${cp.id}">✏ Rinomina giorno</button><button class="ghost" data-act="week">📅 Piano della settimana</button></div>` +
     (open ? `<section class="picker"><h3>Scegli muscolo e attrezzo, poi tocca + per aggiungere</h3>${filters(pick, 'pk', 'pq')}<div id="pkres" data-pid="${cp.id}">${pickRes(cp.id)}</div></section>` : '');
 }
 const chip = (t, v, l, sid) => { const st = sid === 'pk' ? pick : lib; return `<button class="chip ${st[t] === v ? 'on' : ''}" style="--gc:${t === 'g' && GCOL[v] ? GCOL[v] : 'transparent'}" data-act="chip" data-s="${sid}" data-t="${t}" data-v="${esc(v)}">${t === 'g' && GCOL[v] ? '<u></u>' : ''}${esc(l)}</button>`; };
@@ -756,7 +773,7 @@ const PROP = {pid: null, list: []};
 function proposeDay(pid) {
   const L = rtList(pid).filter(x => byId[x.e]); if (!L.length) return [];
   const out = [], ids = () => L.map(x => x.e), keys = () => new Set(L.map(x => mkey(byId[x.e])));
-  const best = (g, test, keepKey) => EX.filter(e => avail(e) && autoOk(e) && e.g === g && !ids().includes(e.id) && (mkey(e) === keepKey || !keys().has(mkey(e))) && (!test || test(e))).sort((a, b) => exScore(b) - exScore(a))[0];
+  const best = (g, test, keepKey) => EX.filter(e => avail(e) && autoOk(e) && !e.str && e.g === g && !ids().includes(e.id) && (mkey(e) === keepKey || !keys().has(mkey(e))) && (!test || test(e))).sort((a, b) => exScore(b) - exScore(a))[0];
   const item = e => { const pr = presOf(e, 'massa') || {s: 3, r: '8-12', rec: '90 s'}; return {e: e.id, s: pr.s, r: pr.r, rec: pr.rec, obj: (e.fin || []).includes('massa') ? 'massa' : undefined}; };
   // 1. doppioni → togli il secondo (non preferito)
   const seen = {}; L.forEach(x => { const e = byId[x.e], k = mkey(e) + '|' + e.tipo; if (seen[k]) { const keep = (!avail(seen[k]) && avail(e)) || (DB.fav[e.id] && !DB.fav[seen[k].id]) ? seen[k] : e; out.push({t: 'remove', id: keep.id, title: `Togli “${keep.n}”`, why: `Lavora esattamente gli stessi muscoli di “${(keep === e ? seen[k] : e).n}”: basta uno dei due.`}); } else seen[k] = e; });
@@ -1218,7 +1235,7 @@ function weekEval(key) {
   const withSt = sess.filter(x => x.st), compl = withSt.length === sess.length && sess.length ? withSt.reduce((t, x) => t + Math.min(1, x.sd / Math.max(1, x.st)), 0) / withSt.length : complBetween(key, end);
   const mx = e => Math.max(0, ...e.sets.map(z => num(z.kg))), rp = e => Math.max(0, ...e.sets.map(z => num(z.reps))), vol = e => e.sets.reduce((t, z) => t + num(z.kg) * num(z.reps), 0);
   let imp = 0, cmp = 0, v = 0, vp = 0, nex = 0; const better = [];
-  Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id] || !h) return;
+  Object.entries(DB.hist).forEach(([k, h]) => { const id = k.split(':')[1]; if (!byId[id] || !h || byId[id].str) return;   /* lo stretching non conta nei progressi */
     h.forEach(e => { if (inW(e.d)) v += vol(e); else if (inP(e.d)) vp += vol(e); });
     const cur = h.filter(e => inW(e.d)); if (!cur.length) return; nex++;
     const last = cur[cur.length - 1], prev = h.filter(e => e.d < key).slice(-1)[0]; if (!prev) return; cmp++;
@@ -1422,7 +1439,7 @@ const wizPrio = e => !!e.prio && inG(e, 'schiena') && (!WZ.att.length || WZ.att.
 // spalle ai cavi: prima gli esercizi con un solo cavo e due mani (corda, barra, maniglia doppia)
 const wizPrioSp = e => e.g === 'spalle' && e.eq === 'cable' && !!e.unCavo && !e.one && WZ.mus.includes('spalle') && (!WZ.att.length || WZ.att.includes('Cavi'));
 function wizPool() {
-  return EX.filter(e => avail(e) && (wizPrio(e) || (attOk(e, WZ.att) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id) && !(WZ.pid && inRt(WZ.pid, e.id)));
+  return EX.filter(e => avail(e) && !e.str && (wizPrio(e) || (attOk(e, WZ.att) && (!WZ.mus.length || WZ.mus.some(g => inG(e, g))))) && (e.fin || []).includes(WZ.fin) && (!WZ.lato || latoOf(e) === WZ.lato) && !WZ.rejected.includes(e.id) && !WZ.keep.includes(e.id) && !(WZ.pid && inRt(WZ.pid, e.id)));
 }
 function wizPropose() {
   const onlyAb = WZ.mus.length === 1 && WZ.mus[0] === 'addome', base = onlyAb ? 3 : Math.min(4, Math.max(3, WZ.mus.length + 1)), out = WZ.keep.map(id => byId[id]);
@@ -1497,7 +1514,7 @@ const W2 = {addome: 0, avambracci: 1, bicipiti: 2, tricipiti: 2, spalle: 3, pett
 const psSets = (ex, fin) => { const pr = presOf(ex, fin) || presOf(ex, 'massa') || {s: 3}; return ex.tipo === 'iso' ? Math.min(pr.s, 3) : pr.s; };   /* negli isolamenti bastano 3 serie */   /* chi perde il posto per primo quando il programma e' troppo lungo */
 function presetBuild(P, atts, groups) {
   groups = groups || psGroups();
-  const ok = e => avail(e) && attOk(e, atts) && (e.fin || []).includes(P.fin), ok2 = e => avail(e) && attOk(e, atts);
+  const ok = e => avail(e) && !e.str && attOk(e, atts) && (e.fin || []).includes(P.fin), ok2 = e => avail(e) && !e.str && attOk(e, atts);
   const pref = P.fin === 'tonificare' ? e => (e.eq === 'cable' ? 3 : 0) : P.fin === 'forza' ? e => (e.tipo === 'comp' ? 4 : 0) + (/smith|sbarra|parallele|jammer/i.test(e.a) ? 2 : 0) : e => (/manubri/i.test(e.a) ? 2 : 0);
   const score = e => (DB.fav[e.id] ? 12 : 0) + (profAtt().includes(e.a) ? 6 : 0) + (P.seed.includes(e.id) ? 10 : 0) + (e.prio ? 15 : 0) + (e.tipo === 'comp' ? 6 : e.tipo === 'semi' ? 2 : 0) + pref(e) + (e.unCavo ? 2 : 0) - (e.due ? 6 : 0) - (e.one ? 3 : 0);
   const q = psBudget(groups, P.fin), out = [], used = new Set(), keys = new Set(), covAb = new Set(); let knee = 0, post = 0;
@@ -1715,7 +1732,8 @@ document.addEventListener('click', e => {
   else if (a === 'rtpick') { toggleRt(b.dataset.r, b.dataset.id); $('#rtrows').innerHTML = pickRt.rows(); MSTACK.forEach(m => { m.html = m.html.replace(/(<button class="ghost" data-act="mtog" data-id="[^"]+">)[^<]*(<\/button>)/, '$1' + (inAny(b.dataset.id) ? '✓ Nelle tue schede · modifica' : '＋ Aggiungi a una scheda') + '$2'); }); flash(inRt(b.dataset.r, b.dataset.id) ? '✓ Aggiunto' : 'Tolto'); }
   else if (a === 'mrm') { const id = b.dataset.id, pid = b.dataset.pid; ask('Togliere “' + byId[id].n + '” da questa scheda? I pesi già salvati restano nello storico.', 'Togli', () => { DB.rt[pid] = rtList(pid).filter(x => x.e !== id); save(); render(true); }); }
   else if (a === 'mup' || a === 'mdn') { const L = rtList(b.dataset.pid), j = L.findIndex(x => x.e === b.dataset.id), d = a === 'mup' ? -1 : 1; if (j >= 0 && L[j + d]) { [L[j], L[j + d]] = [L[j + d], L[j]]; save(); render(true); } }
-  else if (a === 'chip') { (b.dataset.s === 'pk' ? pick : lib)[b.dataset.t] = b.dataset.v; render(true); }
+  else if (a === 'chip') { const st = b.dataset.s === 'pk' ? pick : lib; st[b.dataset.t] = b.dataset.v; if (b.dataset.t === 'mode') { st.sm = ''; st.q = ''; } render(true); }
+  else if (a === 'pstr') { prepEdit = true; pick.open = true; pick.mode = 'str'; pick.sm = strToday().length ? 'oggi' : ''; render(true); setTimeout(() => { const x = document.querySelector('.picker'); if (x) x.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 60); }
   else if (a === 'ptoggle') { prepEdit = true; pick.open = !pick.open; render(true); }
   else if (a === 'popen') { prepEdit = true; pick.open = true; render(true); window.scrollTo(0, 0); }
   else if (a === 'ptog') { prepEdit = true; pick.open = true; toggleRt(b.dataset.r, b.dataset.id); flash(inRt(b.dataset.r, b.dataset.id) ? '✓ Aggiunto alla scheda' : 'Tolto dalla scheda'); render(true); }

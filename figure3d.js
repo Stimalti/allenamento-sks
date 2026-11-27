@@ -15,7 +15,7 @@ const FIG3 = (() => {
   const ST_PRIM = JSON.parse(JSON.stringify(ST));
   const ST_RIG = JSON.parse(JSON.stringify(ST)); ST_RIG.seat.h = [120, 165]; ST_RIG.lie.h = [215, 172]; ST_RIG.kneel.h = [150, 168];
   function rigMode(on) { UA = on ? 35 : 36; FA = on ? 34 : 38; /* nel 3D il punto 'mano' e' l'attrezzo stretto nel pugno: gomito->pugno = 34 (polso a 28.5 + 5.5 dentro la mano) */ TH = on ? 46 : 52; SH = on ? 48 : 52; const src = on ? ST_RIG : ST_PRIM; Object.keys(src).forEach(k => { ST[k].h = src[k].h.slice(); }); }
-  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch','rlx','rly','th2','sh2','ft2'];   // rlx/rly = caviglia della gamba lontana fotogramma per fotogramma (piede sul carrello che scorre); th2/sh2/ft2 = angoli della gamba lontana quando si muove da sola (ex.leg2: footwork e ponte su una gamba)   // pitch = inclinazione di tutto il corpo (dopo il roll) attorno all'asse laterale: testa su/giù; roll = rotazione di tutto il corpo sull'asse lungo (gradi: 90 = sdraiato su un fianco), lz = spostamento laterale delle gambe   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
+  const KEYS = ['t','th','sh','tl','lift','ft','hd','ua','fa','ab','tw','zs','cu','sb','roll','lz','pitch','rlx','rly','th2','sh2','ft2','nk','nkl','nkr'];   // nk/nkl/nkr = testa: flessione avanti (+) o indietro, inclinazione laterale, rotazione (gradi)   // rlx/rly = caviglia della gamba lontana fotogramma per fotogramma (piede sul carrello che scorre); th2/sh2/ft2 = angoli della gamba lontana quando si muove da sola (ex.leg2: footwork e ponte su una gamba)   // pitch = inclinazione di tutto il corpo (dopo il roll) attorno all'asse laterale: testa su/giù; roll = rotazione di tutto il corpo sull'asse lungo (gradi: 90 = sdraiato su un fianco), lz = spostamento laterale delle gambe   // sb = flessione laterale del busto (gradi, + verso destra)   // tw = rotazione del busto (gradi, + verso destra), zs = spostamento laterale delle mani, cu = flessione della colonna (il bacino resta fermo)
   const resolve = (ex, fr) => { const r = Object.assign({tl:58, lift:0, ft:0, hd:0, ab:0}, ST[ex.st], fr[2] || {}, {ua:fr[0], fa:fr[1]}); if (ex.st === 'inc' && ex.inc && !(fr[2] && fr[2].t !== undefined)) r.t = 270 - ex.inc; return r; };   // ex.inc = inclinazione della panca in gradi dall'orizzontale: il busto la segue
   const lerp = (a, b, k) => { const r = {h:[a.h[0]+(b.h[0]-a.h[0])*k, a.h[1]+(b.h[1]-a.h[1])*k]}; KEYS.forEach(n => r[n] = (a[n]??0) + ((b[n]??0)-(a[n]??0))*k); r.k = k; return r; };
   function ik(h, t, l1, l2) {
@@ -222,7 +222,7 @@ const FIG3 = (() => {
   const tzSide = (an, sg) => an[1] < 60 ? 0 : 80 * sg;
   const ankleOf = q => [q.h[0] + TH * Math.sin(q.th * R) + SH * Math.sin(q.sh * R), q.h[1] + TH * Math.cos(q.th * R) + SH * Math.cos(q.sh * R)];
   function anchorFeet(ex, p, rig) {
-    if (!rig || !['stand', 'hinge'].includes(ex.st) || ex.legs || ex.cp === 'ankle' || ex.jump || ex.ref) return p;   /* reformer: la parte ferma la decide ex.ref.fix */   // ex.jump: salto che si sposta (box jump), i piedi lasciano il punto di partenza
+    if (!rig || !['stand', 'hinge'].includes(ex.st) || ex.legs || ex.cp === 'ankle' || ex.jump || ex.ref || ex.leg2) return p;   /* reformer: la parte ferma la decide ex.ref.fix */   // ex.jump: salto che si sposta (box jump), i piedi lasciano il punto di partenza
     const a0 = ankleOf(resolve(ex, ex.fr[0])), a1 = ankleOf(p);
     return Object.assign({}, p, {h: [p.h[0] + (a0[0] - a1[0]), p.h[1] + (a0[1] - a1[1])]});
   }
@@ -326,7 +326,7 @@ const FIG3 = (() => {
       P.push(cyl(pt3(A, LN - 14), pt3(A, LN + 14), 6.5, BLK));
     }
     const tilt = Math.abs((((p.t % 360) + 360) % 360) - 180);
-    if (rig && !window.FIG3_ICON && !ex.ref && tilt > 5 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
+    if (rig && !window.FIG3_ICON && !ex.ref && !ex.str && tilt > 5 && tilt < 80) {   // guida: verticale + asse del busto + arco dell'angolo, accanto al corpo
       // su panca inclinata il riferimento e' l'orizzontale (l'angolo mostrato e' quello della panca, es. 30°); in piedi e' la verticale
       const GZ2 = 48, ORG = '#ff6b35', ref = ex.st === 'inc' ? 270 : 180; P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, ref), GZ2), .8, ORG));
       P.push(cyl(pt3(H, GZ2), pt3(add(H, 78, p.t), GZ2), 1.1, ORG));
@@ -362,6 +362,10 @@ const FIG3 = (() => {
         J.S = rp(J.S); J.Pm = rp(J.Pm); J.up = rd(J.up); J.front = rd(J.front); J.frontCh = rd(J.frontCh);
         ['sh', 'el', 'wr', 'hip', 'kn', 'an', 'toe', 'obj', 'tip'].forEach(k => { if (J[k]) ['R', 'L'].forEach(s => { if (J[k][s]) J[k][s] = rp(J[k][s]); }); });
         ['armF', 'legF', 'legFL', 'footUp'].forEach(k => ['R', 'L'].forEach(s => { if (J[k] && J[k][s]) J[k][s] = rd(J[k][s]); }));
+      }
+      if (p.nk || p.nkl || p.nkr) {   /* collo: la testa si piega in avanti, di lato o ruota (stretching del collo) */
+        const lat = J.up.clone().cross(J.front).normalize(), nu = J.up.clone().applyAxisAngle(lat, (p.nk || 0) * R).applyAxisAngle(J.front, (p.nkl || 0) * R);
+        J.neckUp = nu.normalize(); J.headFront = (J.frontCh || J.front).clone().applyAxisAngle(lat, (p.nk || 0) * R).applyAxisAngle(nu, (p.nkr || 0) * R);
       }
       P.J = J;
     }
@@ -526,6 +530,7 @@ const FIG3 = (() => {
     let pose = null, rigInst = null;
     const trail = new THREE.Group(); scene.add(trail);
     if (window.FIG3_ICON) { floor.visible = false; ring.visible = false; trail.visible = false; }
+    if (ex.str) trail.visible = false;   // stretching: niente traiettoria (si accende con il tasto)
     const tMat = new THREE.MeshBasicMaterial({color: 0x22c7ff, depthTest: false, transparent: true, opacity: .95}), sMat = new THREE.MeshBasicMaterial({color: 0x22c55e, depthTest: false}), eMat = new THREE.MeshBasicMaterial({color: 0xff6b35, depthTest: false});
     function buildTrail() {
       while (trail.children.length) trail.remove(trail.children[0]);
@@ -596,6 +601,7 @@ const FIG3 = (() => {
     let lastK = -1;
     mb.onclick = () => { o.showM = !o.showM; mb.classList.toggle('on', o.showM); lastK = -1; };
     tb.onclick = () => { trail.visible = !trail.visible; tb.classList.toggle('on', trail.visible); };
+    if (ex.str) tb.classList.remove('on');
     function frame(t) {
       if (o.dead) return;
       o.raf = requestAnimationFrame(frame);

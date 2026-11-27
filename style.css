@@ -312,3 +312,8 @@ nav button{overflow:hidden}nav button span{max-width:100%;overflow-wrap:anywhere
 body.gated{overflow:hidden}
 .admrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.admrow .admt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 200px}.admrow .admt b{overflow-wrap:anywhere}.admrow .admt small{color:var(--mut);font-size:13px}.admrow button{flex:none;width:auto;padding:9px 16px;font-size:15px}
 .admrow.off{opacity:.92;border-color:#e0464680}.admrow .admoff{color:#d33!important;font-weight:600}
+
+/* v148: stretching e postura */
+.set.nokg label.f:first-of-type{visibility:hidden}
+.chips.modes{margin-bottom:6px}.chips.modes .chip{font-weight:700}
+@media(max-width:400px){.set.nokg label.f:first-of-type{display:none}}

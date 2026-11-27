@@ -2200,3 +2200,422 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
   F('Piedi nelle cinghie', {'rf-rana': 'Rana', 'rf-gambe-giu': 'Gambe in giù'});
   F('Braccia da seduto al reformer', {'rf-rematore': 'Rematore', 'rf-hug': 'Abbraccio', 'rf-shaving': 'Shaving'});
 })();
+
+/* ===== Stretching e postura (v148): sezione a parte (ex.str), si sceglie per muscolo (ex.sm) e si aggiunge a qualsiasi seduta.
+   ex.dose = quanto farlo (secondi di tenuta o ripetizioni); niente carico. I primi 5 vengono dal reel di Maru Lekhal ben (@teammarufit). ===== */
+(() => {
+  if (EX.some(e => e.id === 'st-collo-lato')) return;
+  const U = {TH: 46, SH: 48, UA: 35, FA: 34, TL: 58}, D = Math.PI / 180;
+  const dir = a => [Math.sin(a * D), Math.cos(a * D)], add = (p, l, a) => { const d = dir(a); return [p[0] + l * d[0], p[1] + l * d[1]]; };
+  const ang = (p, q) => Math.atan2(q[0] - p[0], q[1] - p[1]) / D;
+  const ik2 = (a, b, l1, l2, pick) => { const dx = b[0] - a[0], dy = b[1] - a[1], d0 = Math.hypot(dx, dy), d = Math.min(d0, l1 + l2 - .01), x = (l1 * l1 - l2 * l2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - x * x)), ux = dx / d0, uy = dy / d0;
+    const c1 = [a[0] + x * ux - h * uy, a[1] + x * uy + h * ux], c2 = [a[0] + x * ux + h * uy, a[1] + x * uy - h * ux]; return pick(c1, c2); };
+  const up = (c1, c2) => c1[1] < c2[1] ? c1 : c2, down = (c1, c2) => c1[1] > c2[1] ? c1 : c2, back = (c1, c2) => c1[0] < c2[0] ? c1 : c2, fwd = (c1, c2) => c1[0] > c2[0] ? c1 : c2;
+  const r1 = v => Math.round(v * 10) / 10;
+  const legTo = (H, A, pick) => { const K = ik2(H, A, U.TH, U.SH, pick || up); return [r1(ang(H, K)), r1(ang(K, A))]; };
+  const armTo = (S, W, pick) => { const E = ik2(S, W, U.UA, U.FA, pick || back); return [r1(ang(S, E)), r1(ang(E, W))]; };
+  const hug = (t, cu) => { const S = cu ? add(add([0, 0], 29, t + cu), 29, t) : add([0, 0], 58, t), up = dir(t), fw = dir(t - 90), W = [S[0] + 14 * fw[0] - 6 * up[0], S[1] + 14 * fw[1] - 6 * up[1]];
+    const c = [0, 1].map(i => ik2(S, W, U.UA, U.FA, (a, b) => i ? a : b)), E = c.sort((a, b) => ((a[0] - S[0]) * up[0] + (a[1] - S[1]) * up[1]) - ((b[0] - S[0]) * up[0] + (b[1] - S[1]) * up[1]))[0];
+    return [r1(ang(S, E)), r1(ang(E, W))]; };   // braccia incrociate con le mani sulle spalle opposte (gomiti in basso rispetto al busto)
+  const sh = (h, tl, t, cu) => cu ? add(add(h, tl / 2, t + cu), tl / 2, t) : add(h, tl, t);   // spalla dal bacino
+  const SMG = {collo: 'spalle', spalle: 'spalle', petto: 'petto', dorsali: 'schiena', lombare: 'schiena', braccia: 'avambracci', fianchi: 'addome', glutei: 'gambe', flessori: 'gambe', quadricipiti: 'gambe', femorali: 'gambe', adduttori: 'gambe', polpacci: 'gambe', postura: 'schiena'};
+  const ST = o => { const dyn = !!o.dyn; EX.push(Object.assign({a: 'Corpo libero', str: true, tipo: 'str', g: SMG[o.sm[0]], fin: ['tonificare', 'massa', 'forza'], prio: false, isom: !dyn, hold: dyn ? undefined : o.dose, tempo: dyn ? [1.3, .4, 1.5] : [1.6, .5, 1.8], yq: o.yq || (o.n.split(' (')[0] + ' stretching')}, o)); };
+  const FLOOR = 222, STAND = 118, LIEY = 197, PRONE = 205, KNEE = 214;
+  const SEAT = {h: [120, 165], th: 90, sh: 0};
+  const thighs = (H) => { const S = add(H, U.TL, 180), W = [H[0] + 34, H[1] - 8]; return armTo(S, W, down); };   // mani appoggiate sulle cosce, da seduto
+
+  // ---------------- dal reel di Maru Lekhal ben (postura) ----------------
+  const REEL = 'Dal reel di Maru Lekhal ben (@teammarufit), che propone questi movimenti ogni giorno per la postura.';
+  { const A = [205, 212], W = [100, 216], S1 = [W[0], W[1] - 69], H1 = [S1[0] + 58, S1[1]], H0 = [146, 208], S0 = ik2(H0, W, 58, 69, up), [th0, sh0] = legTo(H0, A), [th1, sh1] = legTo(H1, A), ua0 = r1(ang(S0, W));
+    ST({id: 'st-ponte-inverso', n: 'Ponte inverso dal seduto (tavolo)', sm: ['petto', 'spalle', 'flessori', 'postura'], dyn: true, dose: '20-25 ripetizioni', m: 'Glutei, pettorali, deltoidi', mm: 'grande gluteo e femorali (sollevano il bacino); in allungamento pettorali, deltoidi anteriori e flessori dell’anca', st: 'floor', yq: 'reverse tabletop exercise posture',
+      fr: [[ua0, ua0, {t: r1((ang(H0, S0) + 360) % 360), h: H0, th: th0, sh: sh0}], [0, 0, {t: 270, h: H1, th: th1, sh: sh1}]],
+      cap: ['Seduto a terra, mani dietro e piedi appoggiati', 'Bacino su: spalle, anche e ginocchia in linea come un tavolo'],
+      set: 'A terra, seduto con le ginocchia piegate e i piedi appoggiati, mani dietro di te con le dita verso i piedi.', pos: 'Braccia tese, spalle lontane dalle orecchie, sguardo in alto.',
+      ese: ['Spingi su mani e piedi e porta il bacino in alto fino al “tavolo”.', 'Apri il petto e stringi i glutei 1-2 secondi.', 'Torna seduto senza appoggiare del tutto il bacino.'],
+      cue: 'Spingi il petto verso il cielo: le spalle si aprono all’indietro.', why: REEL + ' Apre petto e spalle chiuse in avanti e attiva i glutei: il contrario della posizione da scrivania.',
+      err: ['Spalle che salgono verso le orecchie', 'Bacino che resta basso', 'Testa che cade all’indietro di colpo']}); }
+  ST({id: 'st-ragdoll', n: 'Piegamento in avanti a gambe larghe, braccia incrociate', sm: ['femorali', 'adduttori', 'lombare'], dose: '30-45 s', m: 'Femorali, adduttori, erettori spinali', mm: 'ischiocrurali, adduttori, erettori spinali, polpacci', st: 'stand', gz: -16, yq: 'wide leg forward fold ragdoll stretch',
+    fr: [[...hug(180), {t: 180}], [...hug(32), {t: 32, nk: 15}]], cap: ['In piedi a gambe larghe, braccia incrociate sulle spalle', 'Busto appeso in avanti tra le gambe, collo rilassato'],
+    set: 'In piedi con i piedi molto larghi, punte un po’ aperte. Incrocia le braccia appoggiando le mani sulle spalle opposte.', pos: 'Ginocchia morbide, peso sull’avampiede, collo rilassato.',
+    ese: ['Piegati in avanti dalle anche lasciando cadere il busto tra le gambe.', 'Lascia pendere testa e braccia e respira lento.', 'Risali piano arrotolando la schiena.'],
+    cue: 'Lasciati “appendere” come una bambola di pezza: il peso della testa allunga la schiena.', why: REEL + ' Allunga femorali, interno coscia e schiena tutti insieme, scaricando la colonna.',
+    err: ['Ginocchia bloccate', 'Rimbalzare', 'Rialzarsi di scatto (gira la testa)']});
+  { const H = [120, 208], S = add(H, 58, 195), W = add(S, 69, -25), ua = r1(ang(S, W));
+    ST({id: 'st-90-90', n: 'Rotazione delle anche a tergicristallo (90/90)', sm: ['glutei', 'flessori', 'lombare'], dyn: true, dose: '20 ripetizioni (10 per lato)', m: 'Glutei, flessori dell’anca', mm: 'rotatori dell’anca (piriforme, gluteo medio e piccolo), flessori dell’anca, adduttori', st: 'floor', yq: '90 90 hip switch mobility',
+      fr: [[ua, ua, {t: 195, h: H, th: 130, sh: 30, lz: -32}], [ua, ua, {t: 195, h: H, th: 130, sh: 30, lz: 32}]], cap: ['Seduto, ginocchia piegate che cadono da un lato', 'Ginocchia portate dall’altro lato, busto fermo'],
+      set: 'Seduto a terra, mani dietro, piedi più larghi del bacino e ginocchia piegate.', pos: 'Busto alto, peso sulle mani, piedi fermi a terra.',
+      ese: ['Lascia cadere entrambe le ginocchia verso destra.', 'Riportale al centro e falle cadere verso sinistra.', 'Movimento lento e controllato, 20 volte.'],
+      cue: 'Le ginocchia oscillano come un tergicristallo, i piedi restano incollati a terra.', why: REEL + ' Muove le anche in rotazione interna ed esterna e scioglie bacino e zona lombare.',
+      err: ['Staccare i piedi', 'Andare veloci a scatti', 'Busto che crolla indietro']}); }
+  { const K = [190, KNEE], H = [150, r1(KNEE - Math.sqrt(46 * 46 - 40 * 40))], th = r1(ang(H, K));
+    ST({id: 'st-bambino-mani-testa', n: 'Posizione del bambino con le mani dietro la testa', sm: ['dorsali', 'collo', 'lombare', 'postura'], dose: '30-45 s', m: 'Erettori spinali, trapezio, dorsali', mm: 'erettori spinali, trapezio, romboidi, muscoli posteriori del collo', st: 'kneel', benchSt: 'kneel', yq: 'child pose hands behind head thoracic stretch',
+      fr: [[150, 300, {t: 180, h: H, th, sh: -90, ft: 60}], [35, 185, {t: 65, h: H, th, sh: -90, ft: 60, nk: 25}]], cap: ['In ginocchio seduto sui talloni, mani dietro la testa', 'Busto e testa giù verso le ginocchia, schiena arrotondata'],
+      set: 'In ginocchio, seduto sui talloni. Intreccia le dita dietro la testa, gomiti in avanti.', pos: 'Glutei sui talloni per tutto il tempo.',
+      ese: ['Arrotola la schiena portando la fronte verso le ginocchia.', 'Lascia il peso delle braccia sulla testa, senza tirare.', 'Respira nella schiena 30-45 secondi e risali lento.'],
+      cue: 'Respira “nella schiena”: a ogni espirazione scendi un po’ di più.', why: REEL + ' Allunga la schiena alta e il collo, rigidi dopo tante ore seduti.',
+      err: ['Tirare la testa con le mani', 'Glutei che si alzano', 'Trattenere il respiro']}); }
+  { const K = [140, KNEE], H = [140, KNEE - 46], S0 = sh(H, 58, 115), H1 = [136, KNEE - 45], t1 = r1(Math.acos((200 - H1[1]) / 58) / D), S1 = add(H1, 58, t1), ua1 = r1(ang(S1, [S1[0] + 66, 212]));
+    ST({id: 'st-cucciolo', n: 'Allungamento del cucciolo (petto a terra, braccia avanti)', sm: ['spalle', 'dorsali', 'petto', 'postura'], dyn: true, dose: '20 ripetizioni lente', m: 'Dorsali, deltoidi, pettorali', mm: 'gran dorsale, deltoidi, pettorali, tricipite (capo lungo), muscoli della schiena alta', st: 'kneel', benchSt: 'kneel', yq: 'puppy pose stretch shoulders',
+      fr: [[0, 0, {t: 115, h: H, th: 0, sh: -90, ft: 60}], [ua1, ua1, {t: t1, h: H1, th: -2, sh: -90, ft: 60}]], cap: ['A quattro zampe, mani sotto le spalle', 'Petto verso terra, braccia distese avanti, bacino sopra le ginocchia'],
+      set: 'A quattro zampe: ginocchia sotto le anche, mani un po’ avanti rispetto alle spalle.', pos: 'Bacino sopra le ginocchia: non sederti sui talloni.',
+      ese: ['Fai scivolare le mani in avanti e porta il petto verso terra.', 'Tieni 2 secondi sentendo l’allungamento sotto le ascelle.', 'Torna a quattro zampe; ripeti 20 volte.'],
+      cue: 'Il petto scende verso il pavimento come se volessi toccarlo con lo sterno.', why: REEL + ' Apre spalle e petto ed è uno degli esercizi migliori contro le spalle curve.',
+      err: ['Sedersi sui talloni', 'Inarcare troppo la zona lombare', 'Spalle alle orecchie']}); }
+
+  // ---------------- collo (seduto sul bordo di una panca) ----------------
+  const [tua, tfa] = thighs(SEAT.h), NECK = {st: 'seat', benchSt: 'edge', dose: '20-30 s per lato', ct: [0, .95, 3.6]};
+  const neck = (id, n, o, last, m, mm, cap, ese, cue, why, err) => ST(Object.assign({id, n, sm: ['collo'], m, mm, fr: [[tua, tfa, Object.assign({t: 180}, SEAT)], [tua, tfa, Object.assign({t: 180}, SEAT, last)]], cap, ese, cue, why, err,
+    set: 'Seduto dritto sul bordo di una panca o di una sedia, piedi a terra, mani sulle cosce.', pos: 'Spalle basse e rilassate, schiena dritta.'}, NECK, o));
+  neck('st-collo-lato', 'Allungamento laterale del collo', {az: 1.3}, {nkl: -38}, 'Trapezio superiore, scaleni', 'trapezio superiore, scaleni, sternocleidomastoideo',
+    ['Seduto dritto, testa centrata', 'Orecchio verso la spalla, spalla opposta bassa'], ['Porta l’orecchio verso la spalla, senza alzarla.', 'Se vuoi, appoggia la mano dello stesso lato sulla testa (solo il peso, non tirare).', 'Tieni 20-30 secondi e cambia lato.'],
+    'Spingi la spalla opposta verso il pavimento: l’allungamento aumenta da solo.', 'Scioglie la parte alta delle spalle, che si irrigidisce con stress e scrivania.', ['Alzare la spalla verso l’orecchio', 'Tirare la testa con la mano', 'Ruotare il viso']);
+  neck('st-collo-avanti', 'Allungamento del collo in avanti (mento al petto)', {}, {nk: 42}, 'Trapezio, estensori del collo', 'trapezio superiore, splenio, semispinale, elevatore della scapola',
+    ['Seduto dritto, testa centrata', 'Mento verso il petto, nuca lunga'], ['Porta il mento verso il petto.', 'Allunga la nuca come se un filo ti tirasse verso l’alto e in avanti.', 'Tieni 20-30 secondi.'],
+    'Allunga la nuca, non schiacciare la gola.', 'Allunga la parte posteriore del collo, utile dopo tanto tempo al telefono o al computer.', ['Curvare tutta la schiena', 'Spalle in avanti']);
+  neck('st-collo-rotazione', 'Rotazione del collo', {dyn: true, dose: '8-10 per lato', az: .9}, {nkr: 78}, 'Muscoli del collo', 'sternocleidomastoideo, splenio, scaleni',
+    ['Sguardo avanti', 'Testa girata a guardare oltre la spalla'], ['Gira la testa lentamente verso destra, fin dove arrivi senza dolore.', 'Torna al centro e gira a sinistra.', 'Tieni il mento alla stessa altezza.'],
+    'Gira come se guardassi dietro di te, il busto resta fermo.', 'Mantiene la mobilità del collo in rotazione (guidare, fare retromarcia).', ['Inclinare la testa mentre giri', 'Muovere le spalle']);
+  neck('st-collo-trapezio', 'Allungamento dell’elevatore della scapola (naso verso l’ascella)', {az: 1.0}, {nk: 32, nkr: -35, nkl: -14}, 'Trapezio, elevatore della scapola', 'elevatore della scapola, trapezio superiore',
+    ['Seduto dritto', 'Naso verso l’ascella opposta'], ['Ruota la testa di circa 45° e abbassa il naso verso l’ascella.', 'Appoggia piano la mano sulla nuca, senza tirare.', 'Tieni 20-30 secondi e cambia lato.'],
+    'Guarda verso la tasca dei pantaloni opposta.', 'Allunga il muscolo che solleva la scapola, spesso rigido e dolorante.', ['Tirare con la mano', 'Alzare la spalla']);
+  neck('st-collo-scaleni', 'Allungamento degli scaleni (collo in alto e di lato)', {az: 1.2}, {nk: -22, nkl: -24, nkr: 15}, 'Scaleni, sternocleidomastoideo', 'scaleni anteriori e medi, sternocleidomastoideo',
+    ['Seduto dritto', 'Testa inclinata indietro e di lato, sguardo in alto'], ['Abbassa la spalla e tieni ferma la clavicola con la mano opposta.', 'Inclina la testa di lato e leggermente indietro, sguardo in alto.', 'Tieni 20-30 secondi e cambia lato.'],
+    'Allunga la parte davanti del collo, senza schiacciare la nuca.', 'Allunga i muscoli davanti e di lato al collo, tesi quando si respira solo con il petto.', ['Andare troppo indietro con la testa', 'Spalla che sale']);
+  neck('st-chin-tuck', 'Retrazione del mento (doppio mento)', {dyn: true, dose: '10-15 ripetizioni (tieni 3 s)', sm: ['collo', 'postura'], az: 0}, {nk: 14}, 'Flessori profondi del collo', 'flessori profondi del collo (lungo del collo), estensori della parte alta della nuca in allungamento',
+    ['Testa in avanti, come davanti allo schermo', 'Mento indietro, nuca lunga, “doppio mento”'], ['Porta il mento indietro in orizzontale, senza abbassare lo sguardo.', 'Tieni 3 secondi con la nuca lunga.', 'Rilassa e ripeti.'],
+    'Fai il “doppio mento”: la testa scivola indietro sopra le spalle.', 'Corregge la testa portata in avanti, la postura tipica di chi lavora al computer o al telefono.', ['Guardare in basso invece di arretrare', 'Inclinare la testa all’indietro']);
+
+  // ---------------- postura ----------------
+  ST({id: 'st-wall-angels', n: 'Angeli al muro', sm: ['postura', 'spalle', 'petto'], dyn: true, dose: '10-12 ripetizioni lente', m: 'Trapezio, romboidi, deltoidi', mm: 'trapezio medio e inferiore, romboidi, cuffia dei rotatori; pettorali in allungamento', st: 'stand', v: 'f', yq: 'wall angels posture',
+    fr: [[90, 180], [165, 172]], cap: ['Schiena al muro, braccia a “W”', 'Braccia in alto a “Y”, sempre appoggiate al muro'],
+    set: 'In piedi con schiena, testa e glutei appoggiati al muro, piedi un passo avanti. Braccia a “W”: gomiti all’altezza delle spalle, dorso delle mani al muro.', pos: 'Zona lombare vicina al muro, mento leggermente dentro.',
+    ese: ['Fai scivolare le braccia verso l’alto lungo il muro fino a “Y”.', 'Riscendi a “W” portando i gomiti verso i fianchi.', 'Mani e gomiti restano sempre a contatto con il muro.'],
+    cue: 'Le scapole scendono nelle tasche posteriori mentre le braccia salgono.', why: 'Insegna alle scapole a muoversi bene e apre il petto: l’esercizio base contro le spalle curve.',
+    err: ['Staccare la schiena o i gomiti dal muro', 'Inarcare la zona lombare', 'Alzare le spalle']});
+  ST({id: 'st-scapole-w', n: 'Retrazione delle scapole a “W”', sm: ['postura', 'dorsali'], dyn: true, dose: '12-15 ripetizioni (tieni 2 s)', m: 'Romboidi, trapezio medio', mm: 'romboidi, trapezio medio e inferiore, deltoide posteriore', st: 'stand', gz: 30, lat: 2.2, yq: 'scapular retraction w exercise',
+    fr: [[25, 105, {t: 180}], [-32, 68, {t: 180}]], cap: ['Gomiti piegati davanti, mani all’altezza delle spalle', 'Gomiti indietro e in basso: scapole strette'],
+    set: 'In piedi, gomiti piegati a 90° e mani all’altezza delle spalle, palmi in avanti.', pos: 'Busto dritto, mento dentro, addome attivo.',
+    ese: ['Porta i gomiti indietro e in basso stringendo le scapole: le braccia formano una “W”.', 'Tieni 2 secondi.', 'Torna lentamente.'],
+    cue: 'Metti le scapole nelle tasche posteriori dei pantaloni.', why: 'Rinforza i muscoli tra le scapole, che tengono le spalle indietro e la schiena dritta.',
+    err: ['Alzare le spalle', 'Inarcare la schiena', 'Spingere il mento in avanti']});
+  { const H = [150, PRONE];
+    ST({id: 'st-superman', n: 'Superman (prono, braccia e gambe sollevate)', sm: ['postura', 'lombare'], dyn: true, dose: '10-12 ripetizioni (tieni 2 s)', m: 'Erettori spinali, glutei', mm: 'erettori spinali, grande gluteo, femorali, trapezio, deltoidi posteriori', st: 'floor', yq: 'superman exercise',
+      fr: [[90, 90, {t: 90, h: H, th: -90, sh: -90, ft: 60}], [100, 100, {t: 100, h: H, th: -100, sh: -100, ft: 60, nk: -5}]], cap: ['Prono, braccia avanti', 'Braccia, petto e gambe sollevati di pochi centimetri'],
+      set: 'A pancia in giù sul tappetino, braccia distese avanti, gambe distese.', pos: 'Sguardo verso il pavimento, collo lungo.',
+      ese: ['Solleva insieme braccia, petto e gambe di pochi centimetri.', 'Tieni 2 secondi stringendo i glutei.', 'Scendi lentamente.'],
+      cue: 'Allungati in lunghezza più che in altezza.', why: 'Rinforza tutta la catena posteriore che tiene la schiena dritta.',
+      err: ['Alzare troppo la testa', 'Movimento a scatti', 'Piegare le ginocchia']});
+    ST({id: 'st-y-prono', n: 'Sollevamenti a “Y” da prono', sm: ['postura', 'spalle'], dyn: true, dose: '10-12 ripetizioni (tieni 2 s)', m: 'Trapezio inferiore, deltoidi', mm: 'trapezio inferiore e medio, deltoide posteriore, cuffia dei rotatori', st: 'floor', gz: 44, yq: 'prone y raise',
+      fr: [[96, 96, {t: 90, h: H, th: -90, sh: -90, ft: 60}], [110, 110, {t: 96, h: H, th: -90, sh: -90, ft: 60}]], cap: ['Prono, braccia avanti a “Y”, pollici in alto', 'Braccia sollevate dal pavimento, scapole basse'],
+      set: 'A pancia in giù, braccia distese avanti e aperte a “Y”, pollici verso l’alto.', pos: 'Fronte vicino al pavimento, gambe rilassate.',
+      ese: ['Solleva le braccia tese di pochi centimetri portando le scapole verso il basso.', 'Tieni 2 secondi.', 'Riappoggia lentamente.'],
+      cue: 'Pensa a portare le scapole giù e indietro, non le mani in alto.', why: 'Rinforza la parte bassa del trapezio, spesso debole in chi ha le spalle curve.',
+      err: ['Alzare la testa', 'Usare la schiena invece delle scapole', 'Spalle alle orecchie']}); }
+  const KQ = {h: [140, KNEE - 46], th: 0, sh: -90, ft: 60};
+  ST({id: 'st-gatto-mucca', n: 'Gatto e mucca (mobilità della colonna)', sm: ['lombare', 'dorsali', 'postura'], dyn: true, dose: '10 ripetizioni lente', m: 'Erettori spinali, addominali', mm: 'erettori spinali, retto addominale, muscoli tra le vertebre', st: 'kneel', benchSt: 'kneel', yq: 'cat cow stretch',
+    fr: [[0, 0, Object.assign({t: 115, cu: 20, nk: -18}, KQ)], [0, 0, Object.assign({t: 115, cu: -24, nk: 28}, KQ)]], cap: ['Mucca: schiena che scende, sguardo avanti', 'Gatto: schiena tonda verso l’alto, mento al petto'],
+    set: 'A quattro zampe: mani sotto le spalle, ginocchia sotto le anche.', pos: 'Braccia tese, peso distribuito tra mani e ginocchia.',
+    ese: ['Inspira: lascia scendere la pancia e porta lo sguardo avanti (mucca).', 'Espira: spingi il pavimento e arrotonda la schiena verso l’alto (gatto).', 'Muoviti lento, una vertebra alla volta.'],
+    cue: 'Il movimento parte dal bacino e arriva alla testa come un’onda.', why: 'Mobilizza tutta la colonna in flessione ed estensione: ottimo come riscaldamento e dopo tante ore seduti.',
+    err: ['Muovere solo il collo', 'Andare veloce', 'Piegare i gomiti']});
+  ST({id: 'st-rotazione-4-zampe', n: 'Rotazione del busto a quattro zampe (braccio al soffitto)', sm: ['dorsali', 'postura'], dyn: true, dose: '8-10 per lato', m: 'Muscoli della schiena alta, obliqui', mm: 'rotatori della colonna toracica, obliqui, pettorale in allungamento', st: 'kneel', benchSt: 'kneel', one: true, yq: 'quadruped thoracic rotation',
+    fr: [[0, 0, Object.assign({t: 115}, KQ)], [180, 180, Object.assign({t: 115, tw: -55, nkr: -30}, KQ)]], cap: ['A quattro zampe', 'Busto ruotato, braccio verso il soffitto, sguardo alla mano'],
+    set: 'A quattro zampe: mani sotto le spalle, ginocchia sotto le anche.', pos: 'Bacino fermo, il braccio d’appoggio resta teso.',
+    ese: ['Porta una mano verso il soffitto ruotando il busto.', 'Segui la mano con lo sguardo.', 'Torna giù lentamente. Fai tutte le ripetizioni e cambia lato.'],
+    cue: 'Ruota dalla schiena alta, non dal bacino.', why: 'Ridà mobilità in rotazione alla schiena alta, che si irrigidisce stando seduti.',
+    err: ['Spostare il bacino', 'Piegare il braccio d’appoggio', 'Andare di scatto']});
+
+  // ---------------- petto, spalle, braccia ----------------
+  ST({id: 'st-pettorale-muro', n: 'Allungamento del pettorale al muro (o allo stipite)', sm: ['petto', 'spalle'], dose: '30 s per lato', m: 'Pettorali, deltoidi anteriori', mm: 'gran pettorale, piccolo pettorale, deltoide anteriore, bicipite', st: 'stand', one: true, arm3: {n: [[-.15, 0, 1], [0, -1, .1]]}, az: .6, yq: 'doorway pec stretch',
+    fr: [[0, 0, {t: 180}], [0, 0, {t: 180, tw: -28}]], cap: ['Avambraccio appoggiato al muro, gomito all’altezza della spalla', 'Busto girato dalla parte opposta: si allunga il petto'],
+    set: 'In piedi di fianco a un muro o in uno stipite. Appoggia avambraccio e palmo al muro con il gomito all’altezza della spalla.', pos: 'Spalla bassa, busto dritto.',
+    ese: ['Fai un piccolo passo avanti e ruota il busto dalla parte opposta.', 'Senti l’allungamento davanti alla spalla e sul petto.', 'Tieni 30 secondi e cambia lato.'],
+    cue: 'Ruota il corpo lontano dal braccio, il braccio resta fermo al muro.', why: 'Allunga il petto e la spalla davanti, accorciati da scrivania e allenamenti di spinta.',
+    err: ['Spingere troppo (formicolio al braccio)', 'Spalla che sale', 'Inarcare la schiena']});
+  ST({id: 'st-pettorale-dietro', n: 'Mani intrecciate dietro la schiena (apertura del petto)', sm: ['petto', 'spalle', 'postura'], dose: '20-30 s', m: 'Pettorali, deltoidi anteriori, bicipiti', mm: 'gran pettorale, deltoide anteriore, bicipite', st: 'stand', gz: 6, yq: 'clasped hands behind back chest stretch',
+    fr: [[-25, -25, {t: 180}], [-55, -55, {t: 176, nk: -10}]], cap: ['Mani intrecciate dietro la schiena', 'Braccia tese sollevate indietro, petto aperto'],
+    set: 'In piedi, intreccia le dita dietro la schiena con le braccia tese.', pos: 'Busto dritto, mento leggermente dentro.',
+    ese: ['Porta le spalle indietro e solleva le braccia tese dietro di te.', 'Apri il petto in avanti.', 'Tieni 20-30 secondi.'],
+    cue: 'Lo sterno va avanti e in alto, le mani lontano da te.', why: 'Apre il petto e la parte anteriore delle spalle: si può fare ovunque, anche in ufficio.',
+    err: ['Piegarsi in avanti', 'Inarcare la zona lombare', 'Spalle alle orecchie']});
+  ST({id: 'st-spalla-incrociata', n: 'Braccio incrociato davanti al petto', sm: ['spalle', 'dorsali'], dose: '20-30 s per lato', m: 'Deltoidi posteriori, romboidi', mm: 'deltoide posteriore, romboidi, trapezio medio, cuffia dei rotatori', st: 'stand', arm3: {n: [[.45, .05, -1], [.35, .05, -1]], f: [[.75, .55, -.2], [.1, -1, .6]]}, az: .7, yq: 'cross body shoulder stretch',
+    fr: [[0, 0, {t: 180}], [0, 0, {t: 180, tw: 8}]], cap: ['Braccio teso portato davanti al petto', 'L’altra mano spinge il gomito verso il petto'],
+    set: 'In piedi o seduto. Porta un braccio teso davanti al petto, verso la spalla opposta.', pos: 'Spalla del braccio teso bassa, busto fermo.',
+    ese: ['Con l’altra mano spingi il gomito verso il petto.', 'Tieni 20-30 secondi.', 'Cambia braccio.'],
+    cue: 'Spingi sul gomito, non sul polso.', why: 'Allunga la parte posteriore della spalla, spesso rigida in chi si allena molto con le braccia.',
+    err: ['Ruotare il busto', 'Spalla che sale', 'Tirare sul polso']});
+  ST({id: 'st-tricipite-sopra', n: 'Allungamento del tricipite sopra la testa', sm: ['braccia', 'dorsali'], dose: '20-30 s per lato', m: 'Tricipiti, gran dorsale', mm: 'tricipite (capo lungo), gran dorsale, grande rotondo', st: 'stand', arm3: {n: [[.1, -1, .15], [-.35, 1, -.25]], f: [[.15, -.55, .82], [.05, -.45, .89]]}, az: .5, yq: 'overhead triceps stretch',
+    fr: [[0, 0, {t: 180}], [0, 0, {t: 180, sb: -6}]], cap: ['Gomito in alto, mano dietro la testa', 'L’altra mano spinge il gomito indietro'],
+    set: 'In piedi o seduto. Porta un braccio in alto, piega il gomito e lascia la mano dietro la testa.', pos: 'Busto dritto, addome in dentro.',
+    ese: ['Con l’altra mano spingi il gomito indietro e verso la testa.', 'Tieni 20-30 secondi.', 'Cambia braccio.'],
+    cue: 'Il gomito punta al soffitto, la mano scende lungo la schiena.', why: 'Allunga il tricipite e il gran dorsale, dopo allenamenti di spinta e trazioni.',
+    err: ['Inarcare la schiena', 'Spingere la testa in avanti']});
+  ST({id: 'st-circonduzioni', n: 'Circonduzioni delle braccia', sm: ['spalle', 'postura'], dyn: true, dose: '10 avanti + 10 indietro', m: 'Deltoidi, cuffia dei rotatori', mm: 'deltoidi, cuffia dei rotatori, trapezio, pettorali', st: 'stand', tempo: [2.6, .2, 2.6], ct: [0, 1.05, 4.6], yq: 'arm circles warm up',
+    fr: [[5, 5, {t: 180}], [90, 90, {t: 180}], [180, 180, {t: 180}], [270, 270, {t: 180}], [355, 355, {t: 180}]], cap: ['Braccia lungo i fianchi', 'Cerchi ampi e lenti'],
+    set: 'In piedi, piedi alla larghezza del bacino, braccia lungo i fianchi.', pos: 'Busto fermo, addome attivo.',
+    ese: ['Disegna cerchi ampi con le braccia tese, lenti.', 'Fai 10 cerchi in avanti e 10 indietro.', 'Il busto non si muove.'],
+    cue: 'Cerchi grandi come se volessi toccare le pareti.', why: 'Scalda e muove le spalle in tutte le direzioni: perfetto prima degli esercizi per la parte alta.',
+    err: ['Inarcare la schiena quando le braccia vanno in alto', 'Cerchi troppo veloci']});
+  { const W = [232, 128], H = [140, STAND], t = 96, S = sh(H, 58, t), [ua, fa] = armTo(S, W, down);
+    ST({id: 'st-dorsale-muro', n: 'Allungamento dei dorsali al muro (busto parallelo al pavimento)', sm: ['dorsali', 'spalle', 'petto'], dose: '30 s', m: 'Gran dorsale, pettorali, deltoidi', mm: 'gran dorsale, grande rotondo, pettorali, tricipite (capo lungo), femorali', st: 'stand', wall: W[0] + 5, yq: 'wall lat stretch',
+      fr: [[70, 70, {t: 180, h: H}], [ua, fa, {t, h: H}]], cap: ['In piedi davanti al muro', 'Mani al muro, busto parallelo al pavimento, petto che scende'],
+      set: 'In piedi a un passo e mezzo da un muro (o da un appoggio alto), mani appoggiate all’altezza delle anche o del petto.', pos: 'Braccia tese, ginocchia morbide, schiena dritta.',
+      ese: ['Spingi il bacino indietro e lascia scendere il petto tra le braccia.', 'Tieni 30 secondi respirando.', 'Torna su piegando le ginocchia.'],
+      cue: 'Spingi il bacino lontano dalle mani: si allungano i fianchi della schiena.', why: 'Allunga gran dorsale e pettorali, che quando sono rigidi tirano le spalle in avanti.',
+      err: ['Arrotondare la schiena', 'Ginocchia bloccate', 'Testa che cade']}); }
+  ST({id: 'st-abbraccio-schiena', n: 'Abbraccio per la schiena alta', sm: ['dorsali', 'spalle'], dose: '20-30 s', m: 'Romboidi, trapezio, deltoidi posteriori', mm: 'romboidi, trapezio medio, deltoidi posteriori, dorsali', st: 'stand', gz: -18, yq: 'upper back hug stretch',
+    fr: [[...hug(180), {t: 180}], [...hug(172, -18), {t: 172, cu: -18, nk: 22}]], cap: ['Braccia incrociate', 'Ti abbracci e arrotondi la schiena alta'],
+    set: 'In piedi o seduto, abbraccia te stesso con le mani sulle scapole opposte.', pos: 'Ginocchia morbide, bacino fermo.',
+    ese: ['Spingi la schiena alta indietro arrotondandola, mento verso il petto.', 'Respira nella schiena.', 'Tieni 20-30 secondi.'],
+    cue: 'Allarga le scapole come se fossero ali che si aprono.', why: 'Allunga i muscoli tra le scapole, spesso contratti dopo tante trazioni e rematori.',
+    err: ['Piegarsi dalla vita invece che dalla schiena alta', 'Trattenere il respiro']});
+  ST({id: 'st-braccia-alto', n: 'Allungamento verso l’alto (braccia sopra la testa)', sm: ['dorsali', 'fianchi', 'postura'], dose: '15-20 s, 3 volte', m: 'Gran dorsale, addominali', mm: 'gran dorsale, obliqui, intercostali, pettorali', st: 'stand', gz: 6, yq: 'overhead reach stretch',
+    fr: [[5, 5, {t: 180}], [178, 178, {t: 184}]], cap: ['In piedi, braccia lungo i fianchi', 'Dita intrecciate sopra la testa, ti allunghi verso l’alto'],
+    set: 'In piedi, piedi alla larghezza del bacino.', pos: 'Addome attivo, coste che non si aprono in avanti.',
+    ese: ['Intreccia le dita e porta le braccia sopra la testa, palmi verso il soffitto.', 'Allungati verso l’alto come se volessi crescere.', 'Tieni 15-20 secondi e ripeti 3 volte.'],
+    cue: 'Spingi il soffitto con i palmi e il pavimento con i piedi.', why: 'Allunga tutto il busto e decomprime la colonna: ottimo appena alzati o dopo tanto tempo seduti.',
+    err: ['Inarcare la zona lombare', 'Spalle alle orecchie']});
+  ST({id: 'st-sospensione', n: 'Sospensione passiva alla sbarra', sm: ['dorsali', 'spalle', 'postura'], dose: '20-40 s', m: 'Gran dorsale, avambracci', mm: 'gran dorsale, pettorali, flessori delle dita (presa); colonna in decompressione', a: 'Corpo libero', st: 'hang', eq: 'hb', presa: 'pro', yq: 'dead hang shoulders spine',
+    fr: [[180, 180], [180, 180, {h: [150, 153]}]], cap: ['Appeso alla sbarra a braccia tese', 'Corpo rilassato, spalle che salgono verso le orecchie'],
+    set: 'Afferra la sbarra con presa alla larghezza delle spalle (o un po’ di più), poi stacca i piedi da terra o piega le ginocchia.', pos: 'Braccia tese, corpo rilassato, respiro lento.',
+    ese: ['Lasciati appendere rilassando spalle e schiena.', 'Respira lento per 20-40 secondi.', 'Riappoggia i piedi con calma.'],
+    cue: 'Lascia che il peso del corpo allunghi la schiena, vertebra dopo vertebra.', why: 'Allunga dorsali e spalle e scarica la colonna; migliora anche la presa.',
+    err: ['Dondolare', 'Lasciare la presa di colpo', 'Farlo con le spalle doloranti']});
+  ST({id: 'st-flessori-polso', n: 'Allungamento dei flessori del polso', sm: ['braccia'], dose: '20-30 s per braccio', m: 'Flessori dell’avambraccio', mm: 'flessori del polso e delle dita, pronatori', st: 'stand', hand: true, eq: undefined, yq: 'wrist flexor stretch',
+    fr: [[88, 88, {t: 180, hd: 0}], [88, 88, {t: 180, hd: -70}]], cap: ['Braccio teso avanti, palmo in avanti', 'Dita tirate indietro con l’altra mano'],
+    set: 'Braccio teso davanti a te, palmo in avanti e dita verso il basso o verso l’alto.', pos: 'Gomito disteso, spalla bassa.',
+    ese: ['Con l’altra mano tira dolcemente le dita indietro.', 'Tieni 20-30 secondi.', 'Cambia braccio.'],
+    cue: 'Tira piano: si deve sentire sotto l’avambraccio, non al polso.', why: 'Scioglie gli avambracci dopo tanta presa (trazioni, rematori) o dopo lavoro al computer.',
+    err: ['Tirare forte', 'Piegare il gomito']});
+  ST({id: 'st-estensori-polso', n: 'Allungamento degli estensori del polso', sm: ['braccia'], dose: '20-30 s per braccio', m: 'Estensori dell’avambraccio', mm: 'estensori del polso e delle dita, brachioradiale', st: 'stand', hand: true, yq: 'wrist extensor stretch',
+    fr: [[88, 88, {t: 180, hd: 0}], [88, 88, {t: 180, hd: 70}]], cap: ['Braccio teso avanti', 'Dorso della mano piegato verso di te con l’altra mano'],
+    set: 'Braccio teso davanti a te, palmo verso il basso.', pos: 'Gomito disteso, spalla bassa.',
+    ese: ['Piega il polso verso il basso e con l’altra mano spingi il dorso verso di te.', 'Tieni 20-30 secondi.', 'Cambia braccio.'],
+    cue: 'Senti l’allungamento sopra l’avambraccio.', why: 'Utile contro il dolore al gomito “da tennista” e dopo tanta presa.',
+    err: ['Tirare forte', 'Piegare il gomito']});
+
+  // ---------------- schiena e zona lombare ----------------
+  { const K = [190, KNEE], H = [150, r1(KNEE - Math.sqrt(46 * 46 - 40 * 40))], th = r1(ang(H, K)), t = 72, S = add(H, 58, t), ua = r1(ang(S, [S[0] + 68, 213]));
+    ST({id: 'st-bambino', n: 'Posizione del bambino (braccia avanti)', sm: ['dorsali', 'lombare', 'spalle'], dose: '30-60 s', m: 'Dorsali, erettori spinali', mm: 'gran dorsale, erettori spinali, glutei, deltoidi', st: 'kneel', benchSt: 'kneel', yq: 'child pose stretch',
+      fr: [[90, 90, {t: 175, h: H, th, sh: -90, ft: 60}], [ua, ua, {t, h: H, th, sh: -90, ft: 60, nk: 15}]], cap: ['In ginocchio seduto sui talloni', 'Busto sulle cosce, braccia distese avanti, fronte a terra'],
+      set: 'In ginocchio sul tappetino, alluci vicini e ginocchia alla larghezza del bacino (o più larghe), seduto sui talloni.', pos: 'Glutei sui talloni, braccia distese avanti.',
+      ese: ['Porta il busto in avanti sulle cosce e allunga le braccia avanti.', 'Appoggia la fronte e respira lento nella schiena.', 'Tieni 30-60 secondi.'],
+      cue: 'Mani lontane in avanti, glutei pesanti verso i talloni.', why: 'Rilassa e allunga tutta la schiena e i dorsali: ottimo a fine allenamento.',
+      err: ['Glutei che si alzano dai talloni', 'Spalle contratte']});
+    ST({id: 'st-bambino-laterale', n: 'Posizione del bambino laterale', sm: ['dorsali', 'fianchi'], dose: '30 s per lato', m: 'Gran dorsale, obliqui', mm: 'gran dorsale, obliqui, quadrato dei lombi, intercostali', st: 'kneel', benchSt: 'kneel', az: .55, yq: 'side child pose lat stretch',
+      fr: [[ua, ua, {t, h: H, th, sh: -90, ft: 60}], [ua, ua, {t, h: H, th, sh: -90, ft: 60, sb: 24, nk: 15}]], cap: ['Posizione del bambino, braccia avanti', 'Mani spostate da un lato: si allunga il fianco opposto'],
+      set: 'Dalla posizione del bambino con le braccia distese avanti.', pos: 'Glutei sui talloni.',
+      ese: ['Cammina con le mani verso destra.', 'Senti l’allungamento sul fianco sinistro.', 'Tieni 30 secondi e cambia lato.'],
+      cue: 'Spingi il gluteo opposto verso il tallone mentre le mani vanno di lato.', why: 'Allunga il dorsale e il fianco di un lato alla volta, dove la posizione del bambino normale arriva poco.',
+      err: ['Sollevare i glutei', 'Ruotare il busto']}); }
+  { const H = [150, LIEY], S = add(H, 58, 270);
+    const [th1, sh1] = [205, 115], K1 = add(H, 46, th1), [ua1, fa1] = armTo(S, [K1[0] + 6, K1[1] + 4], down);
+    ST({id: 'st-ginocchia-petto', n: 'Ginocchia al petto da sdraiato', sm: ['lombare', 'glutei'], dose: '30-45 s', m: 'Erettori spinali, glutei', mm: 'erettori spinali lombari, grande gluteo, quadrato dei lombi', st: 'floor', yq: 'knees to chest stretch',
+      fr: [[92, 92, {t: 270, h: H, th: 140, sh: 35}], [ua1, fa1, {t: 270, h: H, th: th1, sh: sh1}]], cap: ['Sdraiato, ginocchia piegate', 'Ginocchia abbracciate al petto'],
+      set: 'Sdraiato sulla schiena sul tappetino, ginocchia piegate.', pos: 'Testa e spalle appoggiate e rilassate.',
+      ese: ['Porta le ginocchia al petto e abbracciale.', 'Lascia che la zona lombare si appoggi al pavimento.', 'Tieni 30-45 secondi; puoi dondolare piano.'],
+      cue: 'Lascia andare la schiena bassa verso terra.', why: 'Scarica e allunga la zona lombare: utile a fine allenamento e quando la schiena è rigida.',
+      err: ['Sollevare la testa', 'Tirare con troppa forza']});
+    ST({id: 'st-torsione-supina', n: 'Torsione da sdraiato (ginocchia da un lato)', sm: ['lombare', 'glutei', 'fianchi'], dose: '30-45 s per lato', m: 'Obliqui, glutei, erettori spinali', mm: 'obliqui, quadrato dei lombi, grande gluteo, rotatori della colonna, pettorale in allungamento', st: 'floor', gz: 72, lat: 2, az: .9, yq: 'supine spinal twist',
+      fr: [[30, 150, {t: 270, h: H, th: 128, sh: 55}], [30, 150, {t: 270, h: H, th: 118, sh: 62, lz: 46, nkr: 40}]], cap: ['Sdraiato, braccia aperte, ginocchia piegate', 'Ginocchia cadute da un lato, testa dall’altro'],
+      set: 'Sdraiato sulla schiena, braccia aperte a “T”, ginocchia piegate unite.', pos: 'Spalle appoggiate a terra per tutto il tempo.',
+      ese: ['Lascia cadere le ginocchia da un lato.', 'Gira la testa dalla parte opposta.', 'Tieni 30-45 secondi e cambia lato.'],
+      cue: 'Le spalle restano a terra, sono le ginocchia a scendere.', why: 'Allunga in torsione schiena, fianchi e glutei; rilassa molto la zona lombare.',
+      err: ['Staccare le spalle', 'Forzare le ginocchia a terra']});
+    ST({id: 'st-inclinazione-pelvica', n: 'Inclinazione del bacino da sdraiato', sm: ['lombare', 'postura'], dyn: true, dose: '10-15 ripetizioni', m: 'Addominali, erettori spinali', mm: 'retto e trasverso dell’addome, erettori lombari, glutei', st: 'floor', yq: 'pelvic tilt exercise',
+      fr: [[92, 92, {t: 270, h: H, th: 140, sh: 35, cu: -8}], [92, 92, {t: 270, h: H, th: 140, sh: 35, cu: 10}]], cap: ['Sdraiato, piccola curva lombare', 'Zona lombare schiacciata a terra, bacino che si inclina'],
+      set: 'Sdraiato sulla schiena, ginocchia piegate, piedi a terra, braccia lungo i fianchi.', pos: 'Spalle rilassate, piedi alla larghezza del bacino.',
+      ese: ['Espira e schiaccia la zona lombare a terra inclinando il bacino.', 'Inspira e torna con una piccola curva sotto la schiena.', 'Movimento piccolo e lento.'],
+      cue: 'Immagina il bacino come una ciotola d’acqua da inclinare verso di te.', why: 'Insegna a controllare il bacino e scioglie la zona lombare: base per una buona postura.',
+      err: ['Sollevare il bacino', 'Usare le gambe']}); }
+  { const H = [150, PRONE], W1 = [205, 214], t1 = 122, S1 = add(H, 58, t1), [ua1, fa1] = armTo(S1, W1, back), S0 = add(H, 58, 92), [ua0, fa0] = armTo(S0, W1, up);
+    ST({id: 'st-cobra', n: 'Cobra (estensione della schiena da prono)', sm: ['lombare', 'fianchi', 'flessori', 'postura'], dose: '20-30 s', m: 'Addominali, flessori dell’anca', mm: 'retto addominale e flessori dell’anca in allungamento; erettori spinali che estendono la colonna', st: 'floor', yq: 'cobra stretch',
+      fr: [[ua0, fa0, {t: 92, h: H, th: -90, sh: -90, ft: 60}], [ua1, fa1, {t: t1, h: H, th: -90, sh: -90, ft: 60, nk: -10}]], cap: ['Prono, mani a terra accanto al petto', 'Petto sollevato spingendo con le braccia, bacino a terra'],
+      set: 'A pancia in giù, mani a terra accanto al petto, gomiti vicino al corpo.', pos: 'Bacino appoggiato, glutei rilassati, spalle basse.',
+      ese: ['Spingi con le mani e solleva il petto, il bacino resta a terra.', 'Sali solo fin dove la schiena è comoda.', 'Tieni 20-30 secondi e scendi lento.'],
+      cue: 'Allunga il petto in avanti prima di alzarlo.', why: 'Estende la schiena e allunga addome e flessori dell’anca, il contrario della posizione seduta.',
+      err: ['Staccare il bacino', 'Spalle alle orecchie', 'Forzare se fa male la schiena']});
+    const t2 = 118, S2 = add(H, 58, t2);
+    ST({id: 'st-sfinge', n: 'Sfinge (sugli avambracci)', sm: ['lombare', 'postura'], dose: '30-60 s', m: 'Addominali, erettori spinali', mm: 'addominali in allungamento leggero, erettori spinali, trapezio inferiore', st: 'floor', yq: 'sphinx pose',
+      fr: [[ua0, fa0, {t: 92, h: H, th: -90, sh: -90, ft: 60}], [r1(ang(S2, [S2[0] + 3, KNEE - 2])), 90, {t: t2, h: H, th: -90, sh: -90, ft: 60}]], cap: ['Prono', 'Sugli avambracci, gomiti sotto le spalle, petto aperto'],
+      set: 'A pancia in giù, gomiti sotto le spalle, avambracci a terra paralleli.', pos: 'Spalle lontane dalle orecchie, bacino a terra.',
+      ese: ['Spingi gli avambracci a terra e allunga il petto in avanti.', 'Rilassa glutei e schiena bassa.', 'Tieni 30-60 secondi respirando.'],
+      cue: 'Spingi il pavimento lontano con gli avambracci.', why: 'Una estensione dolce della schiena, più facile del cobra.',
+      err: ['Spalle che crollano', 'Collo piegato all’indietro']}); }
+  { const H = [120, 208], S = add(H, 58, 188), W = add(S, 69, -30);
+    ST({id: 'st-rotazione-seduta', n: 'Torsione da seduto (gamba incrociata)', sm: ['lombare', 'glutei', 'fianchi'], dose: '30 s per lato', m: 'Glutei, obliqui, erettori spinali', mm: 'grande e medio gluteo, piriforme, obliqui, rotatori della colonna', st: 'floor', one: true, leg2: true, az: .8, yq: 'seated spinal twist',
+      fr: [[r1(ang(S, W)), r1(ang(S, W)), {t: 182, h: H, th: 125, sh: 25, th2: 90, sh2: 90}], [r1(ang(S, W)), r1(ang(S, W)), {t: 182, h: H, th: 125, sh: 25, th2: 90, sh2: 90, tw: -48, nkr: -25}]], cap: ['Seduto, una gamba tesa, l’altra piegata', 'Busto ruotato verso il ginocchio piegato'],
+      set: 'Seduto a terra con una gamba tesa; piega l’altra e appoggia il piede fuori dal ginocchio della gamba tesa.', pos: 'Busto alto, mano dietro di te a terra.',
+      ese: ['Ruota il busto verso il ginocchio piegato.', 'Aggancia il ginocchio con il gomito opposto per aumentare la rotazione.', 'Tieni 30 secondi e cambia lato.'],
+      cue: 'Cresci in altezza a ogni inspirazione e ruota un po’ di più a ogni espirazione.', why: 'Allunga gluteo e fianchi e ridà rotazione alla colonna.',
+      err: ['Curvare la schiena', 'Forzare con il braccio']}); }
+  { const A = [70, 212], W = [196, 214], th = -22, H = add(A, -94, th), t = r1(Math.acos((W[1] - H[1]) / 127) / D), Wx = H[0] + 127 * Math.sin(t * D), dx = W[0] - Wx;
+    const H0 = add(W, -127, 64), [th0, sh0] = legTo(H0, [A[0] + dx, A[1]], fwd);
+    ST({id: 'st-cane-testa-giu', n: 'Cane a testa in giù', sm: ['femorali', 'polpacci', 'spalle', 'dorsali'], dose: '30-45 s', m: 'Femorali, polpacci, dorsali', mm: 'ischiocrurali, gastrocnemio e soleo, gran dorsale, deltoidi, erettori spinali', st: 'stand', leg2: true, yq: 'downward dog stretch',
+      fr: [[64, 64, {t: 64, h: H0, th: th0, sh: sh0, th2: th0, sh2: sh0, ft: 40}], [t, t, {t, h: [H[0] + dx, H[1]], th, sh: th, th2: th, sh2: th, ft: 16 - th}]], cap: ['Mani e piedi a terra, ginocchia piegate', 'Bacino alto, gambe tese, talloni verso terra: “V” rovesciata'],
+      set: 'Dalla posizione a quattro zampe, metti le dita dei piedi a terra e solleva le ginocchia.', pos: 'Mani alla larghezza delle spalle, dita aperte, testa tra le braccia.',
+      ese: ['Spingi il bacino in alto e indietro.', 'Distendi le gambe portando i talloni verso terra, senza forzare.', 'Tieni 30-45 secondi respirando.'],
+      cue: 'Allunga prima la schiena (bacino in alto), poi le gambe.', why: 'Allunga tutta la parte posteriore del corpo (polpacci, femorali, schiena) e apre le spalle.',
+      err: ['Schiena tonda per tenere le gambe tese', 'Spalle alle orecchie', 'Peso tutto sulle mani']}); }
+
+  // ---------------- fianchi ----------------
+  ST({id: 'st-laterale-in-piedi', n: 'Flessione laterale in piedi (braccio sopra la testa)', sm: ['fianchi', 'dorsali'], dose: '20-30 s per lato', m: 'Obliqui, gran dorsale', mm: 'obliqui, quadrato dei lombi, gran dorsale, intercostali', st: 'stand', one: true, az: 1.35, yq: 'standing side bend stretch',
+    fr: [[176, 180, {t: 180}], [176, 180, {t: 180, sb: -28}]], cap: ['In piedi, un braccio sopra la testa', 'Busto piegato di lato: si allunga tutto il fianco'],
+    set: 'In piedi, piedi alla larghezza del bacino. Porta un braccio sopra la testa.', pos: 'Bacino fermo e dritto, peso su tutti e due i piedi.',
+    ese: ['Piegati di lato dalla parte opposta al braccio alzato.', 'Allunga il braccio lontano, sopra la testa.', 'Tieni 20-30 secondi e cambia lato.'],
+    cue: 'Piegati come sopra un grande pallone, non in avanti.', why: 'Allunga il fianco dal bacino alla mano: dorsale, obliqui e muscoli tra le costole.',
+    err: ['Piegarsi in avanti', 'Spostare il bacino di lato']});
+  ST({id: 'st-laterale-seduto', n: 'Flessione laterale da seduto a terra', sm: ['fianchi', 'dorsali'], dose: '20-30 s per lato', m: 'Obliqui, quadrato dei lombi', mm: 'obliqui, quadrato dei lombi, gran dorsale', st: 'floor', one: true, az: 1.35, yq: 'seated side bend stretch',
+    fr: [[176, 180, {t: 180, h: [112, 208]}], [176, 180, {t: 180, h: [112, 208], sb: -30}]], cap: ['Seduto, un braccio sopra la testa', 'Busto piegato di lato, glutei a terra'],
+    set: 'Seduto a terra a gambe tese (o incrociate). Porta un braccio sopra la testa.', pos: 'Tutti e due i glutei appoggiati.',
+    ese: ['Piegati di lato dalla parte opposta al braccio alzato.', 'Appoggia l’altra mano a terra.', 'Tieni 20-30 secondi e cambia lato.'],
+    cue: 'Il gluteo del lato del braccio resta pesante a terra.', why: 'Come la versione in piedi, ma più stabile: utile a fine allenamento.',
+    err: ['Staccare un gluteo', 'Ruotare il busto']});
+  ST({id: 'st-torsione-in-piedi', n: 'Rotazioni del busto in piedi', sm: ['fianchi', 'lombare'], dyn: true, dose: '10 per lato', m: 'Obliqui, rotatori della colonna', mm: 'obliqui, rotatori della colonna, gran dorsale', st: 'stand', gz: -16, az: .8, yq: 'standing trunk rotation',
+    fr: [[...hug(180), {t: 180, tw: -45}], [...hug(180), {t: 180, tw: 45}]], cap: ['Braccia incrociate, busto ruotato da un lato', 'Busto ruotato dall’altro lato, bacino fermo'],
+    set: 'In piedi, ginocchia morbide, braccia incrociate sul petto.', pos: 'Bacino rivolto in avanti.',
+    ese: ['Ruota il busto a destra, poi a sinistra.', 'Movimento fluido e controllato.', 'Il bacino non gira.'],
+    cue: 'Ruota attorno a un palo immaginario che ti attraversa dalla testa al bacino.', why: 'Scalda e muove la colonna in rotazione: utile prima di allenarsi.',
+    err: ['Girare anche il bacino', 'Andare a scatti']});
+
+  // ---------------- glutei ----------------
+  { const H = [150, LIEY], S = add(H, 58, 270), K = add(H, 46, 195), [ua, fa] = armTo(S, [K[0] + 8, K[1] + 6], down);
+    ST({id: 'st-figura-4-supino', n: 'Figura 4 da sdraiato (piriforme)', sm: ['glutei'], dose: '30-45 s per lato', m: 'Glutei, piriforme', mm: 'piriforme, grande e medio gluteo, rotatori esterni dell’anca', st: 'floor', leg2: true, ko: 18, az: .6, yq: 'figure 4 stretch supine',
+      fr: [[92, 92, {t: 270, h: H, th: 140, sh: 35, th2: 140, sh2: 35}], [ua, fa, {t: 270, h: H, th: 195, sh: 112, th2: 160, sh2: 70}]], cap: ['Sdraiato, una caviglia appoggiata sul ginocchio opposto', 'Coscia tirata verso il petto: si allunga il gluteo'],
+      set: 'Sdraiato sulla schiena, ginocchia piegate. Appoggia la caviglia destra sul ginocchio sinistro.', pos: 'Testa e spalle a terra, piede flesso (punta verso di te).',
+      ese: ['Prendi la coscia sinistra con le mani e portala verso il petto.', 'Spingi piano il ginocchio destro in fuori.', 'Tieni 30-45 secondi e cambia lato.'],
+      cue: 'Il ginocchio incrociato va lontano da te, il piede resta flesso.', why: 'Allunga il piriforme e i glutei profondi: utile in caso di rigidità dell’anca e fastidi al gluteo.',
+      err: ['Sollevare la testa', 'Ruotare il bacino']});
+    ST({id: 'st-ginocchio-spalla', n: 'Ginocchio verso la spalla opposta da sdraiato', sm: ['glutei', 'lombare'], dose: '30 s per lato', m: 'Glutei, piriforme', mm: 'grande gluteo, piriforme, quadrato dei lombi', st: 'floor', leg2: true, az: .6, yq: 'knee to opposite shoulder stretch',
+      fr: [[92, 92, {t: 270, h: H, th: 140, sh: 35, th2: 90, sh2: 90}], [ua, fa, {t: 270, h: H, th: 198, sh: 118, th2: 90, sh2: 90, lz: -18}]], cap: ['Sdraiato, una gamba piegata', 'Ginocchio tirato verso la spalla opposta'],
+      set: 'Sdraiato sulla schiena, una gamba tesa a terra.', pos: 'Bacino appoggiato, spalle rilassate.',
+      ese: ['Abbraccia il ginocchio dell’altra gamba.', 'Portalo verso la spalla opposta.', 'Tieni 30 secondi e cambia lato.'],
+      cue: 'Il ginocchio va in diagonale, verso la spalla opposta.', why: 'Allunga gluteo e piriforme in modo semplice, anche a letto.',
+      err: ['Staccare il bacino', 'Tirare troppo forte']}); }
+  { const H = [138, 196], A2 = [H[0] - 92, KNEE], K = add(H, 46, 82);
+    ST({id: 'st-piccione', n: 'Piccione (gamba davanti piegata)', sm: ['glutei', 'flessori'], dose: '30-60 s per lato', m: 'Glutei, flessori dell’anca', mm: 'piriforme, grande e medio gluteo della gamba davanti; ileopsoas della gamba dietro', st: 'floor', rl: A2, ko: 24, yq: 'pigeon pose stretch',
+      fr: [[8, 8, {t: 176, h: H, th: 82, sh: -55, ft: 40}], [88, 88, {t: 98, h: H, th: 82, sh: -55, ft: 40, nk: 15}]], cap: ['Gamba davanti piegata, gamba dietro distesa', 'Busto in avanti sopra la gamba piegata'],
+      set: 'A terra: gamba destra piegata davanti (tibia di traverso), gamba sinistra distesa dietro.', pos: 'Bacino dritto (le due anche alla stessa altezza).',
+      ese: ['Resta con il busto dritto sulle mani, poi scendi in avanti sugli avambracci.', 'Respira e rilassa il gluteo.', 'Tieni 30-60 secondi e cambia lato.'],
+      cue: 'Il bacino scende verso terra in modo dritto, senza cadere da un lato.', why: 'Allunga in profondità il gluteo della gamba davanti e i flessori di quella dietro.',
+      err: ['Bacino storto', 'Dolore al ginocchio davanti (avvicina il piede al bacino)']}); }
+  ST({id: 'st-figura-4-seduto', n: 'Figura 4 da seduto (caviglia sul ginocchio)', sm: ['glutei'], dose: '30 s per lato', m: 'Glutei, piriforme', mm: 'piriforme, grande e medio gluteo', st: 'seat', benchSt: 'edge', ko: 30, leg2: true, yq: 'seated figure 4 stretch',
+    fr: [[tua, tfa, Object.assign({}, SEAT, {t: 180, th: 95, sh: 30, th2: 90, sh2: 0})], [60, 70, Object.assign({}, SEAT, {t: 148, th: 95, sh: 30, th2: 90, sh2: 0})]], cap: ['Seduto, caviglia sul ginocchio opposto', 'Busto in avanti con la schiena dritta'],
+    set: 'Seduto sul bordo di una panca o di una sedia. Appoggia la caviglia destra sul ginocchio sinistro.', pos: 'Schiena dritta, piede flesso.',
+    ese: ['Porta il busto in avanti dalle anche, schiena dritta.', 'Premi piano sul ginocchio incrociato.', 'Tieni 30 secondi e cambia lato.'],
+    cue: 'Petto verso la tibia, non la testa verso il ginocchio.', why: 'Lo stretching del gluteo da fare anche in ufficio.',
+    err: ['Curvare la schiena', 'Forzare sul ginocchio']});
+
+  // ---------------- flessori dell'anca e quadricipiti ----------------
+  { const H0 = [140, 165], A = [196, 212], R = [H0[0] - 58, KNEE], [th0, sh0] = legTo(H0, A), H1 = [156, 172], [th1, sh1] = legTo(H1, A);
+    ST({id: 'st-affondo-ginocchio', n: 'Affondo con il ginocchio a terra (flessori dell’anca)', sm: ['flessori', 'quadricipiti'], dose: '30-45 s per lato', m: 'Flessori dell’anca, quadricipiti', mm: 'ileopsoas e retto femorale della gamba dietro, adduttori', st: 'stand', rl: R, yq: 'half kneeling hip flexor stretch',
+      fr: [[5, 5, {t: 180, h: H0, th: th0, sh: sh0, ft: 10}], [5, 5, {t: 182, h: H1, th: th1, sh: sh1, ft: 10}]], cap: ['Un ginocchio a terra, l’altro piede avanti', 'Bacino spinto in avanti: si allunga davanti all’anca dietro'],
+      set: 'Ginocchio sinistro a terra (su un tappetino), piede destro avanti con il ginocchio a 90°.', pos: 'Busto dritto, glutei stretti, bacino “in dentro”.',
+      ese: ['Stringi il gluteo della gamba dietro e porta il bacino in avanti.', 'Senti l’allungamento davanti all’anca dietro.', 'Tieni 30-45 secondi e cambia lato.'],
+      cue: 'Coccige verso il pavimento: è il bacino che allunga, non la schiena che si inarca.', why: 'Allunga i flessori dell’anca, accorciati da tante ore seduti e spesso causa di dolore lombare.',
+      err: ['Inarcare la schiena', 'Ginocchio davanti oltre la punta', 'Bacino ruotato']});
+    ST({id: 'st-affondo-braccio-alto', n: 'Affondo con il ginocchio a terra e braccio in alto', sm: ['flessori', 'fianchi'], dose: '30 s per lato', m: 'Flessori dell’anca, obliqui, dorsali', mm: 'ileopsoas, retto femorale, quadrato dei lombi, gran dorsale, obliqui', st: 'stand', rl: R, one: true, az: .9, yq: 'half kneeling hip flexor stretch overhead reach',
+      fr: [[176, 180, {t: 180, h: H0, th: th0, sh: sh0, ft: 10}], [176, 180, {t: 183, h: H1, th: th1, sh: sh1, ft: 10, sb: -16}]], cap: ['Affondo con un ginocchio a terra, braccio in alto', 'Bacino avanti e busto piegato di lato'],
+      set: 'Come l’affondo con il ginocchio a terra; alza il braccio dello stesso lato del ginocchio a terra.', pos: 'Glutei stretti, busto alto.',
+      ese: ['Porta il bacino in avanti.', 'Allunga il braccio in alto e piegati leggermente dalla parte opposta.', 'Tieni 30 secondi e cambia lato.'],
+      cue: 'Allungati dal ginocchio alla punta delle dita, come un arco.', why: 'Allunga in un solo esercizio flessori dell’anca, fianco e dorsale dello stesso lato.',
+      err: ['Inarcare la zona lombare', 'Ruotare il busto']}); }
+  { const A = [198, 212], R = [62, 212], H0 = [140, 122], H1 = [150, 140], [th0, sh0] = legTo(H0, A), [th1, sh1] = legTo(H1, A);
+    ST({id: 'st-affondo-in-piedi', n: 'Affondo in piedi (flessori dell’anca)', sm: ['flessori', 'quadricipiti', 'polpacci'], dose: '30 s per lato', m: 'Flessori dell’anca, polpacci', mm: 'ileopsoas e retto femorale della gamba dietro, polpaccio della gamba dietro', st: 'stand', rl: R, yq: 'standing lunge hip flexor stretch',
+      fr: [[5, 5, {t: 180, h: H0, th: th0, sh: sh0, ft: 10}], [5, 5, {t: 182, h: H1, th: th1, sh: sh1, ft: 10}]], cap: ['Passo lungo, gamba dietro tesa', 'Bacino giù e avanti, gamba dietro sempre tesa'],
+      set: 'In piedi, fai un passo lungo in avanti; la gamba dietro resta tesa con il tallone sollevato.', pos: 'Busto dritto, bacino rivolto in avanti, glutei stretti.',
+      ese: ['Piega il ginocchio davanti e porta il bacino in basso e in avanti.', 'Senti l’allungamento davanti all’anca della gamba dietro.', 'Tieni 30 secondi e cambia lato.'],
+      cue: 'Stringi il gluteo della gamba dietro: il bacino va avanti senza inarcare la schiena.', why: 'La versione in piedi dell’allungamento dei flessori: si fa ovunque, anche senza tappetino.',
+      err: ['Inarcare la schiena', 'Ginocchio davanti oltre la punta']}); }
+  { const H = [150, STAND], A = add(add(H, 46, -4), 48, -168), S = add(H, 58, 180), [ua, fa] = armTo(S, [A[0] - 2, A[1] + 3], back);
+    ST({id: 'st-quadricipite-in-piedi', n: 'Allungamento del quadricipite in piedi', sm: ['quadricipiti', 'flessori'], dose: '30 s per gamba', m: 'Quadricipiti', mm: 'quadricipite (retto femorale), ileopsoas', st: 'stand', leg2: true, one: true, yq: 'standing quad stretch',
+      fr: [[5, 5, {t: 180, h: H, th: 0, sh: 0, th2: 0, sh2: 0}], [ua, fa, {t: 180, h: H, th: -4, sh: -168, th2: 0, sh2: 0, ft: 40}]], cap: ['In piedi', 'Tallone al gluteo, ginocchia vicine'],
+      set: 'In piedi, eventualmente con una mano a un appoggio.', pos: 'Ginocchia vicine, bacino dritto.',
+      ese: ['Piega un ginocchio e prendi la caviglia con la mano dello stesso lato.', 'Porta il tallone verso il gluteo e spingi il bacino un po’ in avanti.', 'Tieni 30 secondi e cambia gamba.'],
+      cue: 'Ginocchio che punta a terra, vicino all’altro: non portarlo avanti.', why: 'Lo stretching classico del quadricipite, a fine allenamento delle gambe.',
+      err: ['Ginocchio che va avanti o di lato', 'Inarcare la schiena']}); }
+  { const H = [150, PRONE], A = add(add(H, 46, -90), 48, 148), S = add(H, 58, 92), [ua0q, fa0q] = armTo(S, [A[0] + 2, A[1] - 3], up), ua = r1(ua0q < 0 ? ua0q + 360 : ua0q), fa = r1(fa0q < 0 ? fa0q + 360 : fa0q);
+    ST({id: 'st-quadricipite-prono', n: 'Allungamento del quadricipite da prono', sm: ['quadricipiti', 'flessori'], dose: '30 s per gamba', m: 'Quadricipiti', mm: 'quadricipite (retto femorale), ileopsoas', st: 'floor', leg2: true, one: true, yq: 'prone quad stretch',
+      fr: [[90, 90, {t: 92, h: H, th: -90, sh: -90, th2: -90, sh2: -90, ft: 60}], [ua, fa, {t: 92, h: H, th: -90, sh: 148, th2: -90, sh2: -90, ft: 60}]], cap: ['A pancia in giù', 'Tallone verso il gluteo tenuto con la mano'],
+      set: 'A pancia in giù, fronte appoggiata sull’avambraccio.', pos: 'Bacino a terra, ginocchia vicine.',
+      ese: ['Piega un ginocchio e prendi la caviglia con la mano dello stesso lato.', 'Porta il tallone verso il gluteo premendo il bacino a terra.', 'Tieni 30 secondi e cambia gamba.'],
+      cue: 'Il bacino spinge verso il pavimento.', why: 'Come in piedi ma senza equilibrio da tenere: più facile rilassarsi.',
+      err: ['Staccare il bacino', 'Ginocchio che va di lato']}); }
+
+  // ---------------- femorali e interno coscia ----------------
+  { const H = [112, 208], A = add(H, 94, 90), t1 = 118, S1 = add(H, 58, t1), [ua, fa] = armTo(S1, [A[0] - 4, A[1] - 6], down);
+    ST({id: 'st-femorali-seduto', n: 'Allungamento dei femorali da seduto (gambe tese)', sm: ['femorali', 'polpacci', 'lombare'], dose: '30-45 s', m: 'Femorali, polpacci', mm: 'ischiocrurali, gastrocnemio, erettori spinali', st: 'floor', yq: 'seated hamstring stretch',
+      fr: [[90, 90, {t: 180, h: H, th: 90, sh: 90}], [ua, fa, {t: t1, h: H, th: 90, sh: 90, nk: 10}]], cap: ['Seduto, gambe tese', 'Busto in avanti verso i piedi, schiena lunga'],
+      set: 'Seduto a terra, gambe tese e unite, punte verso l’alto.', pos: 'Seduto sulle ossa del bacino, schiena lunga.',
+      ese: ['Porta il busto in avanti dalle anche, mani verso le caviglie o i piedi.', 'Respira e scendi un po’ a ogni espirazione.', 'Tieni 30-45 secondi.'],
+      cue: 'Ombelico verso le cosce, non la testa verso le ginocchia.', why: 'Lo stretching classico della parte dietro delle gambe.',
+      err: ['Curvare tutta la schiena', 'Piegare le ginocchia di scatto', 'Rimbalzare']});
+    ST({id: 'st-gambe-larghe-seduto', n: 'Seduto a gambe larghe, busto in avanti', sm: ['adduttori', 'femorali'], dose: '30-45 s', m: 'Adduttori, femorali', mm: 'adduttori, gracile, ischiocrurali', st: 'floor', ko: 42, yq: 'seated straddle stretch',
+      fr: [[90, 90, {t: 180, h: H, th: 90, sh: 90}], [86, 86, {t: 120, h: H, th: 90, sh: 90}]], cap: ['Seduto a gambe larghe', 'Busto in avanti tra le gambe'],
+      set: 'Seduto a terra con le gambe tese e aperte il più possibile, punte verso l’alto.', pos: 'Schiena lunga, ginocchia rivolte al soffitto.',
+      ese: ['Porta le mani avanti a terra tra le gambe.', 'Scendi con il busto mantenendo la schiena lunga.', 'Tieni 30-45 secondi.'],
+      cue: 'Cammina con le mani in avanti, il bacino resta fermo.', why: 'Allunga l’interno coscia e i femorali insieme.',
+      err: ['Ginocchia che ruotano verso l’interno', 'Schiena tonda']}); }
+  ST({id: 'st-femorali-in-piedi', n: 'Piegamento in avanti in piedi (femorali)', sm: ['femorali', 'lombare', 'polpacci'], dose: '30 s', m: 'Femorali, erettori spinali', mm: 'ischiocrurali, gastrocnemio, erettori spinali', st: 'stand', yq: 'standing forward fold hamstring',
+    fr: [[5, 5, {t: 180}], [14, 14, {t: 30, nk: 12}]], cap: ['In piedi', 'Busto appeso in avanti, mani verso i piedi'],
+    set: 'In piedi, piedi alla larghezza del bacino.', pos: 'Ginocchia morbide, peso sull’avampiede.',
+    ese: ['Piegati in avanti dalle anche lasciando pendere busto e braccia.', 'Rilassa il collo.', 'Tieni 30 secondi e risali piano arrotolando la schiena.'],
+    cue: 'Prima il bacino va indietro, poi il busto scende.', why: 'Allunga la parte dietro delle gambe e la schiena.',
+    err: ['Rimbalzare', 'Rialzarsi di scatto']});
+  { const H = [150, LIEY], S = add(H, 58, 270), A = add(H, 94, 172), [ua, fa] = armTo(S, add(H, 70, 172), up);
+    ST({id: 'st-femorali-supino', n: 'Allungamento dei femorali da sdraiato (gamba in alto)', sm: ['femorali', 'polpacci'], dose: '30-45 s per gamba', m: 'Femorali, polpacci', mm: 'ischiocrurali, gastrocnemio', st: 'floor', leg2: true, yq: 'supine hamstring stretch strap',
+      fr: [[92, 92, {t: 270, h: H, th: 140, sh: 35, th2: 90, sh2: 90}], [ua, fa, {t: 270, h: H, th: 172, sh: 172, th2: 90, sh2: 90}]], cap: ['Sdraiato', 'Una gamba tesa verso il soffitto, tenuta dietro il polpaccio'],
+      set: 'Sdraiato sulla schiena, una gamba tesa a terra. Puoi usare un asciugamano o un elastico sotto il piede.', pos: 'Bacino appoggiato, la gamba a terra resta tesa.',
+      ese: ['Porta l’altra gamba tesa verso il soffitto tenendola dietro il polpaccio (o con l’asciugamano).', 'Avvicinala piano senza piegare il ginocchio.', 'Tieni 30-45 secondi e cambia gamba.'],
+      cue: 'Allunga il tallone verso il soffitto.', why: 'Il modo più sicuro per la schiena di allungare i femorali.',
+      err: ['Staccare il bacino', 'Piegare il ginocchio']}); }
+  { const H = [140, STAND], A = add(H, 94, 70), bench = [A[0] - 14, A[0] + 34, r1(A[1] + 7)], t = 148, S = add(H, 58, t), [ua, fa] = armTo(S, add(H, 40, 70), down);
+    ST({id: 'st-femorali-gradino', n: 'Tallone su una panca, busto in avanti', sm: ['femorali', 'polpacci'], dose: '30 s per gamba', m: 'Femorali', mm: 'ischiocrurali, gastrocnemio', st: 'stand', leg2: true, bench, nb: true, yq: 'hamstring stretch heel on bench',
+      fr: [[5, 5, {t: 180, h: H, th: 70, sh: 70, th2: 0, sh2: 0, ft: -10}], [ua, fa, {t, h: H, th: 70, sh: 70, th2: 0, sh2: 0, ft: -10}]], cap: ['Tallone su una panca, gamba tesa', 'Busto in avanti con la schiena dritta'],
+      set: 'In piedi davanti a una panca o a un gradino; appoggia il tallone con la gamba tesa e la punta verso l’alto.', pos: 'Bacino dritto, gamba d’appoggio tesa.',
+      ese: ['Porta il busto in avanti dalle anche, schiena dritta.', 'Mani sulla coscia, non spingere sul ginocchio.', 'Tieni 30 secondi e cambia gamba.'],
+      cue: 'Spingi il bacino indietro come per sederti.', why: 'Allunga i femorali in piedi, con l’appoggio regolabile in altezza.',
+      err: ['Curvare la schiena', 'Ruotare il bacino']}); }
+  { const H = [150, LIEY];
+    ST({id: 'st-farfalla-supina', n: 'Farfalla da sdraiato (interno coscia)', sm: ['adduttori', 'flessori'], dose: '45-60 s', m: 'Adduttori', mm: 'adduttori, gracile, ileopsoas', st: 'floor', ko: 40, az: .5, yq: 'reclined butterfly stretch',
+      fr: [[92, 92, {t: 270, h: H, th: 130, sh: 45}], [92, 92, {t: 270, h: H, th: 150, sh: 25}]], cap: ['Sdraiato, ginocchia piegate', 'Piante dei piedi unite, ginocchia che cadono in fuori'],
+      set: 'Sdraiato sulla schiena, unisci le piante dei piedi e lascia aprire le ginocchia.', pos: 'Braccia rilassate, schiena appoggiata.',
+      ese: ['Lascia scendere le ginocchia verso terra senza forzare.', 'Respira lento.', 'Tieni 45-60 secondi.'],
+      cue: 'È la gravità che lavora: tu rilassati.', why: 'Allunga l’interno coscia in modo dolce, ottimo a fine allenamento.',
+      err: ['Spingere le ginocchia con le mani', 'Inarcare la schiena']}); }
+  ST({id: 'st-squat-profondo', n: 'Squat profondo in tenuta', sm: ['adduttori', 'glutei', 'polpacci', 'lombare'], dose: '30-60 s', m: 'Adduttori, glutei, polpacci', mm: 'adduttori, grande gluteo, soleo, erettori lombari', st: 'stand', ko: 20, yq: 'deep squat hold mobility',
+    fr: [[5, 5, {t: 180}], [72, 72, {t: 158, th: 104, sh: -28, ft: 44}]], cap: ['In piedi', 'Accovacciato: talloni a terra, gomiti tra le ginocchia'],
+    set: 'In piedi con i piedi un po’ più larghi delle spalle, punte leggermente aperte.', pos: 'Talloni a terra, petto alto.',
+    ese: ['Scendi in squat il più in basso possibile.', 'Unisci le mani davanti al petto e spingi le ginocchia in fuori con i gomiti.', 'Tieni 30-60 secondi respirando.'],
+    cue: 'Petto alto e ginocchia in fuori, i talloni restano giù.', why: 'Migliora la mobilità di anche e caviglie e allunga l’interno coscia.',
+    err: ['Talloni che si alzano', 'Schiena tonda', 'Ginocchia verso l’interno']});
+
+  // ---------------- polpacci e caviglie ----------------
+  { const W = [212, 116], H = [140, r1(212 - 94 * Math.cos(18 * D))], t = 165, S = add(H, 58, t), [ua, fa] = armTo(S, W, down);
+    ST({id: 'st-polpaccio-muro', n: 'Allungamento del polpaccio al muro', sm: ['polpacci'], dose: '30 s per gamba', m: 'Polpacci', mm: 'gastrocnemio (gamba dietro tesa)', st: 'stand', leg2: true, wall: W[0] + 5, yq: 'wall calf stretch',
+      fr: [[ua, fa, {t: 178, h: [H[0] + 8, H[1]], th: -14, sh: -14, th2: 18, sh2: -4, ft: 30}], [ua, fa, {t, h: H, th: -18, sh: -18, th2: 24, sh2: -6, ft: 34}]], cap: ['Mani al muro, un piede dietro', 'Ginocchio davanti piegato, tallone dietro a terra'],
+      set: 'In piedi davanti a un muro, mani appoggiate. Un piede avanti, l’altro un passo indietro con la gamba tesa.', pos: 'Punte dritte in avanti, tallone dietro sempre a terra.',
+      ese: ['Piega il ginocchio davanti e porta il bacino verso il muro.', 'Tieni il tallone dietro a terra e la gamba tesa.', 'Tieni 30 secondi e cambia gamba.'],
+      cue: 'Spingi il tallone dietro verso il pavimento.', why: 'Allunga il polpaccio (gastrocnemio), utile per corsa, salti e squat.',
+      err: ['Tallone che si alza', 'Punta del piede girata in fuori']});
+    ST({id: 'st-soleo-muro', n: 'Allungamento del soleo al muro (ginocchio dietro piegato)', sm: ['polpacci'], dose: '30 s per gamba', m: 'Polpacci', mm: 'soleo, tendine d’Achille', st: 'stand', leg2: true, wall: W[0] + 5, yq: 'soleus stretch wall',
+      fr: [[ua, fa, {t: 178, h: [H[0] + 8, H[1]], th: -14, sh: -14, th2: 18, sh2: -4, ft: 30}], [ua, fa, {t: 172, h: [H[0] + 4, H[1] + 10], th: -4, sh: -32, th2: 30, sh2: -14, ft: 48}]], cap: ['Mani al muro, un piede dietro', 'Tutte e due le ginocchia piegate, tallone dietro a terra'],
+      set: 'Come per il polpaccio al muro, ma con il piede dietro più vicino.', pos: 'Tallone dietro a terra.',
+      ese: ['Piega anche il ginocchio dietro, abbassando il bacino.', 'Senti l’allungamento in basso, vicino al tallone.', 'Tieni 30 secondi e cambia gamba.'],
+      cue: 'Ginocchio dietro verso il pavimento, tallone giù.', why: 'Allunga il soleo, il muscolo profondo del polpaccio che lavora nello squat.',
+      err: ['Tallone che si alza']}); }
+  { const K = [190, KNEE], H = [150, r1(KNEE - Math.sqrt(46 * 46 - 40 * 40))], th = r1(ang(H, K)), [ua, fa] = thighs([H[0], H[1]]);
+    ST({id: 'st-tibiali', n: 'Seduto sui talloni (tibiali e caviglie)', sm: ['polpacci'], dose: '30-45 s', m: 'Tibiali, collo del piede', mm: 'tibiale anteriore, estensori delle dita, quadricipite', st: 'kneel', benchSt: 'kneel', yq: 'kneeling shin stretch',
+      fr: [[5, 5, {t: 180, h: [150, KNEE - 46], th: 0, sh: -90, ft: 60}], [ua, fa, {t: 180, h: H, th, sh: -90, ft: 60}]], cap: ['In ginocchio', 'Seduto sui talloni, collo del piede a terra'],
+      set: 'In ginocchio sul tappetino, collo del piede appoggiato a terra.', pos: 'Busto dritto, mani sulle cosce.',
+      ese: ['Siediti piano sui talloni.', 'Per aumentare, solleva un po’ le ginocchia appoggiando le mani dietro.', 'Tieni 30-45 secondi.'],
+      cue: 'Il collo del piede si allunga verso il pavimento.', why: 'Allunga la parte davanti della gamba e della caviglia, utile per chi corre.',
+      err: ['Forzare con dolore alle ginocchia']}); }
+  { const A = [196, 212], R = [138 - 58, KNEE], H0 = [138, 166], H1 = [160, 172], [th0, sh0] = legTo(H0, A), [th1, sh1] = legTo(H1, A);
+    ST({id: 'st-caviglia', n: 'Mobilità della caviglia (ginocchio oltre la punta)', sm: ['polpacci'], dyn: true, dose: '10-12 per gamba', m: 'Polpacci, caviglia', mm: 'soleo, tendine d’Achille, capsula della caviglia', st: 'stand', rl: R, yq: 'ankle mobility knee to wall',
+      fr: [[5, 5, {t: 180, h: H0, th: th0, sh: sh0, ft: 10}], [5, 5, {t: 178, h: H1, th: th1, sh: sh1, ft: 10 + (sh0 - sh1)}]], cap: ['Un ginocchio a terra, piede davanti piatto', 'Ginocchio davanti spinto oltre la punta, tallone giù'],
+      set: 'Un ginocchio a terra, l’altro piede avanti appoggiato piatto.', pos: 'Tallone davanti sempre a terra.',
+      ese: ['Porta il ginocchio davanti in avanti oltre la punta del piede.', 'Il tallone non si stacca.', 'Torna indietro e ripeti, poi cambia gamba.'],
+      cue: 'Il ginocchio va verso il mignolo, il tallone resta incollato.', why: 'Migliora la flessione della caviglia, che permette squat più profondi e ginocchia più sicure.',
+      err: ['Tallone che si alza', 'Ginocchio che cade verso l’interno']}); }
+})();
