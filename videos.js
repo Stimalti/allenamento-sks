@@ -144,6 +144,13 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"st-affondo-oscillante": [
+{
+"u": "https://www.facebook.com/share/r/1AEJwNpUvu/",
+"n": "Yoga with gokul · «Tight hips? Give your lower back some relief»: l’affondo con il bacino che va avanti e indietro, con le animazioni dell’ileopsoas e della colonna (tutto il video, circa 0:00-0:20)",
+"v": "151"
+}
+],
 "s-cavi-3in1": [
 {
 "u": "https://www.facebook.com/share/r/1AJHcb5Zju/",

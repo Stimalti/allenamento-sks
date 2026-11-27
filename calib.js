@@ -2833,6 +2833,16 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     set: 'In piedi, braccia tese avanti.', pos: 'Spalle basse.',
     ese: ['Piega i polsi verso l’alto.', 'Poi verso il basso.', 'Aggiungi anche cerchi nei due sensi.'], cue: 'Movimento ampio e lento.',
     why: 'Scalda i polsi prima di allenarsi (piegamenti, panca, plank).', err: ['Andare a scatti']});
+  // ---------------- dal reel di Yoga with gokul (flessori dell'anca e zona lombare) ----------------
+  { const A = [206, 212], A2 = [74, KNEE], H0 = [148, 176], H1 = [159, 186];   /* ginocchio dietro fermo a terra in [122, KNEE]: il bacino ruota attorno a lui */
+    const pose = (H, t) => { const [th, sh] = legTo(H, A), K = add(H, U.TH, th), [ua, fa] = armTo(add(H, U.TL, t), [K[0] - 2, K[1] - 5], down); return [ua, fa, {t, h: H, th, sh, ft: 10}]; };
+    ST({id: 'st-affondo-oscillante', n: 'Affondo basso oscillante (bacino avanti e indietro)', sm: ['flessori', 'lombare', 'quadricipiti'], dyn: true, dose: '10-12 oscillazioni lente per lato', m: 'Flessori dell’anca, quadricipiti', mm: 'ileopsoas e retto femorale della gamba dietro; gluteo e quadricipite della gamba davanti che controllano il movimento', st: 'stand', rl: A2, tempo: [2.4, .6, 2.4], yq: 'low lunge hip flexor rocking stretch',
+      fr: [pose(H0, 180), pose(H1, 182)], cap: ['Affondo lungo, ginocchio dietro a terra, mani sul ginocchio davanti', 'Bacino avanti e in basso: si allunga davanti all’anca dietro'],
+      set: 'Su un tappetino, affondo lungo: ginocchio dietro a terra con il collo del piede appoggiato, piede davanti ben avanti e piatto.', pos: 'Busto dritto, mani appoggiate sul ginocchio davanti, spalle basse, sguardo avanti.',
+      ese: ['Porta lentamente il bacino in avanti e in basso, finché senti allungare davanti all’anca della gamba dietro.', 'Tieni 1-2 secondi respirando a fondo.', 'Torna indietro senza alzarti del tutto e ripeti; poi cambia gamba.'],
+      cue: 'Stringi il gluteo della gamba dietro e tieni il busto dritto: il bacino scivola avanti, la schiena non si inarca.',
+      why: 'Dal reel di Yoga with gokul («Tight hips? Give your lower back some relief»). Il movimento lento e ripetuto allunga i flessori profondi dell’anca, soprattutto l’ileopsoas, e migliora il controllo del bacino. Quando sono accorciati, per esempio dopo tante ore seduti, tirano la zona lombare in avanti: allungarli spesso dà sollievo alla schiena.',
+      err: ['Inarcare la zona lombare invece di portare avanti il bacino', 'Forzare l’allungamento: vai piano e respira', 'Ginocchio davanti che cade verso l’interno', 'Ginocchio dietro sul pavimento duro: mettilo su un tappetino']}); }
 })();
 
 /* ===== spalle e schiena: "3-in-1 Seated Cable Exercise" (reel di Oleg Zoryukov / Олег Зорюков, idea di Lisy Colon Marchany): seduto davanti ai cavi bassi, alzata sopra la testa + rematore a gomiti larghi + estensione a braccia tese ===== */
