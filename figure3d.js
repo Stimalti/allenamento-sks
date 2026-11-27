@@ -530,7 +530,7 @@ const FIG3 = (() => {
     let pose = null, rigInst = null;
     const trail = new THREE.Group(); scene.add(trail);
     if (window.FIG3_ICON) { floor.visible = false; ring.visible = false; trail.visible = false; }
-    if (ex.str) trail.visible = false;   // stretching: niente traiettoria (si accende con il tasto)
+    if (ex.str || ex.notrail) trail.visible = false;   // stretching e sequenze di piu' movimenti (ex.notrail): niente traiettoria (si accende con il tasto)
     const tMat = new THREE.MeshBasicMaterial({color: 0x22c7ff, depthTest: false, transparent: true, opacity: .95}), sMat = new THREE.MeshBasicMaterial({color: 0x22c55e, depthTest: false}), eMat = new THREE.MeshBasicMaterial({color: 0xff6b35, depthTest: false});
     function buildTrail() {
       while (trail.children.length) trail.remove(trail.children[0]);
@@ -601,7 +601,7 @@ const FIG3 = (() => {
     let lastK = -1;
     mb.onclick = () => { o.showM = !o.showM; mb.classList.toggle('on', o.showM); lastK = -1; };
     tb.onclick = () => { trail.visible = !trail.visible; tb.classList.toggle('on', trail.visible); };
-    if (ex.str) tb.classList.remove('on');
+    if (ex.str || ex.notrail) tb.classList.remove('on');
     function frame(t) {
       if (o.dead) return;
       o.raf = requestAnimationFrame(frame);

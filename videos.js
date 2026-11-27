@@ -144,6 +144,34 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"s-cavi-3in1": [
+{
+"u": "https://www.facebook.com/share/r/1AJHcb5Zju/",
+"n": "Oleg Zoryukov (Олег Зорюков) · «3-in-1 Seated Cable Exercise», su un’idea di Lisy Colon Marchany: la versione originale (schermo diviso) a 0:00-0:06, la sequenza ai cavi bassi a 0:07-0:13",
+"v": "150"
+}
+],
+"s-cavi-sopra-testa-seduto": [
+{
+"u": "https://www.facebook.com/share/r/1AJHcb5Zju/",
+"n": "Oleg Zoryukov (Олег Зорюков) · «3-in-1 Seated Cable Exercise», su un’idea di Lisy Colon Marchany: l’alzata sopra la testa a 0:07-0:10",
+"v": "150"
+}
+],
+"s-cavi-rematore-gomiti-larghi": [
+{
+"u": "https://www.facebook.com/share/r/1AJHcb5Zju/",
+"n": "Oleg Zoryukov (Олег Зорюков) · «3-in-1 Seated Cable Exercise», su un’idea di Lisy Colon Marchany: il rematore a gomiti larghi a 0:10-0:11",
+"v": "150"
+}
+],
+"b-cavi-estensione-braccia-tese": [
+{
+"u": "https://www.facebook.com/share/r/1AJHcb5Zju/",
+"n": "Oleg Zoryukov (Олег Зорюков) · «3-in-1 Seated Cable Exercise», su un’idea di Lisy Colon Marchany: l’estensione a braccia tese a 0:11-0:13",
+"v": "150"
+}
+],
 "b-rope-lat-panca": [
 {
 "u": "https://www.facebook.com/share/r/1KuzMm2r7k/",

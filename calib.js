@@ -2834,3 +2834,46 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     ese: ['Piega i polsi verso l’alto.', 'Poi verso il basso.', 'Aggiungi anche cerchi nei due sensi.'], cue: 'Movimento ampio e lento.',
     why: 'Scalda i polsi prima di allenarsi (piegamenti, panca, plank).', err: ['Andare a scatti']});
 })();
+
+/* ===== spalle e schiena: "3-in-1 Seated Cable Exercise" (reel di Oleg Zoryukov / Олег Зорюков, idea di Lisy Colon Marchany): seduto davanti ai cavi bassi, alzata sopra la testa + rematore a gomiti larghi + estensione a braccia tese ===== */
+(() => {
+  if (EX.some(e => e.id === 's-cavi-3in1')) return;
+  const REEL = 'Dal reel di Oleg Zoryukov (Олег Зорюков) «3-in-1 Seated Cable Exercise», su un’idea di Lisy Colon Marchany.';
+  const C = {a: 'Cavi', eq: 'cable', an: [272, 212], due: true, st: 'seat', benchSt: 'edge', nb: true, fin: ['massa', 'tonificare'], fam: 'Cavi bassi da seduto 3 in 1',
+    set: 'Due cavi BASSI (crossover), una maniglia per mano. Metti una panca piana (o uno step alto) al centro, a circa un passo e mezzo dalle pulegge, e siediti di fronte ai cavi con i piedi ben piantati a terra. Con una sola puleggia puoi usare la corda.',
+    pos: 'Busto dritto, addome contratto, petto alto, spalle basse. Le braccia partono distese in avanti verso le pulegge.'};
+  const add = o => EX.push(Object.assign({}, C, o));
+  add({id: 's-cavi-3in1', n: 'Cavi bassi da seduto 3 in 1 (spalle e schiena)', varName: '3 in 1 (sequenza)', g: 'spalle', g2: ['schiena'], tipo: 'semi', presa: 'neu', gz: 28, lat: 2.2, tempo: [6.4, .6, 6.4], notrail: true,
+    m: 'Deltoidi (tutti e tre i capi), trapezio, romboidi, gran dorsale', mm: 'deltoide anteriore e laterale (alzata sopra la testa); deltoide posteriore, trapezio medio e romboidi (rematore a gomiti larghi); gran dorsale, grande rotondo e deltoide posteriore (estensione a braccia tese)',
+    fr: [[45, 45, {t: 182}], [172, 172, {t: 180}], [80, 80, {t: 180}], [-75, 95, {t: 182}], [66, 66, {t: 180}], [-25, -25, {t: 182}]],
+    cap: ['Seduto davanti ai cavi bassi, braccia distese in avanti', 'Ultimo movimento: braccia tese spinte indietro oltre i fianchi'],
+    trj: 'Una ripetizione sono tre movimenti di fila: le mani salgono a braccia tese dal basso fin sopra la testa, riscendono davanti all’altezza delle spalle, tirano verso il petto con i gomiti larghi, si ridistendono e infine scendono a braccia tese fino dietro i fianchi.',
+    ese: ['Alzata sopra la testa: a braccia tese porta le maniglie dal basso fin sopra la testa, poi riscendi fino all’altezza delle spalle.', 'Rematore a gomiti larghi: tira le maniglie verso il petto con i gomiti aperti all’altezza delle spalle e stringi le scapole, poi ridistendi le braccia.', 'Estensione a braccia tese: con i gomiti quasi tesi spingi le maniglie in basso e indietro oltre i fianchi, poi torna avanti.', 'Questa è una ripetizione: ripeti la sequenza senza pause (8-10 volte). In alternativa fai 8-10 ripetizioni di ogni movimento, uno dopo l’altro.'],
+    cue: 'Busto fermo: si muovono solo le braccia, ogni movimento parte dalla spalla.',
+    why: REEL + ' Con un solo assetto allena tre azioni diverse della spalla: la flessione sopra la testa (deltoidi anteriori e laterali), l’apertura orizzontale con le scapole che si stringono (deltoidi posteriori, trapezio medio, romboidi) e l’estensione oltre il busto (gran dorsale, grande rotondo, deltoidi posteriori). Da seduto il busto resta fermo e non si può usare lo slancio: ottimo come finale per spalle e schiena alta, con carichi leggeri.',
+    err: ['Inarcare la zona lombare quando le braccia vanno sopra la testa', 'Nel rematore far scendere i gomiti vicino ai fianchi: devono restare alti e larghi', 'Dondolare con il busto nell’estensione', 'Carico troppo alto: è un lavoro di controllo']});
+  add({id: 's-cavi-sopra-testa-seduto', n: 'Alzata sopra la testa ai cavi bassi da seduto (braccia tese)', varName: 'Alzata sopra la testa', g: 'spalle', tipo: 'iso', presa: 'neu', gz: 30,
+    m: 'Deltoidi anteriori e laterali', mm: 'deltoide anteriore, deltoide laterale, trapezio superiore e inferiore, dentato anteriore',
+    fr: [[45, 45, {t: 182}], [172, 172, {t: 180}]], cap: ['Braccia distese in avanti verso i cavi bassi', 'Braccia tese sopra la testa'],
+    trj: 'Le mani salgono su un arco a braccia tese, dal basso davanti fin sopra la testa, e riscendono sulla stessa strada.',
+    ese: ['Parti con le braccia distese verso le pulegge, pollici in alto.', 'Porta le braccia tese in avanti e in alto fin sopra la testa.', 'Fermati prima che la schiena si inarchi e riscendi lentamente.'],
+    cue: 'Coste giù: la schiena non si inarca mentre le braccia salgono.',
+    why: REEL + ' È il primo dei tre movimenti. Il cavo basso davanti tiene in tensione i deltoidi anteriori e laterali per tutta l’alzata, anche sopra la testa, dove con i manubri non lavorano più.',
+    err: ['Inarcare la zona lombare', 'Piegare i gomiti', 'Alzare le spalle verso le orecchie']});
+  add({id: 's-cavi-rematore-gomiti-larghi', n: 'Rematore a gomiti larghi ai cavi bassi da seduto (deltoidi posteriori)', varName: 'Rematore a gomiti larghi', g: 'spalle', g2: ['schiena'], tipo: 'semi', presa: 'pro', gz: 26, lat: 2.6,
+    m: 'Deltoidi posteriori, trapezio medio, romboidi', mm: 'deltoide posteriore, trapezio medio, romboidi, sottospinato e piccolo rotondo; bicipiti in appoggio',
+    fr: [[72, 72, {t: 178}], [-75, 95, {t: 182}]], cap: ['Braccia distese in avanti verso i cavi', 'Maniglie al petto, gomiti larghi all’altezza delle spalle'],
+    trj: 'Le mani vengono verso il petto quasi in orizzontale; i gomiti si aprono di lato e restano all’altezza delle spalle.',
+    ese: ['Parti con le braccia distese in avanti, palmi verso il basso.', 'Tira le maniglie verso il petto con i gomiti aperti e alti, all’altezza delle spalle.', 'Stringi le scapole 1 secondo.', 'Ridistendi le braccia lentamente.'],
+    cue: 'Gomiti larghi e alti: tirano i deltoidi posteriori, non i dorsali.',
+    why: REEL + ' È il secondo dei tre movimenti. Tirando con i gomiti alti e larghi il lavoro passa dai dorsali ai deltoidi posteriori, al trapezio medio e ai romboidi: il contrario delle tante spinte con il petto.',
+    err: ['Gomiti che scendono vicino ai fianchi (diventa un rematore per i dorsali)', 'Busto che va indietro', 'Spalle che salgono']});
+  add({id: 'b-cavi-estensione-braccia-tese', n: 'Estensione a braccia tese ai cavi bassi da seduto (dorsali)', varName: 'Estensione a braccia tese', g: 'schiena', g2: ['spalle'], tipo: 'iso', presa: 'pro', gz: 30,
+    m: 'Gran dorsale, grande rotondo, deltoidi posteriori', mm: 'gran dorsale, grande rotondo, deltoide posteriore, capo lungo del tricipite',
+    fr: [[62, 62, {t: 178}], [-25, -25, {t: 182}]], cap: ['Braccia distese in avanti verso i cavi', 'Braccia tese spinte indietro oltre i fianchi'],
+    trj: 'Le mani scendono su un arco a braccia tese, dall’avanti fino dietro i fianchi, e tornano sulla stessa strada.',
+    ese: ['Parti con le braccia distese in avanti e i gomiti appena piegati.', 'Spingi le maniglie in basso e indietro fino a superare i fianchi.', 'Fermati 1 secondo stringendo i dorsali.', 'Torna avanti lentamente.'],
+    cue: 'Il gomito resta fermo: si muove solo la spalla.',
+    why: REEL + ' È il terzo dei tre movimenti. Portare le braccia oltre il busto accorcia al massimo gran dorsale e grande rotondo, come un pulldown a braccia tese ma con il cavo che arriva dal basso davanti.',
+    err: ['Piegare i gomiti (diventa un esercizio per i tricipiti)', 'Dondolare con il busto', 'Spalle che vanno in avanti alla fine']});
+})();
