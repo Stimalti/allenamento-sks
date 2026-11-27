@@ -144,6 +144,13 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"st-bambino-ginocchia-incrociate": [
+{
+"u": "https://www.facebook.com/share/r/1MXkhS3cpX/",
+"n": "Yoga with gokul · «Tight lower back? Feeling sciatic discomfort?»: il ginocchio incrociato dietro l’altro a 0:00-0:03, la discesa indietro verso i talloni a 0:03-0:13, con l’animazione del piriforme e del nervo sciatico",
+"v": "152"
+}
+],
 "st-affondo-oscillante": [
 {
 "u": "https://www.facebook.com/share/r/1AEJwNpUvu/",
