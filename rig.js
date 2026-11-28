@@ -198,7 +198,7 @@ const RIG = (() => {
           if (hf.lengthSq() < 1e-6) hf = lastHf[s] || J.armF[s]; else hf.normalize(); }
         lastHf[s] = hf.clone();
         if (J.obj && J.obj[s]) { const hd0 = tip.clone().sub(wrist).normalize(), pn0 = (s === 'R' ? hf.clone().cross(hd0) : hd0.clone().cross(hf)).normalize().multiplyScalar(-.013); wrist.add(pn0); tip.add(pn0); }   // l'attrezzo sta dentro il pugno, sul lato del palmo (la mano si sposta verso il dorso)
-        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.armF[s]); setBone('armF' + s, el, wrist, J.presa ? hf : J.armF[s]); setBone('hand' + s, wrist, tip, hf); // l'avambraccio ruota con la presa (prono-supinazione)
+        setBone('clav' + s, N, sh, front); setBone('armU' + s, sh, el, J.presa === 'sup' ? J.armF[s].clone().multiplyScalar(.1).addScaledVector(hf, .9) : J.armF[s]);   /* presa supina: anche l'omero ruota un po' verso l'esterno, cosi' la torsione non resta tutta al gomito (niente strappo nella pelle) */ setBone('armF' + s, el, wrist, J.presa ? hf : J.armF[s]); setBone('hand' + s, wrist, tip, hf); // l'avambraccio ruota con la presa (prono-supinazione)
         { const hbI = IDX['hand' + s], hb = bones[hbI]; hb.updateMatrix();
           const Mm = hb.matrix.clone().multiply(inv[hbI]), obj = J.obj && J.obj[s], target = obj || J.H;
           const hd = tip.clone().sub(wrist).normalize(), ax = hf.clone().addScaledVector(hd, -hf.dot(hd)).normalize();

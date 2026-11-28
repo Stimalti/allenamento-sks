@@ -144,6 +144,13 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"b-shrug-db-supina": [
+{
+"u": "https://www.facebook.com/share/r/1CS2eGTKsd/",
+"n": "Sandip Prajapati · «Bring Back This Old-School Trap Exercise!»: Charles Glass mostra la scrollata con manubri a presa supina (0:04-0:09), le ripetizioni viste di lato e da dietro nel resto del video; in fondo serie e ripetizioni (3-4 × 10-12, recupero 75 s)",
+"v": "154"
+}
+],
 "b-due-cavi-alti-braccia-tese": [
 {
 "u": "https://www.facebook.com/share/r/19trRbF7Q5/",

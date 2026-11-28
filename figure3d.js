@@ -621,7 +621,7 @@ const FIG3 = (() => {
           const act = {}; if (o.showM) musOf(ex).forEach(g => { act[g] = .35 + .65 * k; }); rigInst.setMuscles(act);
         }
         while (pool.length > prims.length) group.remove(pool.pop());
-        const PR = {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.eq || ex.a !== 'Corpo libero' ? ex.presa : null];
+        const PR = ex.presaTxt || {pro: 'prona (palmi in giù / in avanti, pollici verso l’interno)', sup: 'supina (palmi in su / verso di te, pollici verso l’esterno)', neu: 'neutra (palmi che si guardano)'}[ex.eq || ex.a !== 'Corpo libero' ? ex.presa : null];   // ex.presaTxt: descrizione su misura (es. braccia lungo i fianchi: «palmi in avanti»)
         const back = ex.ref && ex.ref.cap ? ex.ref.cap : ex.st === 'inc' ? 'schiena appoggiata alla panca inclinata a ' + (ex.inc || 45) + '° (angolo arancione)' : ex.benchSt === 'ht' ? 'scapole appoggiate al bordo della panca' : ex.st === 'lie' ? 'schiena appoggiata alla panca piana' : (prims.tiltAll > 5 ? 'busto inclinato di circa ' + prims.tiltAll + '° dalla verticale, schiena dritta (neutra)' : 'busto verticale, schiena dritta');
         cap.innerHTML = '<b>' + esc3((k < .5 ? ex.cap[0] : ex.cap[1]) ?? ex.cap[0] ?? '') + '</b><br>' + (PR ? 'Presa ' + esc3(PR) + ' · ' : '') + esc3(back);
       }

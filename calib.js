@@ -2939,3 +2939,20 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
       why: REEL + ' È il suo ultimo esercizio, seduto su una panca invece che a terra. Con i gomiti aperti e la rotazione esterna finale il carico va ai deltoidi posteriori e al grande rotondo, la parte alta ed esterna della schiena.'});
     delete e.alt; delete e.vars; delete e.varsLabel; EX.push(e); }
 })();
+
+/* ===== trapezio: scrollate con manubri a presa supina (Charles Glass), dal reel di Sandip Prajapati «Bring Back This Old-School Trap Exercise!» ===== */
+(() => {
+  const b = EX.find(e => e.id === 'b-shrug-db'); if (!b || EX.some(e => e.id === 'b-shrug-db-supina')) return;
+  const e = Object.assign(JSON.parse(JSON.stringify(b)), {id: 'b-shrug-db-supina', n: 'Scrollate con manubri a presa supina (palmi in avanti)', varName: 'Manubri, presa supina', presa: 'sup', presaTxt: 'supina (palmi in avanti, pollici verso l’esterno)', famRe: b.famRe,
+    m: 'Trapezio superiore e medio', mm: 'trapezio superiore e medio, elevatore della scapola, romboidi; avambracci e bicipiti in tenuta',
+    fr: [[6, 6], [6, 6, {tl: 64}]], gz: 31,
+    cap: ['Manubri davanti alle cosce, palmi in avanti, braccia tese', 'Spalle alzate verso le orecchie e un po’ indietro'],
+    trj: 'Le spalle salgono in verticale verso le orecchie, con un leggero movimento indietro delle scapole in alto; le braccia restano tese.',
+    set: 'Due manubri tenuti con presa supina: palmi in avanti, pollici verso l’esterno, manubri appena davanti alle cosce. Piedi alla larghezza del bacino.',
+    pos: 'Braccia tese e rilassate, gomiti fermi, petto alto, mento neutro.',
+    ese: ['Alza le spalle verso le orecchie il più possibile, portandole leggermente indietro.', 'Tieni 1 secondo in alto stringendo il trapezio.', 'Scendi lentamente lasciando allungare il trapezio.'],
+    cue: 'Le braccia sono solo ganci: sale la spalla, i gomiti non si piegano.',
+    why: 'Dal reel di Sandip Prajapati («Bring Back This Old-School Trap Exercise!»), con Charles Glass che la mostra: la scrollata «dimenticata» a presa supina. Con i palmi in avanti le spalle restano più aperte e le scapole salgono un po’ indietro, così lavora tutto il trapezio superiore e medio invece delle sole spalle che rotolano in avanti. Nel video: 3-4 serie da 10-12 ripetizioni, 75 secondi di recupero.',
+    err: ['Piegare i gomiti (diventa un curl)', 'Ruotare le spalle in cerchio', 'Mento in avanti', 'Usare lo slancio invece di salire e scendere controllato']});
+  delete e.alt; delete e.vars; delete e.varsLabel; EX.push(e);
+})();
