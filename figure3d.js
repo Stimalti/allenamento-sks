@@ -317,6 +317,10 @@ const FIG3 = (() => {
       if (ex.dbn) {   // ex.dbn: manubri paralleli al busto e affiancati (presa neutra, squeeze press): l'asse e' perpendicolare all'avambraccio, nel piano laterale
         const u = [Math.sin((p.fa + 90) * R), Math.cos((p.fa + 90) * R)], at = k => [grip[0] + u[0] * k, grip[1] + u[1] * k];
         zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(at(-9), z), pt3(at(9), z), 2.2, STEEL), cyl(pt3(at(-11), z), pt3(at(-5), z), 7.4, BLK), cyl(pt3(at(5), z), pt3(at(11), z), 7.4, BLK)); });
+      } else if (ex.dba !== undefined) {   // ex.dba: manubrio inclinato (gradi): 0 = di traverso (presa supina), 90 = come dbn (martello); 45 = presa a 45°, estremita' esterna piu' alta
+        const u = [Math.sin((p.fa + 90) * R), Math.cos((p.fa + 90) * R)], a = ex.dba * R;
+        zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ, sz = zz === ZN ? 1 : -1, at = k => [grip[0] + u[0] * Math.sin(a) * k, grip[1] + u[1] * Math.sin(a) * k, z + sz * Math.cos(a) * k];
+          P.push(cyl(at(-9), at(9), 2.2, STEEL), cyl(at(-11), at(-5), 7.4, BLK), cyl(at(5), at(11), 7.4, BLK)); });
       } else zs.forEach(zz => { const z = zz === ZN ? GZ : -GZ; P.push(cyl(pt3(grip, z - 9), pt3(grip, z + 9), 2.2, STEEL), cyl(pt3(grip, z - 11), pt3(grip, z - 5), 7.4, BLK), cyl(pt3(grip, z + 5), pt3(grip, z + 11), 7.4, BLK)); });
     } else if (ex.eq === 'hb') {
       P.push(cyl(pt3([150, 20], -62), pt3([150, 20], 62), 3, STEEL), cyl(pt3([150, 20], -62), pt3([150, FLOOR], -62), 4, TW), cyl(pt3([150, 20], 62), pt3([150, FLOOR], 62), 4, TW));

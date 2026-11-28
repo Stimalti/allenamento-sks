@@ -144,6 +144,41 @@ const VIDEOS = {
 "v": "142"
 }
 ],
+"c-hammer-uniti": [
+{
+"u": "https://www.facebook.com/share/r/1D4cBtXwVv/",
+"n": "Ryoya · «BIG biceps exercise», 6 esercizi con manubri: il quarto, curl a martello con i manubri uniti, a 0:23-0:26 (3 × 12)",
+"v": "155"
+}
+],
+"c-curl-45": [
+{
+"u": "https://www.facebook.com/share/r/1D4cBtXwVv/",
+"n": "Ryoya · «BIG biceps exercise», 6 esercizi con manubri: il sesto, curl a presa 45°, a 0:29-0:32 (3 × 15)",
+"v": "155"
+}
+],
+"c-curl-db": [
+{
+"u": "https://www.facebook.com/share/r/1D4cBtXwVv/",
+"n": "Ryoya · «BIG biceps exercise», 6 esercizi con manubri: curl con manubri, a due braccia (0:14-0:17, 3 × 15) e alternato (0:26-0:29, 3 × 20)",
+"v": "155"
+}
+],
+"c-hammer-cross": [
+{
+"u": "https://www.facebook.com/share/r/1D4cBtXwVv/",
+"n": "Ryoya · «BIG biceps exercise», 6 esercizi con manubri: il secondo, curl a martello incrociato, a 0:17-0:20 (3 × 20)",
+"v": "155"
+}
+],
+"c-hammer-db": [
+{
+"u": "https://www.facebook.com/share/r/1D4cBtXwVv/",
+"n": "Ryoya · «BIG biceps exercise», 6 esercizi con manubri: il terzo, curl a martello, a 0:20-0:23 (3 × 15)",
+"v": "155"
+}
+],
 "b-shrug-db-supina": [
 {
 "u": "https://www.facebook.com/share/r/1CS2eGTKsd/",

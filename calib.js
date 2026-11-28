@@ -2956,3 +2956,32 @@ Object.entries({'sm-panca':[[152.2,152.2],[80,180]], 'sm-incl':[[157.2,157.2],[5
     err: ['Piegare i gomiti (diventa un curl)', 'Ruotare le spalle in cerchio', 'Mento in avanti', 'Usare lo slancio invece di salire e scendere controllato']});
   delete e.alt; delete e.vars; delete e.varsLabel; EX.push(e);
 })();
+
+/* ===== bicipiti: dal reel di Ryoya «BIG biceps exercise» (6 esercizi con manubri). C'erano gia': curl con manubri (c-curl-db), curl a martello (c-hammer-db),
+   curl a martello incrociato (c-hammer-cross). Nuovi: curl a martello con i manubri uniti, curl a presa 45°. Inoltre i manubri a presa neutra (martello, scrollate) si disegnano in verticale (dbn). ===== */
+(() => {
+  ['c-hammer-db', 'c-hammer-cross', 'b-shrug-db'].forEach(id => { const e = EX.find(x => x.id === id); if (e && !e.dba) e.dbn = true; });
+  const b = EX.find(e => e.id === 'c-hammer-db'), c = EX.find(e => e.id === 'c-curl-db'); if (!b || !c || EX.some(e => e.id === 'c-hammer-uniti')) return;
+  const REEL = 'Dal reel di Ryoya «BIG biceps exercise».';
+  const mk = (base, o) => { const e = Object.assign(JSON.parse(JSON.stringify(base)), {famRe: base.famRe}, o); delete e.alt; delete e.vars; delete e.varsLabel; EX.push(e); };
+  mk(b, {id: 'c-hammer-uniti', n: 'Curl a martello con i manubri uniti (presa stretta)', varName: 'Manubri uniti', presa: 'neu', dbn: true, gz: 7, lat: .4,
+    m: 'Brachiale, brachioradiale, bicipiti', mm: 'brachiale, brachioradiale, bicipite brachiale (capo lungo); deltoide anteriore in tenuta',
+    fr: [[10, 10], [22, 152]], cap: ['Manubri verticali e uniti davanti alle cosce', 'Manubri uniti saliti al petto, gomiti vicini ai fianchi'],
+    trj: 'I due manubri, tenuti verticali e a contatto, salgono insieme davanti al corpo fino al petto e riscendono sulla stessa strada.',
+    set: 'Due manubri tenuti a presa neutra (palmi che si guardano) e uniti davanti al corpo: le testate si toccano per tutta la serie. In piedi, piedi alla larghezza del bacino.',
+    pos: 'Gomiti vicini ai fianchi, spalle basse, busto fermo.',
+    ese: ['Porta i manubri uniti verso il petto piegando i gomiti.', 'Stringi 1 secondo in alto premendo i manubri uno contro l’altro.', 'Scendi lentamente fino a braccia quasi distese.'],
+    cue: 'Premi i manubri uno contro l’altro: le mani non si separano mai.',
+    why: REEL + ' Con i manubri uniti le mani lavorano strette davanti al corpo: brachiale e brachioradiale spingono il braccio «in larghezza» e la spinta tra i due manubri tiene i bicipiti in tensione per tutta la ripetizione. Nel video: 3 serie da 12.',
+    err: ['Gomiti che vanno avanti', 'Dondolare con il busto', 'Manubri che si separano']});
+  mk(c, {id: 'c-curl-45', n: 'Curl con manubri a presa 45° (semi-martello)', varName: 'Presa a 45°', presa: 'semi', dba: 45, presaTxt: 'a 45°, a metà tra martello e supina (pollici in alto e un po’ in fuori)',
+    m: 'Bicipiti, brachiale, brachioradiale', mm: 'bicipite brachiale, brachiale, brachioradiale',
+    cap: ['Braccia distese, manubri inclinati a 45°', 'Manubri al petto, presa sempre a 45°'],
+    trj: 'Il manubrio sale davanti alla spalla tenendo sempre la stessa inclinazione a 45°, a metà tra il curl classico e quello a martello.',
+    set: 'Due manubri tenuti inclinati a 45°: a metà tra palmi in avanti e palmi che si guardano, con l’estremità esterna un po’ più alta. In piedi, piedi alla larghezza del bacino.',
+    pos: 'Gomiti vicini ai fianchi, spalle basse, busto fermo.',
+    ese: ['Porta un manubrio verso la spalla tenendo la presa a 45°.', 'Stringi 1 secondo in alto.', 'Scendi lentamente e fai salire l’altro braccio (oppure tutti e due insieme).'],
+    cue: 'Il polso non ruota: la presa a 45° resta uguale dall’inizio alla fine.',
+    why: REEL + ' La presa a 45° divide il lavoro tra bicipite, brachiale e brachioradiale e spesso è più comoda per polsi e gomiti del curl a palmi in avanti. Nel video: 3 serie da 15.',
+    err: ['Ruotare il polso durante la salita', 'Gomiti che vanno avanti', 'Slancio con la schiena']});
+})();
